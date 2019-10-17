@@ -6,11 +6,11 @@
   "brand": "kocmoc",
   "author": "janne808",
   "authorEmail": "janne808@radiofreerobotron.net",
-  "authorUrl": "",
+  "authorUrl": "https://radiofreerobotron.net/blog/",
   "pluginUrl": "",
   "manualUrl": "",
-  "sourceUrl": "",
-  "donateUrl": "",
+  "sourceUrl": "https://github.com/janne808/kocmoc-rack-modules/",
+  "donateUrl": "janne808@gmail.com",
   "changelogUrl": "",
   "modules": [
     {
