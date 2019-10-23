@@ -31,7 +31,8 @@ struct SVF_1 : Module {
      NUM_PARAMS
   };
   enum InputIds {
-     CV_INPUT,
+     LINCV_INPUT,
+     EXPCV_INPUT,
      INPUT_INPUT,
      NUM_INPUTS
   };
@@ -43,8 +44,10 @@ struct SVF_1 : Module {
      NUM_LIGHTS
   };
 
+  int _oversampling = 2;
+  
   // create svf class instance
-  SVF *svf = new SVF((double)(0.25), (double)(0.0), 2, 0, (double)(APP->engine->getSampleRate()));
+  SVF *svf = new SVF((double)(0.25), (double)(0.0), _oversampling, 0, (double)(APP->engine->getSampleRate()));
   
   SVF_1() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -55,21 +58,22 @@ struct SVF_1 : Module {
   }
 
   void process(const ProcessArgs& args) override {
-    // parameter filters
-    static float cutoff_prime=0;
-    static float reso_prime=0;
-
+    // parameters
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
 
-    // smooth parameter changes
-    cutoff_prime = (cutoff * (1.0-0.999)) + (cutoff_prime * 0.999); 
-    reso_prime = (reso * (1.0-0.993)) + (reso_prime * 0.993); 
+    // shape panel input for a pseudoexponential response
+    cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
     
+    // sum in linear cv
+    cutoff += inputs[LINCV_INPUT].getVoltage()/5.f;
+
+    // apply exponential cv
+    cutoff = cutoff * std::pow(2.f, inputs[EXPCV_INPUT].getVoltage());
+      
     // set filter parameters
-    // sum up CV into cutoff frequency
-    svf->SetFilterCutoff((double)(cutoff_prime + inputs[CV_INPUT].getVoltage()/5.f));
-    svf->SetFilterResonance((double)(reso_prime));
+    svf->SetFilterCutoff((double)(cutoff));
+    svf->SetFilterResonance((double)(reso));
     svf->SetFilterMode(params[MODE_PARAM].getValue());
     
     // tick filter state
@@ -86,6 +90,18 @@ struct SVF_1 : Module {
 
   //void onReset(){
   //}
+
+  json_t* dataToJson() override {
+    json_t* rootJ = json_object();
+    json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));
+    return rootJ;
+  }
+
+  void dataFromJson(json_t* rootJ) override {
+    json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
+    if (oversamplingJ)
+      _oversampling = json_integer_value(oversamplingJ);
+  }
 };
 
 struct SVF_1Widget : ModuleWidget {
@@ -98,16 +114,49 @@ struct SVF_1Widget : ModuleWidget {
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     
-    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(10.68, 30.74)), module, SVF_1::FREQ_PARAM));
-    addParam(createParam<RoundBlackKnob>(mm2px(Vec(15.24, 58.06)), module, SVF_1::RESO_PARAM));
+    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(10.68, 13.34)), module, SVF_1::FREQ_PARAM));
+    addParam(createParam<RoundBlackKnob>(mm2px(Vec(15.24, 39.56)), module, SVF_1::RESO_PARAM));
     addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(6.18, 81.38)), module, SVF_1::GAIN_PARAM));
 
     addParam(createParam<CKSSThree>(Vec(83.48, 238.7), module, SVF_1::MODE_PARAM));
     
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(20.32, 20.42)), module, SVF_1::CV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.16, 65.72)), module, SVF_1::LINCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.48, 65.72)), module, SVF_1::EXPCV_INPUT));
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.16, 101.7)), module, SVF_1::INPUT_INPUT));
 
     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(30.48, 101.7)), module, SVF_1::OUTPUT_OUTPUT));
+  }
+
+  struct OversamplingMenuItem : MenuItem {
+    SVF_1* _module;
+    const int _oversampling;
+
+    OversamplingMenuItem(SVF_1* module, const char* label, int oversampling)
+      : _module(module)
+      , _oversampling(oversampling)
+    {
+      this->text = label;
+    }
+
+    void onAction(const event::Action& e) override {
+      _module->_oversampling = _oversampling;
+      _module->svf->SetFilterOversamplingFactor(_module->_oversampling);
+    }
+
+    void step() override {
+      MenuItem::step();
+      rightText = _module->_oversampling == _oversampling ? "✔" : "";
+    }
+  };
+  
+  void appendContextMenu(Menu* menu) override {
+    SVF_1* a = dynamic_cast<SVF_1*>(module);
+    assert(a);
+    
+    menu->addChild(new MenuLabel());
+    menu->addChild(new OversamplingMenuItem(a, "Oversampling: x2", 2));
+    menu->addChild(new OversamplingMenuItem(a, "Oversampling: x4", 4));
+    menu->addChild(new OversamplingMenuItem(a, "Oversampling: x8", 8));
   }
 };
 

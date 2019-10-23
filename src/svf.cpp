@@ -119,16 +119,13 @@ void SVF::SVFfilter(double input){
   double noise;
 
   // integration rate
-  double dt = 0.001+2.25*(cutoffFrequency*cutoffFrequency*
-			  cutoffFrequency*cutoffFrequency);
-
-  double dt_prime = dt / oversamplingFactor;
+  double dt_prime = cutoffFrequency / oversamplingFactor;
 
   // clip integration rate
   if(dt_prime < 0.0)
     dt_prime = 0.0;
-  if(dt_prime > 1.0)
-    dt_prime = 1.0;
+  if(dt_prime > 1.25)
+    dt_prime = 1.25;
   
   // feedback amount
   double fb = 1.0-Resonance;
