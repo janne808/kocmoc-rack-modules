@@ -61,9 +61,11 @@ struct SVF_1 : Module {
     // parameters
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
-
+    float gain = params[GAIN_PARAM].getValue();
+    
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
+    gain = (gain * gain * gain * gain)/10.f;
     
     // sum in linear cv
     cutoff += inputs[LINCV_INPUT].getVoltage()/5.f;
@@ -77,10 +79,10 @@ struct SVF_1 : Module {
     svf->SetFilterMode(params[MODE_PARAM].getValue());
     
     // tick filter state
-    svf->SVFfilter((double)(inputs[INPUT_INPUT].getVoltage()*params[GAIN_PARAM].getValue()/10.f));
+    svf->SVFfilter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput()*2.5));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 2.5));
   }
 
   void onSampleRateChange() override {
@@ -153,7 +155,8 @@ struct SVF_1Widget : ModuleWidget {
     SVF_1* a = dynamic_cast<SVF_1*>(module);
     assert(a);
     
-    menu->addChild(new MenuLabel());
+    menu->addChild(new MenuEntry());
+    menu->addChild(createMenuLabel("Oversampling"));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x2", 2));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x4", 4));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x8", 8));
