@@ -27,7 +27,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1.0808237"
      inkscape:cx="180.00176"
-     inkscape:cy="281.71665"
+     inkscape:cy="183.79161"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -251,23 +251,6 @@
        d="m 10.00968,254.96094 v 15.23828 h 0.300953 v -15.23828 z"
        id="path3992"
        inkscape:connector-curvature="0" />
-    <path
-       sodipodi:type="star"
-       style="fill:#000000;fill-opacity:1;stroke-width:0.26458332"
-       id="path4016"
-       sodipodi:sides="3"
-       sodipodi:cx="-20.320002"
-       sodipodi:cy="260.03998"
-       sodipodi:r1="5.0799999"
-       sodipodi:r2="2.5400002"
-       sodipodi:arg1="1.5707963"
-       sodipodi:arg2="2.6179939"
-       inkscape:flatsided="false"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m -20.320001,265.11998 -2.199705,-3.81 -2.199705,-3.81 4.399409,0 4.399409,0 -2.199704,3.81 z"
-       inkscape:transform-center-y="0.4233368"
-       transform="matrix(0.3522064,0,0,0.33333579,17.316835,187.50602)" />
     <g
        aria-label="FREQ"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -320,23 +303,6 @@
          id="path4112"
          inkscape:connector-curvature="0" />
     </g>
-    <path
-       transform="matrix(0.3522064,0,0,0.33333579,17.316835,151.49602)"
-       inkscape:transform-center-y="0.4233368"
-       d="m -20.320001,265.11998 -2.199705,-3.81 -2.199705,-3.81 4.399409,0 4.399409,0 -2.199704,3.81 z"
-       inkscape:randomized="0"
-       inkscape:rounded="0"
-       inkscape:flatsided="false"
-       sodipodi:arg2="2.6179939"
-       sodipodi:arg1="1.5707963"
-       sodipodi:r2="2.5400002"
-       sodipodi:r1="5.0799999"
-       sodipodi:cy="260.03998"
-       sodipodi:cx="-20.320002"
-       sodipodi:sides="3"
-       id="path4128"
-       style="fill:#000000;fill-opacity:1;stroke-width:0.26458332"
-       sodipodi:type="star" />
     <circle
        style="fill:#000000;fill-opacity:1;stroke-width:0.29583326"
        id="path4141"
@@ -391,23 +357,6 @@
          id="path4386"
          inkscape:connector-curvature="0" />
     </g>
-    <path
-       sodipodi:type="star"
-       style="fill:#000000;fill-opacity:1;stroke-width:0.26458332"
-       id="path84"
-       sodipodi:sides="3"
-       sodipodi:cx="-20.320002"
-       sodipodi:cy="260.03998"
-       sodipodi:r1="5.0799999"
-       sodipodi:r2="2.5400002"
-       sodipodi:arg1="1.5707963"
-       sodipodi:arg2="2.6179939"
-       inkscape:flatsided="false"
-       inkscape:rounded="0"
-       inkscape:randomized="0"
-       d="m -20.320001,265.11998 -2.199705,-3.81 -2.199705,-3.81 4.399409,0 4.399409,0 -2.199704,3.81 z"
-       inkscape:transform-center-y="0.4233368"
-       transform="matrix(0.3522064,0,0,0.33333579,37.636835,151.49602)" />
     <g
        aria-label="LIN CV"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
