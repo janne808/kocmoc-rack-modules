@@ -68,7 +68,7 @@ struct SVF_1 : Module {
     gain = (gain * gain * gain * gain)/10.f;
     
     // sum in linear cv
-    cutoff += inputs[LINCV_INPUT].getVoltage()/5.f;
+    cutoff += inputs[LINCV_INPUT].getVoltage()/10.f;
 
     // apply exponential cv
     cutoff = cutoff * std::pow(2.f, inputs[EXPCV_INPUT].getVoltage());
@@ -82,7 +82,7 @@ struct SVF_1 : Module {
     svf->SVFfilter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 2.5));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 5.0));
   }
 
   void onSampleRateChange() override {
@@ -157,6 +157,7 @@ struct SVF_1Widget : ModuleWidget {
     
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Oversampling"));
+    menu->addChild(new OversamplingMenuItem(a, "Oversampling: x1", 1));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x2", 2));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x4", 4));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x8", 8));

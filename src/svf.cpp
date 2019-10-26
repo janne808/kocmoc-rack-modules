@@ -119,8 +119,8 @@ void SVF::SVFfilter(double input){
   double noise;
 
   // integration rate
-  double dt_prime = cutoffFrequency / oversamplingFactor;
-
+  double dt_prime = (44100.0 / sampleRate * cutoffFrequency) / oversamplingFactor;
+  
   // clip integration rate
   if(dt_prime < 0.0)
     dt_prime = 0.0;
@@ -159,7 +159,9 @@ void SVF::SVFfilter(double input){
     }
 
     // downsampling filter
-    out = fir->FIRfilter(out);
+    if(oversamplingFactor > 1){
+      out = fir->FIRfilter(out);
+    }
   }
 }
 
