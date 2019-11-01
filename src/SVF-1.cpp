@@ -53,7 +53,7 @@ struct SVF_1 : Module {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "");
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "");
-    configParam(GAIN_PARAM, 0.f, 1.f, 0.25f, "");
+    configParam(GAIN_PARAM, 0.f, 1.f, 0.65f, "");
     configParam(MODE_PARAM, 0.f, 2.f, 0.f, "");
   }
 
