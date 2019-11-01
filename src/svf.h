@@ -37,7 +37,7 @@ public:
   void SetFilterOversamplingFactor(int newOversamplingFactor);
   void SetFilterMode(int newFilterMode);
   void SetFilterSampleRate(double newSampleRate);
-
+  
   // get filter parameters
   double GetFilterCutoff();
   double GetFilterResonance();
@@ -57,13 +57,17 @@ public:
   double GetFilterOutput();
   
 private:
+  // methods
+  void SetFilterIntegrationRate();
+
   // filter parameters
   double cutoffFrequency;
   double Resonance;
   int oversamplingFactor;
   int filterMode;
   double sampleRate;
-
+  double dt;
+  
   // filter state
   double lp;
   double bp;

@@ -33,6 +33,8 @@ SVF::SVF(double newCutoff, double newResonance, int newOversamplingFactor, int n
   filterMode = newFilterMode;
   sampleRate = newSampleRate;
 
+  SetFilterIntegrationRate();
+
   // initialize filter state
   hp = 0.0;
   bp = 0.0;
@@ -51,6 +53,8 @@ SVF::SVF(){
   oversamplingFactor = 4;
   filterMode = 0;
   sampleRate = 44100.0;
+
+  SetFilterIntegrationRate();
   
   // initialize filter state
   hp = 0.0;
@@ -69,6 +73,8 @@ SVF::~SVF(){
 
 void SVF::SetFilterCutoff(double newCutoff){
   cutoffFrequency = newCutoff;
+
+  SetFilterIntegrationRate();
 }
 
 void SVF::SetFilterResonance(double newResonance){
@@ -78,6 +84,8 @@ void SVF::SetFilterResonance(double newResonance){
 void SVF::SetFilterOversamplingFactor(int newOversamplingFactor){
   oversamplingFactor = newOversamplingFactor;
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+
+  SetFilterIntegrationRate();
 }
 
 void SVF::SetFilterMode(int newFilterMode){
@@ -88,6 +96,20 @@ void SVF::SetFilterSampleRate(double newSampleRate){
   sampleRate = newSampleRate;
   fir->SetFilterSamplerate(sampleRate * (double)(oversamplingFactor));
   fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
+
+  SetFilterIntegrationRate();
+}
+
+void SVF::SetFilterIntegrationRate(){
+  dt = 44100.0 / (sampleRate * oversamplingFactor) * cutoffFrequency;
+
+  // clip integration rate
+  if(dt < 0.0){
+    dt = 0.0;
+  }
+  if(dt > 1.25){
+    dt = 1.25;
+  }
 }
 
 double SVF::GetFilterCutoff(){
@@ -118,17 +140,8 @@ void SVF::SVFfilter(double input){
   // noise term
   double noise;
 
-  // integration rate
-  double dt_prime = (44100.0 / sampleRate * cutoffFrequency) / oversamplingFactor;
-  
-  // clip integration rate
-  if(dt_prime < 0.0)
-    dt_prime = 0.0;
-  if(dt_prime > 1.25)
-    dt_prime = 1.25;
-  
   // feedback amount
-  double fb = 1.0-Resonance;
+  double fb = 1.0 - 2.0 * Resonance;
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -137,11 +150,11 @@ void SVF::SVFfilter(double input){
   // integrate filter state
   // with oversampling
   for(int nn = 0; nn < oversamplingFactor; nn++){
-    hp = input - (2.0*fb-1.0)*bp - lp + 1.0e-6*noise;
+    hp = input - fb * bp - lp + 1.0e-6*noise;
     hp = std::tanh(hp);
-    bp += dt_prime * hp;
+    bp += dt * hp;
     bp = std::tanh(bp);
-    lp += dt_prime * bp;  
+    lp += dt * bp;  
     lp = std::tanh(lp);
     
     switch(filterMode){
