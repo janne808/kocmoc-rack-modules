@@ -21,7 +21,7 @@
 
 #include "plugin.hpp"
 
-#define MAX_STEPS 16
+#define MAX_STEPS 32
 
 struct TRG : Module {
   enum ParamIds {
@@ -43,7 +43,7 @@ struct TRG : Module {
 
   TRG() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-    configParam(LEN_PARAM, 1.f, 16.f, 16.f, "Seq length");
+    configParam(LEN_PARAM, 1.f, 32.f, 32.f, "Seq length");
     
     // reset current step
     step = 0;
@@ -161,12 +161,14 @@ struct TRGDisplay : Widget {
 
       // is click on a step button
       if(( (e.pos.x > 10 && e.pos.x < 30) || (e.pos.x > 40 && e.pos.x < 60) ) &&
-	 e.pos.y > 10 && e.pos.y < 10 + (MAX_STEPS / 2) * (20 + 4)){
+	 e.pos.y > 10 && e.pos.y < 10 + (MAX_STEPS / 4) * (20 + 4)){
 	// compute step number
 	int nn = (int)((e.pos.y - 10.f) / 24.f);
 	if(e.pos.x > 40 && e.pos.x < 60){
 	  nn += 8;
 	}
+	// add in page
+	nn += (module->step / (MAX_STEPS / 2)) * (MAX_STEPS / 2);
   	module->steps[nn] = !module->steps[nn];
       }
     }
@@ -182,13 +184,15 @@ struct TRGDisplay : Widget {
     if(module == NULL) return;
     
     // draw sequence grid
-    for(int ii = 0; ii < MAX_STEPS; ii++){
-      int xx = ii / (MAX_STEPS / 2);
-      int yy = ii % (MAX_STEPS / 2);
+    for(int ii = 0; ii < MAX_STEPS / 2; ii++){
+      int xx = ii / (MAX_STEPS / 4);
+      int yy = ii % (MAX_STEPS / 4);
+      int page = module->step / (MAX_STEPS / 2);
       NVGcolor step_color;
-
+      int current_step = ii + page * (MAX_STEPS / 2);
+      
       // draw active step in bright color
-      if(ii < module->seq_length){
+      if(current_step < module->seq_length){
 	step_color = nvgRGB(252, 252, 3);
       }
       else{
@@ -202,7 +206,7 @@ struct TRGDisplay : Widget {
 	      10 + yy * (20 + 4), 20, 20);
       
       // render step based on its state
-      if(module->steps[ii] == 1){
+      if(module->steps[current_step] == 1){
 	nvgFill(args.vg);
       }
       else{
@@ -210,9 +214,9 @@ struct TRGDisplay : Widget {
       }
 
       // render current step
-      if(ii == module->step){
+      if(current_step == module->step){
 	// determine color from step state
-	if(module->steps[ii] == 1 ){
+	if(module->steps[current_step] == 1 ){
 	  nvgFillColor(args.vg, nvgRGB(20, 30, 33));
 	}
 	else {
@@ -220,9 +224,16 @@ struct TRGDisplay : Widget {
 	}
 	nvgBeginPath(args.vg);
 	nvgCircle(args.vg, 10.f + 10.f + xx * (20 + 10),
-		  10.f + 10.f + (module->step % (MAX_STEPS / 2)) * (20.f + 4.f), 2.5f);
+		  10.f + 10.f + (module->step % (MAX_STEPS / 4)) * (20.f + 4.f), 2.5f);
 	nvgFill(args.vg);
       }
+
+      // render current page
+      nvgFillColor(args.vg, nvgRGB(252, 252, 3));
+      nvgBeginPath(args.vg);
+      nvgRect(args.vg, 10 + page * (20 + 10),
+	      10 + 8 * (20 + 4), 20, 4);
+      nvgFill(args.vg);
     }
   }
 };
@@ -235,7 +246,7 @@ struct TRGWidget : ModuleWidget {
     TRGDisplay *display = new TRGDisplay();
     display->module = module;
     display->box.pos = Vec(10, 82);
-    display->box.size = Vec(70, 10 + (MAX_STEPS / 2) * (20 + 4) + 10);
+    display->box.size = Vec(70, 10 + (MAX_STEPS / 4) * (20 + 4) + 10);
     addChild(display);
     if(module != NULL){
       module->displayWidth = display->box.size.x;
