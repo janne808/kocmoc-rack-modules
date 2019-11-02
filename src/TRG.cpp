@@ -106,6 +106,18 @@ struct TRG : Module {
     seq_length = (int)(params[LEN_PARAM].getValue());    
   }
 
+  void onRandomize() override {
+    // randomize steps
+    for(int ii = 0; ii < MAX_STEPS; ii++){
+      if(rack::random::uniform() > 0.5){
+	steps[ii] = 1;
+      }
+      else{
+	steps[ii] = 0;
+      }
+    }
+  }
+  
   void onReset() override {
     // reset clock and gate state
     clock_state = 0;
