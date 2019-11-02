@@ -54,7 +54,7 @@ struct TRG : Module {
     }
 
     // reset sequence length
-    seq_length = 16;
+    seq_length = MAX_STEPS;
 
     // reset reset latch
     reset_latch = 0;
@@ -261,7 +261,7 @@ struct TRGWidget : ModuleWidget {
     addParam(createParam<RoundBlackSnapKnob>(mm2px(Vec(16.8, 105.6)), module, TRG::LEN_PARAM));
 
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 21.92)), module, TRG::CLK_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.88, 21.92)), module, TRG::RST_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.48, 21.92)), module, TRG::RST_INPUT));
 
     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.96, 110.68)), module, TRG::GATE_OUTPUT));
   }
