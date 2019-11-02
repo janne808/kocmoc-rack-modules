@@ -34,6 +34,9 @@ struct TRG : Module {
 
     // reset sequence length
     seq_length = 16;
+
+    // reset reset latch
+    reset_latch = 0;
   }
 
   float displayWidth = 0, displayHeight = 0;
@@ -41,6 +44,7 @@ struct TRG : Module {
   int step;
   int clock_state = 0;
   int reset_state = 0;
+  int reset_latch = 0;
   float gate_state = 0.f;
   int seq_length;
   
@@ -49,8 +53,9 @@ struct TRG : Module {
     if(clock_state == 0 && inputs[CLK_INPUT].getVoltage() > 0.5f){
       clock_state = 1;
       step += 1;
-      if(step > seq_length - 1){
+      if(step > seq_length - 1 || reset_latch){
 	step = 0;
+	reset_latch = 0;
       }
       if(steps[step] == 1){
 	gate_state = 1.f;
@@ -67,7 +72,7 @@ struct TRG : Module {
     // switch reset state
     if(reset_state == 0 && inputs[RST_INPUT].getVoltage() > 0.5f){
       reset_state = 1;
-      step = 0;
+      reset_latch = 1;
     }
     else if(reset_state == 1 && inputs[RST_INPUT].getVoltage() < 0.5f){
       reset_state = 0;
@@ -84,6 +89,7 @@ struct TRG : Module {
     // reset clock and gate state
     clock_state = 0;
     reset_state = 0;
+    reset_latch = 0;
     gate_state = 0.f;
 
     // reset current step
