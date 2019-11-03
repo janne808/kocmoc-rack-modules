@@ -109,12 +109,7 @@ struct TRG : Module {
   void onRandomize() override {
     // randomize steps
     for(int ii = 0; ii < MAX_STEPS; ii++){
-      if(rack::random::uniform() > 0.5){
-	steps[ii] = 1;
-      }
-      else{
-	steps[ii] = 0;
-      }
+      steps[ii] = (rack::random::uniform() > 0.5) ? 1 : 0;
     }
   }
   
