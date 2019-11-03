@@ -208,6 +208,7 @@ struct TRGDisplay : Widget {
       
       nvgStrokeColor(args.vg, step_color);
       nvgFillColor(args.vg, step_color);
+      nvgStrokeWidth(args.vg, 1);
       nvgBeginPath(args.vg);
       nvgRect(args.vg, 10 + xx * (20 + 10),
 	      10 + yy * (20 + 4), 20, 20);
