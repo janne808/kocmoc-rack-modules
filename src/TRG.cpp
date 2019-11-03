@@ -253,7 +253,7 @@ struct TRGWidget : ModuleWidget {
 
     TRGDisplay *display = new TRGDisplay();
     display->module = module;
-    display->box.pos = Vec(10, 82);
+    display->box.pos = Vec(10, 78);
     display->box.size = Vec(70, 10 + (MAX_STEPS / 4) * (20 + 4) + 10);
     addChild(display);
     if(module != NULL){
@@ -268,8 +268,8 @@ struct TRGWidget : ModuleWidget {
 
     addParam(createParam<RoundBlackSnapKnob>(mm2px(Vec(16.8, 105.6)), module, TRG::LEN_PARAM));
 
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 21.92)), module, TRG::CLK_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.48, 21.92)), module, TRG::RST_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 20.12)), module, TRG::CLK_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.48, 20.12)), module, TRG::RST_INPUT));
 
     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.96, 110.68)), module, TRG::GATE_OUTPUT));
   }

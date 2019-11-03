@@ -27,9 +27,9 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1.4142136"
      inkscape:cx="25.320768"
-     inkscape:cy="19.177644"
+     inkscape:cy="373.06531"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      showgrid="true"
      inkscape:snap-global="true"
      inkscape:window-width="1366"
@@ -60,7 +60,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -150,7 +150,7 @@
        aria-label="TRG"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:1.25;font-family:LCD2;-inkscape-font-specification:LCD2;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
        id="text294"
-       transform="translate(5.199785,1.00038)">
+       transform="translate(5.199785,-0.29962)">
       <path
          d="M 8.7199483,174.45591 8.4772372,174.6704 H 7.8055483 L 7.5571927,174.37689 7.2241705,174.6704 H 6.5468372 l -0.1806222,-0.21449 0.2427111,-0.20885 h 1.9304 z m -1.2135556,1.75542 -0.2427111,0.20884 -0.1806222,-0.20884 0.2032,-1.46191 0.2427111,-0.20885 0.1806222,0.20885 z m -0.3273777,2.33116 -0.2427111,0.20884 -0.1806223,-0.20884 0.2427111,-1.74414 0.2427112,-0.20884 0.1806222,0.20884 z"
          style="stroke-width:0.26458332"
@@ -168,7 +168,7 @@
          inkscape:connector-curvature="0" />
     </g>
     <g
-       transform="translate(-0.9004697,169.1)"
+       transform="translate(-1.1004697,167.6)"
        aria-label="CLK"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
        id="text401">
@@ -226,7 +226,7 @@
        aria-label="RST"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
        id="text444"
-       transform="translate(-8.300357,-0.19965)">
+       transform="translate(-8.900357,-1.69965)">
       <path
          d="m 29.145091,184.00086 q 0.04515,0.0565 0.112889,0.14958 0.07055,0.0903 0.143933,0.2032 0.07338,0.11007 0.143933,0.23142 0.07338,0.12136 0.124178,0.23425 h -0.299155 q -0.05645,-0.10725 -0.124178,-0.21732 -0.06491,-0.11006 -0.132645,-0.20884 -0.06773,-0.1016 -0.135466,-0.18909 -0.06491,-0.0875 -0.118534,-0.1524 -0.03669,0.003 -0.0762,0.003 -0.03669,0 -0.0762,0 h -0.245533 v 0.76483 h -0.273756 v -1.92758 q 0.115712,-0.0282 0.256823,-0.0367 0.143933,-0.0113 0.262466,-0.0113 0.412045,0 0.626534,0.15522 0.217311,0.15522 0.217311,0.46285 0,0.19473 -0.104422,0.33302 -0.1016,0.13829 -0.301978,0.20602 z m -0.414867,-0.91722 q -0.174978,0 -0.268111,0.008 v 0.7366 h 0.194733 q 0.141111,0 0.254,-0.0141 0.112889,-0.0141 0.189089,-0.0536 0.07902,-0.0395 0.121356,-0.11006 0.04233,-0.0734 0.04233,-0.19192 0,-0.11006 -0.04233,-0.18344 -0.04233,-0.0734 -0.115711,-0.11571 -0.07056,-0.0423 -0.169334,-0.0593 -0.09596,-0.0169 -0.206022,-0.0169 z"
          style="stroke-width:0.26458332"
@@ -274,7 +274,7 @@
        style="fill:#00ff00;fill-opacity:1;stroke-width:0.26458332"
        id="path389"
        cx="8.96"
-       cy="21.92"
+       cy="20.120001"
        r="5.0799999"
        inkscape:label="CLK" />
     <circle
@@ -287,8 +287,8 @@
     <circle
        inkscape:label="RST"
        r="5.0799999"
-       cy="21.92"
-       cx="21.879999"
+       cy="20.119993"
+       cx="21.48"
        id="circle440"
        style="fill:#00ff00;fill-opacity:1;stroke-width:0.26458332" />
     <rect
