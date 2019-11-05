@@ -176,14 +176,12 @@ void SVF::SVFfilter(double input){
       break;
     case 1:
       // predictor-corrector integration
-      double hp_prime, bp_prime, lp_prime, hp2;
+      double hp_prime, bp_prime, hp2;
 
       // predictor
       hp_prime =  -lp - fb*bp + u_t1 + noise;
       bp_prime = bp + dt*hp_prime;
       bp_prime = std::tanh(bp_prime);
-      lp_prime = lp + dt*bp;
-      lp_prime = std::tanh(lp_prime);
 
       // corrector
       lp += 0.5 * dt * (bp + bp_prime);
