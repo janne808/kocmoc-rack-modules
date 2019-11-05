@@ -40,7 +40,10 @@ SVF::SVF(double newCutoff, double newResonance, int newOversamplingFactor, int n
   bp = 0.0;
   lp = 0.0;
   out = 0.0;
+  u_t1 = 0.0;
 
+  integrationMethod = 0;
+  
   // instantiate downsampling filter
   fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
 }
@@ -61,7 +64,10 @@ SVF::SVF(){
   bp = 0.0;
   lp = 0.0;
   out = 0.0;
+  u_t1 = 0.0;
 
+  integrationMethod = 0;
+  
   // instantiate downsampling filter
   fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
 }
@@ -100,6 +106,10 @@ void SVF::SetFilterSampleRate(double newSampleRate){
   SetFilterIntegrationRate();
 }
 
+void SVF::SetFilterIntegrationMethod(int method){
+  integrationMethod = method;
+}
+
 void SVF::SetFilterIntegrationRate(){
   dt = 44100.0 / (sampleRate * oversamplingFactor) * cutoffFrequency;
 
@@ -107,8 +117,8 @@ void SVF::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  if(dt > 1.25){
-    dt = 1.25;
+  if(dt > 1.75){
+    dt = 1.75;
   }
 }
 
@@ -136,6 +146,10 @@ double SVF::GetFilterSampleRate(){
   return sampleRate;
 }
 
+int SVF::GetFilterIntegrationMethod(){
+  return integrationMethod;
+}
+
 void SVF::SVFfilter(double input){
   // noise term
   double noise;
@@ -145,17 +159,45 @@ void SVF::SVFfilter(double input){
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-  noise = 2.0 * (noise - 0.5);
+  noise = 1.0e-6 * 2.0 * (noise - 0.5);
 
   // integrate filter state
   // with oversampling
   for(int nn = 0; nn < oversamplingFactor; nn++){
-    hp = input - fb * bp - lp + 1.0e-6*noise;
-    hp = std::tanh(hp);
-    bp += dt * hp;
-    bp = std::tanh(bp);
-    lp += dt * bp;  
-    lp = std::tanh(lp);
+    // switch integration method
+    switch(integrationMethod){
+    case 0:
+      // euler integration
+      hp = -lp - fb*bp + input + noise;
+      bp += dt*hp;
+      bp = std::tanh(bp);
+      lp += dt*bp;
+      lp = std::tanh(lp);
+      break;
+    case 1:
+      // predictor-corrector integration
+      double hp_prime, bp_prime, lp_prime, hp2;
+
+      // predictor
+      hp_prime =  -lp - fb*bp + u_t1 + noise;
+      bp_prime = bp + dt*hp_prime;
+      bp_prime = std::tanh(bp_prime);
+      lp_prime = lp + dt*bp;
+      lp_prime = std::tanh(lp_prime);
+
+      // corrector
+      lp += 0.5 * dt * (bp + bp_prime);
+      lp = std::tanh(lp);
+      hp2 = -lp - fb*bp_prime + input + noise;
+      bp += 0.5 * dt * (hp_prime + hp2);
+      bp = std::tanh(bp);
+      break;
+    default:
+      break;
+    }
+    
+    // set input at t-1
+    u_t1 = input;
     
     switch(filterMode){
     case 0:
@@ -173,7 +215,7 @@ void SVF::SVFfilter(double input){
 
     // downsampling filter
     if(oversamplingFactor > 1){
-      out = fir->FIRfilter(out);
+      out = fir->FIRfilter(out) * 0.4;
     }
   }
 }

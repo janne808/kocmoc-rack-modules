@@ -37,6 +37,7 @@ public:
   void SetFilterOversamplingFactor(int newOversamplingFactor);
   void SetFilterMode(int newFilterMode);
   void SetFilterSampleRate(double newSampleRate);
+  void SetFilterIntegrationMethod(int method);
   
   // get filter parameters
   double GetFilterCutoff();
@@ -44,6 +45,7 @@ public:
   int GetFilterOversamplingFactor();  
   int GetFilterMode();  
   double GetFilterSampleRate();
+  int GetFilterIntegrationMethod();
   
   // tick filter state
   void SVFfilter(double input);
@@ -67,12 +69,14 @@ private:
   int filterMode;
   double sampleRate;
   double dt;
+  int integrationMethod;
   
   // filter state
   double lp;
   double bp;
   double hp;
-
+  double u_t1;
+  
   // filter output
   double out;
 

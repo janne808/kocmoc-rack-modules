@@ -45,6 +45,7 @@ struct SVF_1 : Module {
   };
 
   int _oversampling = 2;
+  int _integrationMethod = 0;
   
   // create svf class instance
   SVF *svf = new SVF((double)(0.25), (double)(0.0), _oversampling, 0, (double)(APP->engine->getSampleRate()));
@@ -82,7 +83,7 @@ struct SVF_1 : Module {
     svf->SVFfilter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 5.0));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 10.0));
   }
 
   void onSampleRateChange() override {
@@ -96,6 +97,7 @@ struct SVF_1 : Module {
   json_t* dataToJson() override {
     json_t* rootJ = json_object();
     json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));
+    json_object_set_new(rootJ, "integrationMethod", json_integer(_integrationMethod));
     return rootJ;
   }
 
@@ -103,6 +105,9 @@ struct SVF_1 : Module {
     json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
     if (oversamplingJ)
       _oversampling = json_integer_value(oversamplingJ);
+    json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
+    if (integrationMethodJ)
+      _integrationMethod = json_integer_value(integrationMethodJ);
   }
 };
 
@@ -151,6 +156,28 @@ struct SVF_1Widget : ModuleWidget {
     }
   };
   
+  struct IntegrationMenuItem : MenuItem {
+    SVF_1* _module;
+    const int _integrationMethod;
+
+    IntegrationMenuItem(SVF_1* module, const char* label, int integrationMethod)
+      : _module(module)
+      , _integrationMethod(integrationMethod)
+    {
+      this->text = label;
+    }
+
+    void onAction(const event::Action& e) override {
+      _module->_integrationMethod = _integrationMethod;
+      _module->svf->SetFilterIntegrationMethod(_module->_integrationMethod);
+    }
+
+    void step() override {
+      MenuItem::step();
+      rightText = _module->_integrationMethod == _integrationMethod ? "✔" : "";
+    }
+  };
+  
   void appendContextMenu(Menu* menu) override {
     SVF_1* a = dynamic_cast<SVF_1*>(module);
     assert(a);
@@ -161,6 +188,11 @@ struct SVF_1Widget : ModuleWidget {
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x2", 2));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x4", 4));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x8", 8));
+
+    menu->addChild(new MenuEntry());
+    menu->addChild(createMenuLabel("Integration Method"));
+    menu->addChild(new IntegrationMenuItem(a, "Euler", 0));
+    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", 1));
   }
 };
 
