@@ -189,6 +189,7 @@ void SVF::SVFfilter(double input){
       hp2 = -lp - fb*bp_prime + input + noise;
       bp += 0.5 * dt * (hp_prime + hp2);
       bp = std::tanh(bp);
+      hp = -lp - fb*bp + input;
       break;
     default:
       break;
