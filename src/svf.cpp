@@ -191,6 +191,20 @@ void SVF::SVFfilter(double input){
       bp = std::tanh(bp);
       hp = -lp - fb*bp + input;
       break;
+    case 2:
+      // trapezoidal integration
+      double a, b, c, bp0;
+      
+      a = (1.0 - 0.5*fb*dt - 0.25*dt*dt) / (1.0 + 0.5*fb*dt + 0.25*dt*dt);
+      b = dt / (1 + 0.5*fb*dt + 0.25*dt*dt);
+      c = dt / (2.0 + fb*dt + 0.5*dt*dt);
+      bp0 = bp;
+      bp = a*bp - b*lp + c*(input + u_t1);
+      bp = std::tanh(bp);
+      lp += 0.5*dt*(bp0 + bp);
+      lp = std::tanh(lp);
+      hp = -lp - fb*bp + input;
+      break;
     default:
       break;
     }
