@@ -27,7 +27,8 @@
 class SVF{
 public:
   // constructor/destructor
-  SVF(double newCutoff, double newResonance, int newOversamplingFactor, int newFilterMode, double newSampleRate);
+  SVF(double newCutoff, double newResonance, int newOversamplingFactor,
+      int newFilterMode, double newSampleRate, int newIntegrationMethod);
   SVF();
   ~SVF();
 
@@ -57,6 +58,9 @@ public:
 
   // get filter output
   double GetFilterOutput();
+
+  // reset state
+  void ResetFilterState();
   
 private:
   // methods

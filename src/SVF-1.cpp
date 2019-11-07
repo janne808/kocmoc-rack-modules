@@ -48,7 +48,8 @@ struct SVF_1 : Module {
   int _integrationMethod = 0;
   
   // create svf class instance
-  SVF *svf = new SVF((double)(0.25), (double)(0.0), _oversampling, 0, (double)(APP->engine->getSampleRate()));
+  SVF *svf = new SVF((double)(0.25), (double)(0.0), _oversampling, 0,
+		     (double)(APP->engine->getSampleRate()), _integrationMethod);
   
   SVF_1() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -91,9 +92,17 @@ struct SVF_1 : Module {
     svf->SetFilterSampleRate(sr);
   }
 
-  //void onReset(){
-  //}
+  void onReset() override {
+    svf->ResetFilterState();
+  }
 
+  void onAdd() override {
+    float sr = APP->engine->getSampleRate();
+    svf->SetFilterSampleRate(sr);
+    svf->SetFilterIntegrationMethod(_integrationMethod);
+    svf->SetFilterOversamplingFactor(_oversampling);
+  }
+  
   json_t* dataToJson() override {
     json_t* rootJ = json_object();
     json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));

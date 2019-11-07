@@ -25,7 +25,8 @@
 #include "fir.h"
 
 // constructor
-SVF::SVF(double newCutoff, double newResonance, int newOversamplingFactor, int newFilterMode, double newSampleRate){
+SVF::SVF(double newCutoff, double newResonance, int newOversamplingFactor,
+	 int newFilterMode, double newSampleRate, int newIntegrationMethod){
   // initialize filter parameters
   cutoffFrequency = newCutoff;
   Resonance = newResonance;
@@ -42,7 +43,7 @@ SVF::SVF(double newCutoff, double newResonance, int newOversamplingFactor, int n
   out = 0.0;
   u_t1 = 0.0;
 
-  integrationMethod = 0;
+  integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
   fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
@@ -53,7 +54,7 @@ SVF::SVF(){
   // initialize filter parameters
   cutoffFrequency = 0.25;
   Resonance = 0.5;
-  oversamplingFactor = 4;
+  oversamplingFactor = 2;
   filterMode = 0;
   sampleRate = 44100.0;
 
@@ -75,6 +76,25 @@ SVF::SVF(){
 // default destructor
 SVF::~SVF(){
   delete fir;
+}
+
+void SVF::ResetFilterState(){
+  // initialize filter parameters
+  cutoffFrequency = 0.25;
+  Resonance = 0.5;
+
+  SetFilterIntegrationRate();
+  
+  // initialize filter state
+  hp = 0.0;
+  bp = 0.0;
+  lp = 0.0;
+  out = 0.0;
+  u_t1 = 0.0;
+
+  // reinstantiate FIR filter
+  delete fir;
+  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
 }
 
 void SVF::SetFilterCutoff(double newCutoff){
