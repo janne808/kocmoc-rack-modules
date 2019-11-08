@@ -130,17 +130,17 @@ struct SVF_1Widget : ModuleWidget {
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     
-    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(10.68, 13.34)), module, SVF_1::FREQ_PARAM));
-    addParam(createParam<RoundBlackKnob>(mm2px(Vec(15.24, 39.56)), module, SVF_1::RESO_PARAM));
-    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(6.18, 81.38)), module, SVF_1::GAIN_PARAM));
+    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(5.95, 15.34)), module, SVF_1::FREQ_PARAM));
+    addParam(createParam<RoundBlackKnob>(mm2px(Vec(10.24, 42.06)), module, SVF_1::RESO_PARAM));
+    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, SVF_1::GAIN_PARAM));
 
-    addParam(createParam<CKSSThree>(Vec(83.48, 238.7), module, SVF_1::MODE_PARAM));
+    addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, SVF_1::MODE_PARAM));
     
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.16, 65.72)), module, SVF_1::LINCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(30.48, 65.72)), module, SVF_1::EXPCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.16, 101.7)), module, SVF_1::INPUT_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 69.52)), module, SVF_1::LINCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 69.52)), module, SVF_1::EXPCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, SVF_1::INPUT_INPUT));
 
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(30.48, 101.7)), module, SVF_1::OUTPUT_OUTPUT));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(21.681, 104.7)), module, SVF_1::OUTPUT_OUTPUT));
   }
 
   struct OversamplingMenuItem : MenuItem {
