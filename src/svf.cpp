@@ -92,9 +92,8 @@ void SVF::ResetFilterState(){
   out = 0.0;
   u_t1 = 0.0;
 
-  // reinstantiate FIR filter
-  delete fir;
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
+  // set oversampling
+  fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
 }
 
 void SVF::SetFilterCutoff(double newCutoff){

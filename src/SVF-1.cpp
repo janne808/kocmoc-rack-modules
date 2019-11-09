@@ -93,14 +93,17 @@ struct SVF_1 : Module {
   }
 
   void onReset() override {
+    float sr = APP->engine->getSampleRate();
     svf->ResetFilterState();
+    svf->SetFilterOversamplingFactor(_oversampling);
+    svf->SetFilterSampleRate(sr);
   }
 
   void onAdd() override {
     float sr = APP->engine->getSampleRate();
+    svf->SetFilterOversamplingFactor(_oversampling);
     svf->SetFilterSampleRate(sr);
     svf->SetFilterIntegrationMethod(_integrationMethod);
-    svf->SetFilterOversamplingFactor(_oversampling);
   }
   
   json_t* dataToJson() override {

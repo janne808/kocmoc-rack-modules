@@ -159,6 +159,11 @@ struct TRG : Module {
 };
 
 struct TRGDisplay : Widget {
+  float dragX = 0;
+  float dragY = 0;
+  float initX = 0;
+  float initY = 0;
+  int currentStep = 0;
   TRG *module;
   TRGDisplay(){}
 
@@ -166,6 +171,10 @@ struct TRGDisplay : Widget {
     if (e.action == GLFW_PRESS && e.button == GLFW_MOUSE_BUTTON_LEFT) {
       e.consume(this);
 
+      // store initial click coords
+      initX = e.pos.x;
+      initY = e.pos.y;
+      
       // is click on a step button
       if(( (e.pos.x > 10 && e.pos.x < 30) || (e.pos.x > 40 && e.pos.x < 60) ) &&
 	 e.pos.y > 10 && e.pos.y < 10 + (MAX_STEPS / 4) * (20 + 4)){
@@ -177,10 +186,41 @@ struct TRGDisplay : Widget {
 	// add in page
 	nn += (module->step / (MAX_STEPS / 2)) * (MAX_STEPS / 2);
   	module->steps[nn] = !module->steps[nn];
+	currentStep = nn;
       }
     }
   }
 
+  void onDragStart(const event::DragStart &e) override {
+    dragX = APP->scene->rack->mousePos.x;
+    dragY = APP->scene->rack->mousePos.y;
+  }
+
+  void onDragMove(const event::DragMove &e) override {
+    float newDragX = APP->scene->rack->mousePos.x;
+    float newDragY = APP->scene->rack->mousePos.y;
+    float currentX = initX+(newDragX-dragX);
+    float currentY = initY+(newDragY-dragY);
+    
+    // is drag on a step button
+    if(( (currentX > 10 && currentX < 30) || (currentX > 40 && currentX < 60) ) &&
+       currentY > 10 && currentY < 10 + (MAX_STEPS / 4) * (20 + 4)){
+      // compute step number
+      int nn = (int)((currentY - 10.f) / 24.f);
+      if(currentX > 40 && currentX < 60){
+	nn += 8;
+      }
+      // add in page
+      nn += (module->step / (MAX_STEPS / 2)) * (MAX_STEPS / 2);
+
+      // switch state just once
+      if( nn != currentStep) {
+	module->steps[nn] = !module->steps[nn];
+	currentStep = nn;
+      }
+    }
+  }
+  
   void draw(const DrawArgs &args) override {
     //background
     nvgFillColor(args.vg, nvgRGB(20, 30, 33));
