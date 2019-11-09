@@ -94,6 +94,7 @@ void SVF::ResetFilterState(){
 
   // set oversampling
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+  fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
 }
 
 void SVF::SetFilterCutoff(double newCutoff){
@@ -109,6 +110,7 @@ void SVF::SetFilterResonance(double newResonance){
 void SVF::SetFilterOversamplingFactor(int newOversamplingFactor){
   oversamplingFactor = newOversamplingFactor;
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+  fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
 
   SetFilterIntegrationRate();
 }
