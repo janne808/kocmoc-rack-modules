@@ -55,7 +55,7 @@ struct SVF_1 : Module {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "");
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "");
-    configParam(GAIN_PARAM, 0.f, 1.f, 0.65f, "");
+    configParam(GAIN_PARAM, 0.f, 1.f, 0.5f, "");
     configParam(MODE_PARAM, 0.f, 2.f, 0.f, "");
   }
 
@@ -64,10 +64,12 @@ struct SVF_1 : Module {
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
     float gain = params[GAIN_PARAM].getValue();
+    float gainComp;
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
     gain = (gain * gain * gain * gain)/10.f;
+    reso = reso*reso;
     
     // sum in linear cv
     cutoff += inputs[LINCV_INPUT].getVoltage()/10.f;
@@ -82,9 +84,16 @@ struct SVF_1 : Module {
     
     // tick filter state
     svf->SVFfilter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
+
+    // compute gain compensation to normalize output on high drive levels
+    gain = params[GAIN_PARAM].getValue() - 0.5;
+    if(gain < 0.0) {
+      gain = 0.0;
+    }
+    gainComp = 7.0 * (1.0 - 1.35*gain);
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 10.0));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 10.0 * gainComp));
   }
 
   void onSampleRateChange() override {
