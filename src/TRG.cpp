@@ -55,9 +55,6 @@ struct TRG : Module {
 
     // reset sequence length
     seq_length = MAX_STEPS;
-
-    // reset reset latch
-    reset_latch = 0;
   }
 
   float displayWidth = 0, displayHeight = 0;
@@ -65,7 +62,6 @@ struct TRG : Module {
   int step;
   int clock_state = 0;
   int reset_state = 0;
-  int reset_latch = 0;
   float gate_state = 0.f;
   int seq_length;
   
@@ -74,10 +70,11 @@ struct TRG : Module {
     if(clock_state == 0 && inputs[CLK_INPUT].getVoltage() > 0.5f){
       clock_state = 1;
       step += 1;
-      if(step > seq_length - 1 || reset_latch){
+      
+      if(step > seq_length - 1){
 	step = 0;
-	reset_latch = 0;
       }
+
       if(steps[step] == 1){
 	gate_state = 1.f;
       }
@@ -93,7 +90,16 @@ struct TRG : Module {
     // switch reset state
     if(reset_state == 0 && inputs[RST_INPUT].getVoltage() > 0.5f){
       reset_state = 1;
-      reset_latch = 1;
+
+      // set clock state if reset
+      clock_state = 1;
+      step = 0;
+      if(steps[step] == 1){
+	gate_state = 1.f;
+      }
+      else{
+	gate_state = 0.f;
+      }
     }
     else if(reset_state == 1 && inputs[RST_INPUT].getVoltage() < 0.5f){
       reset_state = 0;
@@ -117,7 +123,6 @@ struct TRG : Module {
     // reset clock and gate state
     clock_state = 0;
     reset_state = 0;
-    reset_latch = 0;
     gate_state = 0.f;
 
     // reset current step
@@ -156,6 +161,15 @@ struct TRG : Module {
       step = (int)(json_integer_value(stepJ));
     }
   }
+
+  bool isClickOnStep(float x, float y){
+    if(( (x > 10 && x < 30) || (x > 40 && x < 60) ) &&
+	 y > 10 && y < 10 + (MAX_STEPS / 4) * (20 + 4)){
+      return true;
+    }
+    
+    return false;
+  }
 };
 
 struct TRGDisplay : Widget {
@@ -176,8 +190,7 @@ struct TRGDisplay : Widget {
       initY = e.pos.y;
       
       // is click on a step button
-      if(( (e.pos.x > 10 && e.pos.x < 30) || (e.pos.x > 40 && e.pos.x < 60) ) &&
-	 e.pos.y > 10 && e.pos.y < 10 + (MAX_STEPS / 4) * (20 + 4)){
+      if(module->isClickOnStep(e.pos.x, e.pos.y)){
 	// compute step number
 	int nn = (int)((e.pos.y - 10.f) / 24.f);
 	if(e.pos.x > 40 && e.pos.x < 60){
@@ -203,8 +216,7 @@ struct TRGDisplay : Widget {
     float currentY = initY+(newDragY-dragY);
     
     // is drag on a step button
-    if(( (currentX > 10 && currentX < 30) || (currentX > 40 && currentX < 60) ) &&
-       currentY > 10 && currentY < 10 + (MAX_STEPS / 4) * (20 + 4)){
+    if(module->isClickOnStep(currentX, currentY)){
       // compute step number
       int nn = (int)((currentY - 10.f) / 24.f);
       if(currentX > 40 && currentX < 60){

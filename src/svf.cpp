@@ -132,6 +132,7 @@ void SVF::SetFilterIntegrationMethod(int method){
 }
 
 void SVF::SetFilterIntegrationRate(){
+  // normalize cutoff freq to samplerate
   dt = 44100.0 / (sampleRate * oversamplingFactor) * cutoffFrequency;
 
   // clip integration rate
