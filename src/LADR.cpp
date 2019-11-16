@@ -200,6 +200,7 @@ struct LADRWidget : ModuleWidget {
     
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Oversampling"));
+    menu->addChild(new OversamplingMenuItem(a, "Oversampling: off", 1));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x2", 2));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x4", 4));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x8", 8));
