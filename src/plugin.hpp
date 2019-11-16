@@ -31,3 +31,4 @@ extern Plugin* pluginInstance;
 // extern Model* modelMyModule;
 extern Model* modelSVF_1;
 extern Model* modelTRG;
+extern Model* modelLADR;
