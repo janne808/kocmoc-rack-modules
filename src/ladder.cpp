@@ -26,7 +26,7 @@
 
 // constructor
 Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
-	       int newFilterMode, double newSampleRate, int newIntegrationMethod){
+	       LadderFilterMode newFilterMode, double newSampleRate, LadderIntegrationMethod newIntegrationMethod){
   // initialize filter parameters
   cutoffFrequency = newCutoff;
   Resonance = newResonance;
@@ -56,7 +56,7 @@ Ladder::Ladder(){
   cutoffFrequency = 0.25;
   Resonance = 0.5;
   oversamplingFactor = 2;
-  filterMode = 0;
+  filterMode = LOWPASS;
   sampleRate = 44100.0;
 
   SetFilterIntegrationRate();
@@ -69,7 +69,7 @@ Ladder::Ladder(){
   out = 0.0;
   ut_1 = 0.0;
   
-  integrationMethod = 0;
+  integrationMethod = PREDICTOR_CORRECTOR_FULL_TANH;
   
   // instantiate downsampling filter
   fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
@@ -118,7 +118,7 @@ void Ladder::SetFilterOversamplingFactor(int newOversamplingFactor){
   SetFilterIntegrationRate();
 }
 
-void Ladder::SetFilterMode(int newFilterMode){
+void Ladder::SetFilterMode(LadderFilterMode newFilterMode){
   filterMode = newFilterMode;
 }
 
@@ -130,7 +130,7 @@ void Ladder::SetFilterSampleRate(double newSampleRate){
   SetFilterIntegrationRate();
 }
 
-void Ladder::SetFilterIntegrationMethod(int method){
+void Ladder::SetFilterIntegrationMethod(LadderIntegrationMethod method){
   integrationMethod = method;
 }
 
@@ -163,7 +163,7 @@ double Ladder::GetFilterOutput(){
   return out;
 }
 
-int Ladder::GetFilterMode(){
+LadderFilterMode Ladder::GetFilterMode(){
   return filterMode;
 }
 
@@ -171,7 +171,7 @@ double Ladder::GetFilterSampleRate(){
   return sampleRate;
 }
 
-int Ladder::GetFilterIntegrationMethod(){
+LadderIntegrationMethod Ladder::GetFilterIntegrationMethod(){
   return integrationMethod;
 }
 
@@ -191,7 +191,7 @@ void Ladder::LadderFilter(double input){
   for(int nn = 0; nn < oversamplingFactor; nn++){
     // switch integration method
     switch(integrationMethod){
-    case 0:
+    case EULER_FULL_TANH:
       {
 	// semi-implicit euler integration
 	// with full tanh stages
@@ -205,7 +205,7 @@ void Ladder::LadderFilter(double input){
 	p3 = std::tanh(p3);
       }
       break;
-    case 1:
+    case PREDICTOR_CORRECTOR_FULL_TANH:
       // predictor-corrector integration
       // with full tanh stages
       {
@@ -234,7 +234,7 @@ void Ladder::LadderFilter(double input){
 	p0 = std::tanh(p0);
       }
       break;
-    case 2:
+    case PREDICTOR_CORRECTOR_FEEDBACK_TANH:
       // predictor-corrector integration
       // with feedback tanh stage only
       {
@@ -261,15 +261,16 @@ void Ladder::LadderFilter(double input){
 
     // input at t-1
     ut_1 = input;
-    
+
+    //switch filter mode
     switch(filterMode){
-    case 0:
+    case LOWPASS:
       out = p3;
       break;
-    case 1:
+    case BANDPASS:
       out = p1 - p3;
       break;
-    case 2:
+    case HIGHPASS:
       out = input - p0 - fb*p3;
       break;
     default:

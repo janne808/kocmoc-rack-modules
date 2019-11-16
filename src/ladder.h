@@ -24,11 +24,25 @@
 
 #include "fir.h"
 
+// filter modes
+enum LadderFilterMode {
+   LOWPASS,
+   BANDPASS,
+   HIGHPASS
+};
+
+// integration methods
+enum LadderIntegrationMethod {
+   EULER_FULL_TANH,
+   PREDICTOR_CORRECTOR_FULL_TANH,
+   PREDICTOR_CORRECTOR_FEEDBACK_TANH
+};
+
 class Ladder{
 public:
   // constructor/destructor
   Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
-      int newFilterMode, double newSampleRate, int newIntegrationMethod);
+      LadderFilterMode newFilterMode, double newSampleRate, LadderIntegrationMethod newIntegrationMethod);
   Ladder();
   ~Ladder();
 
@@ -36,17 +50,17 @@ public:
   void SetFilterCutoff(double newCutoff);
   void SetFilterResonance(double newResonance);
   void SetFilterOversamplingFactor(int newOversamplingFactor);
-  void SetFilterMode(int newFilterMode);
+  void SetFilterMode(LadderFilterMode newFilterMode);
   void SetFilterSampleRate(double newSampleRate);
-  void SetFilterIntegrationMethod(int method);
+  void SetFilterIntegrationMethod(LadderIntegrationMethod method);
   
   // get filter parameters
   double GetFilterCutoff();
   double GetFilterResonance();
   int GetFilterOversamplingFactor();  
-  int GetFilterMode();  
+  LadderFilterMode GetFilterMode();  
   double GetFilterSampleRate();
-  int GetFilterIntegrationMethod();
+  LadderIntegrationMethod GetFilterIntegrationMethod();
   
   // tick filter state
   void LadderFilter(double input);
@@ -70,10 +84,10 @@ private:
   double cutoffFrequency;
   double Resonance;
   int oversamplingFactor;
-  int filterMode;
+  LadderFilterMode filterMode;
   double sampleRate;
   double dt;
-  int integrationMethod;
+  LadderIntegrationMethod integrationMethod;
   
   // filter state
   double p0, p1, p2, p3;

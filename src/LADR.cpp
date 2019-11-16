@@ -45,10 +45,10 @@ struct LADR : Module {
   };
 
   int _oversampling = 2;
-  int _integrationMethod = 2;
+  LadderIntegrationMethod _integrationMethod = PREDICTOR_CORRECTOR_FULL_TANH;
   
   // create svf class instance
-  Ladder *ladder = new Ladder((double)(0.25), (double)(0.0), _oversampling, 0,
+  Ladder *ladder = new Ladder((double)(0.25), (double)(0.0), _oversampling, LOWPASS,
 			      (double)(APP->engine->getSampleRate()), _integrationMethod);
   
   LADR() {
@@ -64,6 +64,7 @@ struct LADR : Module {
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
     float gain = params[GAIN_PARAM].getValue();
+    LadderFilterMode filterMode;
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
@@ -74,11 +75,14 @@ struct LADR : Module {
 
     // apply exponential cv
     cutoff = cutoff * std::pow(2.f, inputs[EXPCV_INPUT].getVoltage());
-      
+
+    // filter mode
+    filterMode = (LadderFilterMode)(params[MODE_PARAM].getValue());
+    
     // set filter parameters
     ladder->SetFilterCutoff((double)(cutoff));
     ladder->SetFilterResonance((double)(reso));
-    ladder->SetFilterMode(params[MODE_PARAM].getValue());
+    ladder->SetFilterMode(filterMode);
     
     // tick filter state
     ladder->LadderFilter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
@@ -109,7 +113,7 @@ struct LADR : Module {
   json_t* dataToJson() override {
     json_t* rootJ = json_object();
     json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));
-    json_object_set_new(rootJ, "integrationMethod", json_integer(_integrationMethod));
+    json_object_set_new(rootJ, "integrationMethod", json_integer((int)(_integrationMethod)));
     return rootJ;
   }
 
@@ -119,7 +123,7 @@ struct LADR : Module {
       _oversampling = json_integer_value(oversamplingJ);
     json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
     if (integrationMethodJ)
-      _integrationMethod = json_integer_value(integrationMethodJ);
+      _integrationMethod = (LadderIntegrationMethod)(json_integer_value(integrationMethodJ));
   }
 };
 
@@ -172,7 +176,7 @@ struct LADRWidget : ModuleWidget {
     LADR* _module;
     const int _integrationMethod;
 
-    IntegrationMenuItem(LADR* module, const char* label, int integrationMethod)
+    IntegrationMenuItem(LADR* module, const char* label, LadderIntegrationMethod integrationMethod)
       : _module(module)
       , _integrationMethod(integrationMethod)
     {
@@ -180,7 +184,7 @@ struct LADRWidget : ModuleWidget {
     }
 
     void onAction(const event::Action& e) override {
-      _module->_integrationMethod = _integrationMethod;
+      _module->_integrationMethod = (LadderIntegrationMethod)(_integrationMethod);
       _module->ladder->SetFilterIntegrationMethod(_module->_integrationMethod);
     }
 
@@ -202,9 +206,9 @@ struct LADRWidget : ModuleWidget {
 
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
-    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler w/ Full Tanh", 0));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Full Tanh", 1));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Tanh Feedback", 2));
+    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler w/ Full Tanh", EULER_FULL_TANH));
+    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Full Tanh", PREDICTOR_CORRECTOR_FULL_TANH));
+    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Tanh Feedback", PREDICTOR_CORRECTOR_FEEDBACK_TANH));
   }
 };
 
