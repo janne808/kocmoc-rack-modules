@@ -189,7 +189,7 @@ void SVF::SVFfilter(double input){
     // switch integration method
     switch(integrationMethod){
     case 0:
-      // euler integration
+      // semi-implicit euler integration
       hp = -lp - fb*bp + input + noise;
       bp += dt*hp;
       bp = std::tanh(bp);

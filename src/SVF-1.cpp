@@ -211,7 +211,7 @@ struct SVF_1Widget : ModuleWidget {
 
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
-    menu->addChild(new IntegrationMenuItem(a, "Euler", 0));
+    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", 0));
     menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", 1));
     menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", 2));
   }
