@@ -212,7 +212,7 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(ut_1 - std::tanh(fb*p3) - p0);
+	p0_prime = p0 + dt*(ut_1 - std::tanh(fb*p3) + noise - p0);
 	p0_prime = std::tanh(p0_prime);
 	p1_prime = p1 + dt*(p0 - p1);
 	p1_prime = std::tanh(p1_prime);
@@ -229,7 +229,8 @@ void Ladder::LadderFilter(double input){
 	p2 = std::tanh(p2);
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
 	p1 = std::tanh(p1);
-	p0 = p0 + 0.5*dt*((ut_1 - std::tanh(fb*p3t_1) - p0) + (input - std::tanh(fb*p3) - p0_prime));
+	p0 = p0 + 0.5*dt*((ut_1 - std::tanh(fb*p3t_1) + noise - p0) +
+			  (input - std::tanh(fb*p3) + noise - p0_prime));
 	p0 = std::tanh(p0);
       }
       break;
@@ -240,7 +241,7 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(ut_1 - std::tanh(fb*p3) - p0);
+	p0_prime = p0 + dt*(ut_1 - std::tanh(fb*p3) + noise - p0);
 	p1_prime = p1 + dt*(p0 - p1);
 	p2_prime = p2 + dt*(p1 - p2);
 	p3_prime = p3 + dt*(p2 - p3);
@@ -250,7 +251,8 @@ void Ladder::LadderFilter(double input){
 	p3 = p3 + 0.5*dt*((p2 - p3) + (p2_prime - p3_prime));
 	p2 = p2 + 0.5*dt*((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5*dt*((ut_1 - std::tanh(fb*p3t_1) - p0) + (input - std::tanh(fb*p3) - p0_prime));
+	p0 = p0 + 0.5*dt*((ut_1 - std::tanh(fb*p3t_1) + noise - p0) +
+			  (input - std::tanh(fb*p3) + noise - p0_prime));
       }
       break;
     default:
