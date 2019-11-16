@@ -33,7 +33,7 @@
     {
       "slug": "LADR",
       "name": "LADR",
-      "description": "4-pole ladder filter",
+      "description": "4-pole Ladder Filter",
       "tags": [
         "vcf",
         "filter"
