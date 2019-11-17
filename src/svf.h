@@ -77,8 +77,11 @@ public:
   void ResetFilterState();
   
 private:
-  // methods
+  // set integration rate
   void SetFilterIntegrationRate();
+
+  // pade approximant functions for tanh
+  inline double Tanh32(double x);
   inline double Tanh54(double x);
   
   // filter parameters

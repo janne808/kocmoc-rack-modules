@@ -147,6 +147,19 @@ void Ladder::SetFilterIntegrationRate(){
   }
 }
 
+// pade 3/2 approximant for tanh
+inline double Ladder::Tanh32(double x) {
+  // clamp x to -4..4
+  if(x > 3.0) {
+    x=3.0;
+  }
+  else if(x < -3.0) {
+    x=-3.0;
+  }
+  // return approximant
+  return x*(15.0+x*x)/(15.0+6.0*x*x);
+}
+
 // pade 5/4 approximant for tanh
 inline double Ladder::Tanh54(double x) {
   // clamp x to -4..4
@@ -208,14 +221,14 @@ void Ladder::LadderFilter(double input){
       {
 	// semi-implicit euler integration
 	// with full tanh stages
-	p0 = p0 + dt*((input - Tanh54(fb*p3) + noise) - p0);
-	p0 = Tanh54(p0);
+	p0 = p0 + dt*((input - Tanh32(fb*p3) + noise) - p0);
+	p0 = Tanh32(p0);
 	p1 = p1 + dt*(p0 - p1);
-	p1 = Tanh54(p1);
+	p1 = Tanh32(p1);
 	p2 = p2 + dt*(p1 - p2);
-	p2 = Tanh54(p2);
+	p2 = Tanh32(p2);
 	p3 = p3 + dt*(p2 - p3);
-	p3 = Tanh54(p3);
+	p3 = Tanh32(p3);
       }
       break;
     case LADDER_PREDICTOR_CORRECTOR_FULL_TANH:
@@ -225,26 +238,26 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(ut_1 - Tanh54(fb*p3) + noise - p0);
-	p0_prime = Tanh54(p0_prime);
+	p0_prime = p0 + dt*(ut_1 - Tanh32(fb*p3) + noise - p0);
+	p0_prime = Tanh32(p0_prime);
 	p1_prime = p1 + dt*(p0 - p1);
-	p1_prime = Tanh54(p1_prime);
+	p1_prime = Tanh32(p1_prime);
 	p2_prime = p2 + dt*(p1 - p2);
-	p2_prime = Tanh54(p2_prime);
+	p2_prime = Tanh32(p2_prime);
 	p3_prime = p3 + dt*(p2 - p3);
-	p3_prime = Tanh54(p3_prime);
+	p3_prime = Tanh32(p3_prime);
 
 	// corrector
 	p3t_1 = p3;
 	p3 = p3 + 0.5*dt*((p2 - p3) + (p2_prime - p3_prime));
-	p3 = Tanh54(p3);
+	p3 = Tanh32(p3);
 	p2 = p2 + 0.5*dt*((p1 - p2) + (p1_prime - p2_prime));
-	p2 = Tanh54(p2);
+	p2 = Tanh32(p2);
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
-	p1 = Tanh54(p1);
-	p0 = p0 + 0.5*dt*((ut_1 - Tanh54(fb*p3t_1) + noise - p0) +
-			  (input - Tanh54(fb*p3) + noise - p0_prime));
-	p0 = Tanh54(p0);
+	p1 = Tanh32(p1);
+	p0 = p0 + 0.5*dt*((ut_1 - Tanh32(fb*p3t_1) + noise - p0) +
+			  (input - Tanh32(fb*p3) + noise - p0_prime));
+	p0 = Tanh32(p0);
       }
       break;
     case LADDER_PREDICTOR_CORRECTOR_FEEDBACK_TANH:
@@ -254,7 +267,7 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(ut_1 - Tanh54(fb*p3) + noise - p0);
+	p0_prime = p0 + dt*(ut_1 - Tanh32(fb*p3) + noise - p0);
 	p1_prime = p1 + dt*(p0 - p1);
 	p2_prime = p2 + dt*(p1 - p2);
 	p3_prime = p3 + dt*(p2 - p3);
@@ -264,8 +277,8 @@ void Ladder::LadderFilter(double input){
 	p3 = p3 + 0.5*dt*((p2 - p3) + (p2_prime - p3_prime));
 	p2 = p2 + 0.5*dt*((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5*dt*((ut_1 - Tanh54(fb*p3t_1) + noise - p0) +
-			  (input - Tanh54(fb*p3) + noise - p0_prime));
+	p0 = p0 + 0.5*dt*((ut_1 - Tanh32(fb*p3t_1) + noise - p0) +
+			  (input - Tanh32(fb*p3) + noise - p0_prime));
       }
       break;
     default:

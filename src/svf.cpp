@@ -144,6 +144,19 @@ void SVF::SetFilterIntegrationRate(){
   }
 }
 
+// pade 3/2 approximant for tanh
+inline double SVF::Tanh32(double x) {
+  // clamp x to -4..4
+  if(x > 3.0) {
+    x=3.0;
+  }
+  else if(x < -3.0) {
+    x=-3.0;
+  }
+  // return approximant
+  return x*(15.0+x*x)/(15.0+6.0*x*x);
+}
+
 // pade 5/4 approximant for tanh
 inline double SVF::Tanh54(double x) {
   // clamp x to -4..4
@@ -205,9 +218,9 @@ void SVF::SVFfilter(double input){
       // semi-implicit euler integration
       hp = -lp - fb*bp + input + noise;
       bp += dt*hp;
-      bp = Tanh54(bp);
+      bp = Tanh32(bp);
       lp += dt*bp;
-      lp = Tanh54(lp);
+      lp = Tanh32(lp);
       break;
     case SVF_PREDICTOR_CORRECTOR:
       // predictor-corrector integration
@@ -216,14 +229,14 @@ void SVF::SVFfilter(double input){
       // predictor
       hp_prime =  -lp - fb*bp + u_t1 + noise;
       bp_prime = bp + dt*hp_prime;
-      bp_prime = Tanh54(bp_prime);
+      bp_prime = Tanh32(bp_prime);
 
       // corrector
       lp += 0.5 * dt * (bp + bp_prime);
-      lp = Tanh54(lp);
+      lp = Tanh32(lp);
       hp2 = -lp - fb*bp_prime + input + noise;
       bp += 0.5 * dt * (hp_prime + hp2);
-      bp = Tanh54(bp);
+      bp = Tanh32(bp);
       hp = -lp - fb*bp + input;
       break;
     case SVF_TRAPEZOIDAL:
@@ -235,9 +248,9 @@ void SVF::SVFfilter(double input){
       c = dt / (2.0 + fb*dt + 0.5*dt*dt);
       bp0 = bp;
       bp = a*bp - b*lp + c*(input + u_t1);
-      bp = Tanh54(bp);
+      bp = Tanh32(bp);
       lp += 0.5*dt*(bp0 + bp);
-      lp = Tanh54(lp);
+      lp = Tanh32(lp);
       hp = -lp - fb*bp + input;
       break;
     default:
@@ -261,7 +274,7 @@ void SVF::SVFfilter(double input){
       out = 0.0;
     }
 
-    // downsampling filter
+    // downsampli<ng filter
     if(oversamplingFactor > 1){
       out = fir->FIRfilter(out) * 0.4;
     }
