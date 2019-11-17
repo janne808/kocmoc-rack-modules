@@ -26,7 +26,7 @@
 
 // constructor
 SVF::SVF(double newCutoff, double newResonance, int newOversamplingFactor,
-	 int newFilterMode, double newSampleRate, int newIntegrationMethod){
+	 SVFFilterMode newFilterMode, double newSampleRate, SVFIntegrationMethod newIntegrationMethod){
   // initialize filter parameters
   cutoffFrequency = newCutoff;
   Resonance = newResonance;
@@ -55,7 +55,7 @@ SVF::SVF(){
   cutoffFrequency = 0.25;
   Resonance = 0.5;
   oversamplingFactor = 2;
-  filterMode = 0;
+  filterMode = SVF_LOWPASS_MODE;
   sampleRate = 44100.0;
 
   SetFilterIntegrationRate();
@@ -67,7 +67,7 @@ SVF::SVF(){
   out = 0.0;
   u_t1 = 0.0;
 
-  integrationMethod = 0;
+  integrationMethod = SVF_SEMI_IMPLICIT_EULER;
   
   // instantiate downsampling filter
   fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
@@ -115,7 +115,7 @@ void SVF::SetFilterOversamplingFactor(int newOversamplingFactor){
   SetFilterIntegrationRate();
 }
 
-void SVF::SetFilterMode(int newFilterMode){
+void SVF::SetFilterMode(SVFFilterMode newFilterMode){
   filterMode = newFilterMode;
 }
 
@@ -127,7 +127,7 @@ void SVF::SetFilterSampleRate(double newSampleRate){
   SetFilterIntegrationRate();
 }
 
-void SVF::SetFilterIntegrationMethod(int method){
+void SVF::SetFilterIntegrationMethod(SVFIntegrationMethod method){
   integrationMethod = method;
 }
 
@@ -135,13 +135,26 @@ void SVF::SetFilterIntegrationRate(){
   // normalize cutoff freq to samplerate
   dt = 44100.0 / (sampleRate * oversamplingFactor) * cutoffFrequency;
 
-  // clip integration rate
+  // clamp integration rate
   if(dt < 0.0){
     dt = 0.0;
   }
-  if(dt > 1.75){
-    dt = 1.75;
+  else if(dt > 1.2){
+    dt = 1.2;
   }
+}
+
+// pade 5/4 approximant for tanh
+inline double SVF::Tanh54(double x) {
+  // clamp x to -4..4
+  if(x > 4.0) {
+    x=4.0;
+  }
+  else if(x < -4.0) {
+    x=-4.0;
+  }
+  // return approximant
+  return x*(945.0+105.0*x*x+x*x*x*x)/(945.0+420.0*x*x+15.0*x*x*x*x);
 }
 
 double SVF::GetFilterCutoff(){
@@ -160,7 +173,7 @@ double SVF::GetFilterOutput(){
   return out;
 }
 
-int SVF::GetFilterMode(){
+SVFFilterMode SVF::GetFilterMode(){
   return filterMode;
 }
 
@@ -168,7 +181,7 @@ double SVF::GetFilterSampleRate(){
   return sampleRate;
 }
 
-int SVF::GetFilterIntegrationMethod(){
+SVFIntegrationMethod SVF::GetFilterIntegrationMethod(){
   return integrationMethod;
 }
 
@@ -188,32 +201,32 @@ void SVF::SVFfilter(double input){
   for(int nn = 0; nn < oversamplingFactor; nn++){
     // switch integration method
     switch(integrationMethod){
-    case 0:
+    case SVF_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       hp = -lp - fb*bp + input + noise;
       bp += dt*hp;
-      bp = std::tanh(bp);
+      bp = Tanh54(bp);
       lp += dt*bp;
-      lp = std::tanh(lp);
+      lp = Tanh54(lp);
       break;
-    case 1:
+    case SVF_PREDICTOR_CORRECTOR:
       // predictor-corrector integration
       double hp_prime, bp_prime, hp2;
 
       // predictor
       hp_prime =  -lp - fb*bp + u_t1 + noise;
       bp_prime = bp + dt*hp_prime;
-      bp_prime = std::tanh(bp_prime);
+      bp_prime = Tanh54(bp_prime);
 
       // corrector
       lp += 0.5 * dt * (bp + bp_prime);
-      lp = std::tanh(lp);
+      lp = Tanh54(lp);
       hp2 = -lp - fb*bp_prime + input + noise;
       bp += 0.5 * dt * (hp_prime + hp2);
-      bp = std::tanh(bp);
+      bp = Tanh54(bp);
       hp = -lp - fb*bp + input;
       break;
-    case 2:
+    case SVF_TRAPEZOIDAL:
       // trapezoidal integration
       double a, b, c, bp0;
       
@@ -222,9 +235,9 @@ void SVF::SVFfilter(double input){
       c = dt / (2.0 + fb*dt + 0.5*dt*dt);
       bp0 = bp;
       bp = a*bp - b*lp + c*(input + u_t1);
-      bp = std::tanh(bp);
+      bp = Tanh54(bp);
       lp += 0.5*dt*(bp0 + bp);
-      lp = std::tanh(lp);
+      lp = Tanh54(lp);
       hp = -lp - fb*bp + input;
       break;
     default:
@@ -235,13 +248,13 @@ void SVF::SVFfilter(double input){
     u_t1 = input;
     
     switch(filterMode){
-    case 0:
+    case SVF_LOWPASS_MODE:
       out = lp;
       break;
-    case 1:
+    case SVF_BANDPASS_MODE:
       out = bp;
       break;
-    case 2:
+    case SVF_HIGHPASS_MODE:
       out = hp;
       break;
     default:

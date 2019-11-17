@@ -56,7 +56,7 @@ Ladder::Ladder(){
   cutoffFrequency = 0.25;
   Resonance = 0.5;
   oversamplingFactor = 2;
-  filterMode = LOWPASS;
+  filterMode = LADDER_LOWPASS_MODE;
   sampleRate = 44100.0;
 
   SetFilterIntegrationRate();
@@ -69,7 +69,7 @@ Ladder::Ladder(){
   out = 0.0;
   ut_1 = 0.0;
   
-  integrationMethod = PREDICTOR_CORRECTOR_FULL_TANH;
+  integrationMethod = LADDER_PREDICTOR_CORRECTOR_FULL_TANH;
   
   // instantiate downsampling filter
   fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
@@ -138,13 +138,26 @@ void Ladder::SetFilterIntegrationRate(){
   // normalize cutoff freq to samplerate
   dt = 44100.0 / (sampleRate * oversamplingFactor) * cutoffFrequency;
 
-  // clip integration rate
+  // clamp integration rate
   if(dt < 0.0){
     dt = 0.0;
   }
-  if(dt > 0.8){
+  else if(dt > 0.8){
     dt = 0.8;
   }
+}
+
+// pade 5/4 approximant for tanh
+inline double Ladder::Tanh54(double x) {
+  // clamp x to -4..4
+  if(x > 4.0) {
+    x=4.0;
+  }
+  else if(x < -4.0) {
+    x=-4.0;
+  }
+  // return approximant
+  return x*(945.0+105.0*x*x+x*x*x*x)/(945.0+420.0*x*x+15.0*x*x*x*x);
 }
 
 double Ladder::GetFilterCutoff(){
@@ -191,57 +204,57 @@ void Ladder::LadderFilter(double input){
   for(int nn = 0; nn < oversamplingFactor; nn++){
     // switch integration method
     switch(integrationMethod){
-    case EULER_FULL_TANH:
+    case LADDER_EULER_FULL_TANH:
       {
 	// semi-implicit euler integration
 	// with full tanh stages
-	p0 = p0 + dt*((input - std::tanh(fb*p3) + noise) - p0);
-	p0 = std::tanh(p0);
+	p0 = p0 + dt*((input - Tanh54(fb*p3) + noise) - p0);
+	p0 = Tanh54(p0);
 	p1 = p1 + dt*(p0 - p1);
-	p1 = std::tanh(p1);
+	p1 = Tanh54(p1);
 	p2 = p2 + dt*(p1 - p2);
-	p2 = std::tanh(p2);
+	p2 = Tanh54(p2);
 	p3 = p3 + dt*(p2 - p3);
-	p3 = std::tanh(p3);
+	p3 = Tanh54(p3);
       }
       break;
-    case PREDICTOR_CORRECTOR_FULL_TANH:
+    case LADDER_PREDICTOR_CORRECTOR_FULL_TANH:
       // predictor-corrector integration
       // with full tanh stages
       {
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(ut_1 - std::tanh(fb*p3) + noise - p0);
-	p0_prime = std::tanh(p0_prime);
+	p0_prime = p0 + dt*(ut_1 - Tanh54(fb*p3) + noise - p0);
+	p0_prime = Tanh54(p0_prime);
 	p1_prime = p1 + dt*(p0 - p1);
-	p1_prime = std::tanh(p1_prime);
+	p1_prime = Tanh54(p1_prime);
 	p2_prime = p2 + dt*(p1 - p2);
-	p2_prime = std::tanh(p2_prime);
+	p2_prime = Tanh54(p2_prime);
 	p3_prime = p3 + dt*(p2 - p3);
-	p3_prime = std::tanh(p3_prime);
+	p3_prime = Tanh54(p3_prime);
 
 	// corrector
 	p3t_1 = p3;
 	p3 = p3 + 0.5*dt*((p2 - p3) + (p2_prime - p3_prime));
-	p3 = std::tanh(p3);
+	p3 = Tanh54(p3);
 	p2 = p2 + 0.5*dt*((p1 - p2) + (p1_prime - p2_prime));
-	p2 = std::tanh(p2);
+	p2 = Tanh54(p2);
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
-	p1 = std::tanh(p1);
-	p0 = p0 + 0.5*dt*((ut_1 - std::tanh(fb*p3t_1) + noise - p0) +
-			  (input - std::tanh(fb*p3) + noise - p0_prime));
-	p0 = std::tanh(p0);
+	p1 = Tanh54(p1);
+	p0 = p0 + 0.5*dt*((ut_1 - Tanh54(fb*p3t_1) + noise - p0) +
+			  (input - Tanh54(fb*p3) + noise - p0_prime));
+	p0 = Tanh54(p0);
       }
       break;
-    case PREDICTOR_CORRECTOR_FEEDBACK_TANH:
+    case LADDER_PREDICTOR_CORRECTOR_FEEDBACK_TANH:
       // predictor-corrector integration
       // with feedback tanh stage only
       {
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(ut_1 - std::tanh(fb*p3) + noise - p0);
+	p0_prime = p0 + dt*(ut_1 - Tanh54(fb*p3) + noise - p0);
 	p1_prime = p1 + dt*(p0 - p1);
 	p2_prime = p2 + dt*(p1 - p2);
 	p3_prime = p3 + dt*(p2 - p3);
@@ -251,8 +264,8 @@ void Ladder::LadderFilter(double input){
 	p3 = p3 + 0.5*dt*((p2 - p3) + (p2_prime - p3_prime));
 	p2 = p2 + 0.5*dt*((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5*dt*((ut_1 - std::tanh(fb*p3t_1) + noise - p0) +
-			  (input - std::tanh(fb*p3) + noise - p0_prime));
+	p0 = p0 + 0.5*dt*((ut_1 - Tanh54(fb*p3t_1) + noise - p0) +
+			  (input - Tanh54(fb*p3) + noise - p0_prime));
       }
       break;
     default:
@@ -264,13 +277,13 @@ void Ladder::LadderFilter(double input){
 
     //switch filter mode
     switch(filterMode){
-    case LOWPASS:
+    case LADDER_LOWPASS_MODE:
       out = p3;
       break;
-    case BANDPASS:
+    case LADDER_BANDPASS_MODE:
       out = p1 - p3;
       break;
-    case HIGHPASS:
+    case LADDER_HIGHPASS_MODE:
       out = input - p0 - fb*p3;
       break;
     default:

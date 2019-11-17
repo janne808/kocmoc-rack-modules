@@ -45,10 +45,10 @@ struct LADR : Module {
   };
 
   int _oversampling = 2;
-  LadderIntegrationMethod _integrationMethod = PREDICTOR_CORRECTOR_FULL_TANH;
+  LadderIntegrationMethod _integrationMethod = LADDER_PREDICTOR_CORRECTOR_FULL_TANH;
   
   // create svf class instance
-  Ladder *ladder = new Ladder((double)(0.25), (double)(0.0), _oversampling, LOWPASS,
+  Ladder *ladder = new Ladder((double)(0.25), (double)(0.0), _oversampling, LADDER_LOWPASS_MODE,
 			      (double)(APP->engine->getSampleRate()), _integrationMethod);
   
   LADR() {
@@ -207,9 +207,9 @@ struct LADRWidget : ModuleWidget {
 
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
-    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler w/ Full Tanh", EULER_FULL_TANH));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Full Tanh", PREDICTOR_CORRECTOR_FULL_TANH));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Tanh Feedback", PREDICTOR_CORRECTOR_FEEDBACK_TANH));
+    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler w/ Full Tanh", LADDER_EULER_FULL_TANH));
+    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Full Tanh", LADDER_PREDICTOR_CORRECTOR_FULL_TANH));
+    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Tanh Feedback", LADDER_PREDICTOR_CORRECTOR_FEEDBACK_TANH));
   }
 };
 

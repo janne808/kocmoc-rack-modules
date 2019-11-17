@@ -45,10 +45,10 @@ struct SVF_1 : Module {
   };
 
   int _oversampling = 2;
-  int _integrationMethod = 0;
+  SVFIntegrationMethod _integrationMethod = SVF_SEMI_IMPLICIT_EULER;
   
   // create svf class instance
-  SVF *svf = new SVF((double)(0.25), (double)(0.0), _oversampling, 0,
+  SVF *svf = new SVF((double)(0.25), (double)(0.0), _oversampling, SVF_LOWPASS_MODE,
 		     (double)(APP->engine->getSampleRate()), _integrationMethod);
   
   SVF_1() {
@@ -79,7 +79,7 @@ struct SVF_1 : Module {
     // set filter parameters
     svf->SetFilterCutoff((double)(cutoff));
     svf->SetFilterResonance((double)(reso));
-    svf->SetFilterMode(params[MODE_PARAM].getValue());
+    svf->SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
     svf->SVFfilter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
@@ -117,7 +117,7 @@ struct SVF_1 : Module {
   json_t* dataToJson() override {
     json_t* rootJ = json_object();
     json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));
-    json_object_set_new(rootJ, "integrationMethod", json_integer(_integrationMethod));
+    json_object_set_new(rootJ, "integrationMethod", json_integer((int)(_integrationMethod)));
     return rootJ;
   }
 
@@ -127,7 +127,7 @@ struct SVF_1 : Module {
       _oversampling = json_integer_value(oversamplingJ);
     json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
     if (integrationMethodJ)
-      _integrationMethod = json_integer_value(integrationMethodJ);
+      _integrationMethod = (SVFIntegrationMethod)(json_integer_value(integrationMethodJ));
   }
 };
 
@@ -178,9 +178,9 @@ struct SVF_1Widget : ModuleWidget {
   
   struct IntegrationMenuItem : MenuItem {
     SVF_1* _module;
-    const int _integrationMethod;
+    const SVFIntegrationMethod _integrationMethod;
 
-    IntegrationMenuItem(SVF_1* module, const char* label, int integrationMethod)
+    IntegrationMenuItem(SVF_1* module, const char* label, SVFIntegrationMethod integrationMethod)
       : _module(module)
       , _integrationMethod(integrationMethod)
     {
@@ -211,9 +211,9 @@ struct SVF_1Widget : ModuleWidget {
 
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
-    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", 0));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", 1));
-    menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", 2));
+    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", SVF_SEMI_IMPLICIT_EULER));
+    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", SVF_PREDICTOR_CORRECTOR));
+    menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SVF_TRAPEZOIDAL));
   }
 };
 

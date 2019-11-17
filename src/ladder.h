@@ -26,16 +26,16 @@
 
 // filter modes
 enum LadderFilterMode {
-   LOWPASS,
-   BANDPASS,
-   HIGHPASS
+   LADDER_LOWPASS_MODE,
+   LADDER_BANDPASS_MODE,
+   LADDER_HIGHPASS_MODE
 };
 
 // integration methods
 enum LadderIntegrationMethod {
-   EULER_FULL_TANH,
-   PREDICTOR_CORRECTOR_FULL_TANH,
-   PREDICTOR_CORRECTOR_FEEDBACK_TANH
+   LADDER_EULER_FULL_TANH,
+   LADDER_PREDICTOR_CORRECTOR_FULL_TANH,
+   LADDER_PREDICTOR_CORRECTOR_FEEDBACK_TANH
 };
 
 class Ladder{
@@ -75,11 +75,12 @@ public:
 
   // reset state
   void ResetFilterState();
-  
+
 private:
   // methods
   void SetFilterIntegrationRate();
-
+  inline double Tanh54(double x);
+  
   // filter parameters
   double cutoffFrequency;
   double Resonance;

@@ -24,11 +24,25 @@
 
 #include "fir.h"
 
+// filter modes
+enum SVFFilterMode {
+   SVF_LOWPASS_MODE,
+   SVF_BANDPASS_MODE,
+   SVF_HIGHPASS_MODE
+};
+
+// integration methods
+enum SVFIntegrationMethod {
+   SVF_SEMI_IMPLICIT_EULER,
+   SVF_PREDICTOR_CORRECTOR,
+   SVF_TRAPEZOIDAL
+};
+
 class SVF{
 public:
   // constructor/destructor
   SVF(double newCutoff, double newResonance, int newOversamplingFactor,
-      int newFilterMode, double newSampleRate, int newIntegrationMethod);
+      SVFFilterMode newFilterMode, double newSampleRate, SVFIntegrationMethod newIntegrationMethod);
   SVF();
   ~SVF();
 
@@ -36,17 +50,17 @@ public:
   void SetFilterCutoff(double newCutoff);
   void SetFilterResonance(double newResonance);
   void SetFilterOversamplingFactor(int newOversamplingFactor);
-  void SetFilterMode(int newFilterMode);
+  void SetFilterMode(SVFFilterMode newFilterMode);
   void SetFilterSampleRate(double newSampleRate);
-  void SetFilterIntegrationMethod(int method);
+  void SetFilterIntegrationMethod(SVFIntegrationMethod method);
   
   // get filter parameters
   double GetFilterCutoff();
   double GetFilterResonance();
   int GetFilterOversamplingFactor();  
-  int GetFilterMode();  
+  SVFFilterMode GetFilterMode();  
   double GetFilterSampleRate();
-  int GetFilterIntegrationMethod();
+  SVFIntegrationMethod GetFilterIntegrationMethod();
   
   // tick filter state
   void SVFfilter(double input);
@@ -65,15 +79,16 @@ public:
 private:
   // methods
   void SetFilterIntegrationRate();
-
+  inline double Tanh54(double x);
+  
   // filter parameters
   double cutoffFrequency;
   double Resonance;
   int oversamplingFactor;
-  int filterMode;
+  SVFFilterMode filterMode;
   double sampleRate;
   double dt;
-  int integrationMethod;
+  SVFIntegrationMethod integrationMethod;
   
   // filter state
   double lp;
