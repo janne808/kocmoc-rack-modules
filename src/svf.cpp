@@ -146,7 +146,7 @@ void SVF::SetFilterIntegrationRate(){
 
 // pade 3/2 approximant for tanh
 inline double SVF::Tanh32(double x) {
-  // clamp x to -4..4
+  // clamp x to -3..3
   if(x > 3.0) {
     x=3.0;
   }
