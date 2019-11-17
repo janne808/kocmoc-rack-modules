@@ -274,7 +274,7 @@ void SVF::SVFfilter(double input){
       out = 0.0;
     }
 
-    // downsampli<ng filter
+    // downsampling filter
     if(oversamplingFactor > 1){
       out = fir->FIRfilter(out) * 0.4;
     }
