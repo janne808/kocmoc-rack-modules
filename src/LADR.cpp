@@ -68,7 +68,7 @@ struct LADR : Module {
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
-    gain = (gain * gain * gain * gain)/10.f;
+    gain = 4.f*(gain * gain * gain * gain)/10.f;
     
     // sum in linear cv
     cutoff += inputs[LINCV_INPUT].getVoltage()/10.f;

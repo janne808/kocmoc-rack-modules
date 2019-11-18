@@ -142,8 +142,8 @@ void Ladder::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.8){
-    dt = 0.8;
+  else if(dt > 0.6){
+    dt = 0.6;
   }
 }
 
@@ -297,7 +297,7 @@ void Ladder::LadderFilter(double input){
       out = p1 - p3;
       break;
     case LADDER_HIGHPASS_MODE:
-      out = input - p0 - fb*p3;
+      out = Tanh32(input - p0 - fb*p3);
       break;
     default:
       out = 0.0;
