@@ -156,7 +156,8 @@ inline double Ladder::Tanh32(double x) {
   else if(x < -3.0) {
     x=-3.0;
   }
-  // return approximant
+
+  // return approximant minus bias
   return x*(15.0+x*x)/(15.0+6.0*x*x);
 }
 
@@ -169,7 +170,8 @@ inline double Ladder::Tanh54(double x) {
   else if(x < -4.0) {
     x=-4.0;
   }
-  // return approximant
+  
+  // return approximant minus bias
   return x*(945.0+105.0*x*x+x*x*x*x)/(945.0+420.0*x*x+15.0*x*x*x*x);
 }
 
@@ -221,7 +223,7 @@ void Ladder::LadderFilter(double input){
       {
 	// semi-implicit euler integration
 	// with full tanh stages
-	p0 = p0 + dt*((input - Tanh32(fb*p3) + noise) - p0);
+	p0 = p0 + dt*((Tanh32(input - fb*p3) + noise) - p0);
 	p0 = Tanh32(p0);
 	p1 = p1 + dt*(p0 - p1);
 	p1 = Tanh32(p1);
@@ -238,7 +240,7 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(ut_1 - Tanh32(fb*p3) + noise - p0);
+	p0_prime = p0 + dt*(Tanh32(ut_1 - fb*p3) + noise - p0);
 	p0_prime = Tanh32(p0_prime);
 	p1_prime = p1 + dt*(p0 - p1);
 	p1_prime = Tanh32(p1_prime);
@@ -255,8 +257,8 @@ void Ladder::LadderFilter(double input){
 	p2 = Tanh32(p2);
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
 	p1 = Tanh32(p1);
-	p0 = p0 + 0.5*dt*((ut_1 - Tanh32(fb*p3t_1) + noise - p0) +
-			  (input - Tanh32(fb*p3) + noise - p0_prime));
+	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) + noise - p0) +
+			  (Tanh32(input - fb*p3) + noise - p0_prime));
 	p0 = Tanh32(p0);
       }
       break;
@@ -267,7 +269,7 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(ut_1 - Tanh32(fb*p3) + noise - p0);
+	p0_prime = p0 + dt*(Tanh32(ut_1 - fb*p3) + noise - p0);
 	p1_prime = p1 + dt*(p0 - p1);
 	p2_prime = p2 + dt*(p1 - p2);
 	p3_prime = p3 + dt*(p2 - p3);
@@ -277,8 +279,8 @@ void Ladder::LadderFilter(double input){
 	p3 = p3 + 0.5*dt*((p2 - p3) + (p2_prime - p3_prime));
 	p2 = p2 + 0.5*dt*((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5*dt*((ut_1 - Tanh32(fb*p3t_1) + noise - p0) +
-			  (input - Tanh32(fb*p3) + noise - p0_prime));
+	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) + noise - p0) +
+			  (Tanh32(input - fb*p3) + noise - p0_prime));
       }
       break;
     default:
