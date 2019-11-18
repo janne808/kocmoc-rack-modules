@@ -157,7 +157,7 @@ inline double Ladder::Tanh32(double x) {
     x=-3.0;
   }
 
-  // return approximant minus bias
+  // return approximant
   return x*(15.0+x*x)/(15.0+6.0*x*x);
 }
 
@@ -171,7 +171,7 @@ inline double Ladder::Tanh54(double x) {
     x=-4.0;
   }
   
-  // return approximant minus bias
+  // return approximant
   return x*(945.0+105.0*x*x+x*x*x*x)/(945.0+420.0*x*x+15.0*x*x*x*x);
 }
 
