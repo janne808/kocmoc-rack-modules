@@ -300,13 +300,20 @@ void Ladder::LadderFilter(double input){
 
 	// newton-raphson 
 	for(int ii=0; ii < 32; ii++) {
-	  x_k2 = x_k - (x_k + x_k*Tanh32(g*x_k)*C_t - Tanh32(g*x_k) - C_t) /
-	    (1.0 + C_t*(Tanh32(g*x_k) + g*x_k*(1.0 - Tanh32(g*x_k)*Tanh32(g*x_k))) - g*(1.0 - Tanh32(g*x_k)*Tanh32(g*x_k)));
+	  double tanh_g_xk, tanh_g_xk2;
+	  
+	  tanh_g_xk = Tanh32(g*x_k);
+	  tanh_g_xk2 = g*(1.0 - Tanh32(g*x_k)*Tanh32(g*x_k));
+	  
+	  x_k2 = x_k - (x_k + x_k*tanh_g_xk*C_t - tanh_g_xk - C_t) /
+	                 (1.0 + C_t*(tanh_g_xk + x_k*tanh_g_xk2) - tanh_g_xk2);
+	  
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-15) {
 	    x_k = x_k2;
 	    break;
 	  }
+	  
 	  x_k = x_k2;
 	}
 	
