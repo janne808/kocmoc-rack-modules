@@ -89,7 +89,7 @@ struct SVF_1 : Module {
     if(gain < 0.0) {
       gain = 0.0;
     }
-    gainComp = 7.0 * (1.0 - 2.0 * std::log(1.0 + gain));
+    gainComp = 7.0 * (1.0 - 1.7 * std::log(1.0 + gain));
     
     // set output
     outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 10.0 * gainComp));
