@@ -214,6 +214,8 @@ void Ladder::LadderFilter(double input){
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
   noise = 1.0e-6 * 2.0 * (noise - 0.5);
 
+  input += noise;
+  
   // integrate filter state
   // with oversampling
   for(int nn = 0; nn < oversamplingFactor; nn++){
@@ -223,7 +225,7 @@ void Ladder::LadderFilter(double input){
       {
 	// semi-implicit euler integration
 	// with full tanh stages
-	p0 = p0 + dt*((Tanh32(input - fb*p3) + noise) - p0);
+	p0 = p0 + dt*(Tanh32(input - fb*p3) - p0);
 	p0 = Tanh32(p0);
 	p1 = p1 + dt*(p0 - p1);
 	p1 = Tanh32(p1);
@@ -240,7 +242,7 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(Tanh32(ut_1 - fb*p3) + noise - p0);
+	p0_prime = p0 + dt*(Tanh32(ut_1 - fb*p3) - p0);
 	p0_prime = Tanh32(p0_prime);
 	p1_prime = p1 + dt*(p0 - p1);
 	p1_prime = Tanh32(p1_prime);
@@ -257,8 +259,8 @@ void Ladder::LadderFilter(double input){
 	p2 = Tanh32(p2);
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
 	p1 = Tanh32(p1);
-	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) + noise - p0) +
-			  (Tanh32(input - fb*p3) + noise - p0_prime));
+	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) - p0) +
+			  (Tanh32(input - fb*p3) - p0_prime));
 	p0 = Tanh32(p0);
       }
       break;
@@ -269,7 +271,7 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(Tanh32(ut_1 - fb*p3) + noise - p0);
+	p0_prime = p0 + dt*(Tanh32(ut_1 - fb*p3) - p0);
 	p1_prime = p1 + dt*(p0 - p1);
 	p2_prime = p2 + dt*(p1 - p2);
 	p3_prime = p3 + dt*(p2 - p3);
@@ -279,8 +281,8 @@ void Ladder::LadderFilter(double input){
 	p3 = p3 + 0.5*dt*((p2 - p3) + (p2_prime - p3_prime));
 	p2 = p2 + 0.5*dt*((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) + noise - p0) +
-			  (Tanh32(input - fb*p3) + noise - p0_prime));
+	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) - p0) +
+			  (Tanh32(input - fb*p3) - p0_prime));
       }
       break;
     case LADDER_TRAPEZOIDAL_FEEDBACK_TANH:
