@@ -209,6 +209,8 @@ void SVF::SVFfilter(double input){
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
   noise = 1.0e-6 * 2.0 * (noise - 0.5);
 
+  input += noise;
+  
   // integrate filter state
   // with oversampling
   for(int nn = 0; nn < oversamplingFactor; nn++){
@@ -216,7 +218,7 @@ void SVF::SVFfilter(double input){
     switch(integrationMethod){
     case SVF_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
-      hp = -lp - fb*bp + input + noise;
+      hp = -lp - fb*bp + input;
       bp += dt*hp;
       bp = Tanh32(bp);
       lp += dt*bp;
@@ -227,14 +229,14 @@ void SVF::SVFfilter(double input){
       double hp_prime, bp_prime, hp2;
 
       // predictor
-      hp_prime =  -lp - fb*bp + u_t1 + noise;
+      hp_prime =  -lp - fb*bp + u_t1;
       bp_prime = bp + dt*hp_prime;
       bp_prime = Tanh32(bp_prime);
 
       // corrector
       lp += 0.5 * dt * (bp + bp_prime);
       lp = Tanh32(lp);
-      hp2 = -lp - fb*bp_prime + input + noise;
+      hp2 = -lp - fb*bp_prime + input;
       bp += 0.5 * dt * (hp_prime + hp2);
       bp = Tanh32(bp);
       hp = -lp - fb*bp + input;
