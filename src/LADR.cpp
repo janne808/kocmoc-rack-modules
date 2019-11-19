@@ -210,6 +210,7 @@ struct LADRWidget : ModuleWidget {
     menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler w/ Full Tanh", LADDER_EULER_FULL_TANH));
     menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Full Tanh", LADDER_PREDICTOR_CORRECTOR_FULL_TANH));
     menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Tanh Feedback", LADDER_PREDICTOR_CORRECTOR_FEEDBACK_TANH));
+    menu->addChild(new IntegrationMenuItem(a, "Trapezoidal w/ Tanh Feedback", LADDER_TRAPEZOIDAL_FEEDBACK_TANH));
   }
 };
 

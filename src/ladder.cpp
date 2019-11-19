@@ -283,6 +283,46 @@ void Ladder::LadderFilter(double input){
 			  (Tanh32(input - fb*p3) + noise - p0_prime));
       }
       break;
+    case LADDER_TRAPEZOIDAL_FEEDBACK_TANH:
+      // implicit trapezoidal integration
+      // with feedback tanh stage only
+      {
+	double x_k, x_k2, g, b, c, C_t, D_t, ut, ut_2;
+	double p0_prime, p1_prime, p2_prime, p3_prime;
+
+	ut = Tanh32(ut_1 - fb*p3);
+    	b = (0.5*dt)/(1.0 + 0.5*dt);
+	c = (1.0-0.5*dt)/(1.0+0.5*dt);
+	g = -fb*b*b*b*b;
+	x_k = ut;
+	D_t = c*p3 + (b + c*b)*p2 + (b*b+b*b*c)*p1 + (b*b*b+b*b*b*c)*p0 + b*b*b*b*ut;
+	C_t = Tanh32(input - fb*D_t);
+
+	// newton-raphson 
+	for(int ii=0; ii < 32; ii++) {
+	  x_k2 = x_k - (x_k + x_k*Tanh32(g*x_k)*C_t - Tanh32(g*x_k) - C_t) /
+	    (1.0 + C_t*(Tanh32(g*x_k) + g*x_k*(1.0 - Tanh32(g*x_k)*Tanh32(g*x_k))) - g*(1.0 - Tanh32(g*x_k)*Tanh32(g*x_k)));
+	  // breaking limit
+	  if(abs(x_k2 - x_k) < 1.0e-15) {
+	    x_k = x_k2;
+	    break;
+	  }
+	  x_k = x_k2;
+	}
+	
+	ut_2 = x_k;
+
+	p0_prime = p0;
+	p1_prime = p1;
+	p2_prime = p2;
+	p3_prime = p3;
+
+	p0 = c*p0_prime + b*(ut + ut_2);
+	p1 = c*p1_prime + b*(p0_prime + p0);
+	p2 = c*p2_prime + b*(p1_prime + p1);
+	p3 = c*p3_prime + b*(p2_prime + p2);
+      }
+      break;
     default:
       break;
     }
