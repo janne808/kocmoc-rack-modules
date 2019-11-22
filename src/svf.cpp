@@ -268,15 +268,15 @@ void SVF::SVFfilter(double input){
 
 	a = 0.5*dt;
 	D_t = lp + a*bp;
-    	E_t = std::tanh(bp - a*lp - a*fb*bp + a*u_t1 + a*input);
-	x_k = std::tanh(bp + dt*(-lp - fb*bp + input));
+    	E_t = Tanh32(bp - a*lp - a*fb*bp + a*u_t1 + a*input);
+	x_k = Tanh32(bp + dt*(-lp - fb*bp + input));
 
     	// newton-raphson
 	for(int ii=0; ii < 32; ii++) {
 	  double fx, Dfx, T2, T3, DT2, DT3;
 
-	  T2 = std::tanh(a*x_k + D_t);
-	  T3 = std::tanh(-a*fb*x_k - a*T2);
+	  T2 = Tanh32(a*x_k + D_t);
+	  T3 = Tanh32(-a*fb*x_k - a*T2);
 	  DT2 = a - a*T2*T2;
 	  DT3 = (1.0 - T3*T3)*(-a*fb - a*DT2);
 
@@ -294,7 +294,7 @@ void SVF::SVFfilter(double input){
 	  x_k = x_k2;
 	}
 
-	lp = std::tanh(lp + 0.5*dt*(bp + x_k));
+	lp = Tanh32(lp + 0.5*dt*(bp + x_k));
 	bp = x_k;
 	hp = -lp - fb*bp + input;
       }
