@@ -213,7 +213,8 @@ struct SVF_1Widget : ModuleWidget {
     menu->addChild(createMenuLabel("Integration Method"));
     menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", SVF_SEMI_IMPLICIT_EULER));
     menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", SVF_PREDICTOR_CORRECTOR));
-    menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SVF_TRAPEZOIDAL));
+    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Trapezoidal", SVF_TRAPEZOIDAL));
+    menu->addChild(new IntegrationMenuItem(a, "Implicit Trapezoidal", SVF_IMPLICIT_TRAPEZOIDAL));
   }
 };
 
