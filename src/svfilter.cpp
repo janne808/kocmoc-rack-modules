@@ -21,7 +21,7 @@
 
 #include <cstdlib>
 #include <cmath>
-#include "svf.h"
+#include "svfilter.h"
 #include "fir.h"
 
 // constructor

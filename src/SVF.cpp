@@ -20,7 +20,7 @@
  */
 
 #include "plugin.hpp"
-#include "svf.h"
+#include "svfilter.h"
 
 struct SVF : Module {
   enum ParamIds {
