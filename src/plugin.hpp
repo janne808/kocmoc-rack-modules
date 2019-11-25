@@ -29,6 +29,6 @@ extern Plugin* pluginInstance;
 
 // Declare each Model, defined in each module source file
 // extern Model* modelMyModule;
-extern Model* modelSVF_1;
+extern Model* modelSVF;
 extern Model* modelTRG;
 extern Model* modelLADR;
