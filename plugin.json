@@ -14,8 +14,8 @@
   "changelogUrl": "",
   "modules": [
     {
-      "slug": "SVF-1",
-      "name": "SVF-1",
+      "slug": "SVF",
+      "name": "SVF",
       "description": "State Variable Filter",
       "tags": [
         "vcf",

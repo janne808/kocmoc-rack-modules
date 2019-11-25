@@ -25,8 +25,8 @@
 #include "fir.h"
 
 // constructor
-SVF::SVF(double newCutoff, double newResonance, int newOversamplingFactor,
-	 SVFFilterMode newFilterMode, double newSampleRate, SVFIntegrationMethod newIntegrationMethod){
+SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
+		   SVFFilterMode newFilterMode, double newSampleRate, SVFIntegrationMethod newIntegrationMethod){
   // initialize filter parameters
   cutoffFrequency = newCutoff;
   Resonance = newResonance;
@@ -50,7 +50,7 @@ SVF::SVF(double newCutoff, double newResonance, int newOversamplingFactor,
 }
 
 // default constructor
-SVF::SVF(){
+SVFilter::SVFilter(){
   // initialize filter parameters
   cutoffFrequency = 0.25;
   Resonance = 0.5;
@@ -74,11 +74,11 @@ SVF::SVF(){
 }
 
 // default destructor
-SVF::~SVF(){
+SVFilter::~SVFilter(){
   delete fir;
 }
 
-void SVF::ResetFilterState(){
+void SVFilter::ResetFilterState(){
   // initialize filter parameters
   cutoffFrequency = 0.25;
   Resonance = 0.5;
@@ -97,17 +97,17 @@ void SVF::ResetFilterState(){
   fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
 }
 
-void SVF::SetFilterCutoff(double newCutoff){
+void SVFilter::SetFilterCutoff(double newCutoff){
   cutoffFrequency = newCutoff;
 
   SetFilterIntegrationRate();
 }
 
-void SVF::SetFilterResonance(double newResonance){
+void SVFilter::SetFilterResonance(double newResonance){
   Resonance = newResonance;
 }
 
-void SVF::SetFilterOversamplingFactor(int newOversamplingFactor){
+void SVFilter::SetFilterOversamplingFactor(int newOversamplingFactor){
   oversamplingFactor = newOversamplingFactor;
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
   fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
@@ -115,11 +115,11 @@ void SVF::SetFilterOversamplingFactor(int newOversamplingFactor){
   SetFilterIntegrationRate();
 }
 
-void SVF::SetFilterMode(SVFFilterMode newFilterMode){
+void SVFilter::SetFilterMode(SVFFilterMode newFilterMode){
   filterMode = newFilterMode;
 }
 
-void SVF::SetFilterSampleRate(double newSampleRate){
+void SVFilter::SetFilterSampleRate(double newSampleRate){
   sampleRate = newSampleRate;
   fir->SetFilterSamplerate(sampleRate * (double)(oversamplingFactor));
   fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
@@ -127,11 +127,11 @@ void SVF::SetFilterSampleRate(double newSampleRate){
   SetFilterIntegrationRate();
 }
 
-void SVF::SetFilterIntegrationMethod(SVFIntegrationMethod method){
+void SVFilter::SetFilterIntegrationMethod(SVFIntegrationMethod method){
   integrationMethod = method;
 }
 
-void SVF::SetFilterIntegrationRate(){
+void SVFilter::SetFilterIntegrationRate(){
   // normalize cutoff freq to samplerate
   dt = 44100.0 / (sampleRate * oversamplingFactor) * cutoffFrequency;
 
@@ -145,7 +145,7 @@ void SVF::SetFilterIntegrationRate(){
 }
 
 // pade 3/2 approximant for tanh
-inline double SVF::Tanh32(double x) {
+inline double SVFilter::Tanh32(double x) {
   // clamp x to -3..3
   if(x > 3.0) {
     x=3.0;
@@ -158,7 +158,7 @@ inline double SVF::Tanh32(double x) {
 }
 
 // pade 5/4 approximant for tanh
-inline double SVF::Tanh54(double x) {
+inline double SVFilter::Tanh54(double x) {
   // clamp x to -4..4
   if(x > 4.0) {
     x=4.0;
@@ -170,35 +170,35 @@ inline double SVF::Tanh54(double x) {
   return x*(945.0+105.0*x*x+x*x*x*x)/(945.0+420.0*x*x+15.0*x*x*x*x);
 }
 
-double SVF::GetFilterCutoff(){
+double SVFilter::GetFilterCutoff(){
   return cutoffFrequency;
 }
 
-double SVF::GetFilterResonance(){
+double SVFilter::GetFilterResonance(){
   return Resonance;
 }
 
-int SVF::GetFilterOversamplingFactor(){
+int SVFilter::GetFilterOversamplingFactor(){
   return oversamplingFactor;
 }
 
-double SVF::GetFilterOutput(){
+double SVFilter::GetFilterOutput(){
   return out;
 }
 
-SVFFilterMode SVF::GetFilterMode(){
+SVFFilterMode SVFilter::GetFilterMode(){
   return filterMode;
 }
 
-double SVF::GetFilterSampleRate(){
+double SVFilter::GetFilterSampleRate(){
   return sampleRate;
 }
 
-SVFIntegrationMethod SVF::GetFilterIntegrationMethod(){
+SVFIntegrationMethod SVFilter::GetFilterIntegrationMethod(){
   return integrationMethod;
 }
 
-void SVF::SVFfilter(double input){
+void SVFilter::SVFfilter(double input){
   // noise term
   double noise;
 
@@ -327,15 +327,15 @@ void SVF::SVFfilter(double input){
   }
 }
 
-double SVF::GetFilterLowpass(){
+double SVFilter::GetFilterLowpass(){
   return lp;
 }
 
-double SVF::GetFilterBandpass(){
+double SVFilter::GetFilterBandpass(){
   return bp;
 }
 
-double SVF::GetFilterHighpass(){
+double SVFilter::GetFilterHighpass(){
   return hp;
 }
 

@@ -40,13 +40,13 @@ enum SVFIntegrationMethod {
    SVF_IMPLICIT_TRAPEZOIDAL
 };
 
-class SVF{
+class SVFilter{
 public:
   // constructor/destructor
-  SVF(double newCutoff, double newResonance, int newOversamplingFactor,
-      SVFFilterMode newFilterMode, double newSampleRate, SVFIntegrationMethod newIntegrationMethod);
-  SVF();
-  ~SVF();
+  SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
+	   SVFFilterMode newFilterMode, double newSampleRate, SVFIntegrationMethod newIntegrationMethod);
+  SVFilter();
+  ~SVFilter();
 
   // set filter parameters
   void SetFilterCutoff(double newCutoff);
