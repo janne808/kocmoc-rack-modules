@@ -145,7 +145,7 @@ void SVFilter::SetFilterIntegrationRate(){
 }
 
 // pade 3/2 approximant for tanh
-inline double SVFilter::Tanh32(double x) {
+inline double SVFilter::TanhPade32(double x) {
   // clamp x to -3..3
   if(x > 3.0) {
     x=3.0;
@@ -158,7 +158,7 @@ inline double SVFilter::Tanh32(double x) {
 }
 
 // pade 5/4 approximant for tanh
-inline double SVFilter::Tanh54(double x) {
+inline double SVFilter::TanhPade54(double x) {
   // clamp x to -4..4
   if(x > 4.0) {
     x=4.0;
@@ -168,6 +168,34 @@ inline double SVFilter::Tanh54(double x) {
   }
   // return approximant
   return x*(945.0+105.0*x*x+x*x*x*x)/(945.0+420.0*x*x+15.0*x*x*x*x);
+}
+
+inline double SVFilter::ExpTaylor(double x, int N) {
+  double y=1.0;
+  double e=x;
+  double f=1.0;
+  
+  // clamp x to -3..3
+  if(x > 3.0) {
+    x=3.0;
+  }
+  else if(x < -3.0) {
+    x=-3.0;
+  }
+
+  // iterate taylor expansion up to N
+  for(int ii=0; ii<N; ii++) {
+    f *= ii+1;
+    y += e/f;
+    e *= x;
+  }
+  
+  return y;
+}
+
+inline double SVFilter::TanhExpTaylor(double x) {
+  double e=ExpTaylor(2.0*x, 8);
+  return (e-1.0)/(e+1.0);
 }
 
 double SVFilter::GetFilterCutoff(){
@@ -198,7 +226,7 @@ SVFIntegrationMethod SVFilter::GetFilterIntegrationMethod(){
   return integrationMethod;
 }
 
-void SVFilter::SVFfilter(double input){
+void SVFilter::filter(double input){
   // noise term
   double noise;
 
@@ -220,10 +248,10 @@ void SVFilter::SVFfilter(double input){
       // semi-implicit euler integration
       {
 	hp = -lp + - fb*bp + input;
-	bp = Tanh32(bp + dt*hp);
-	//bp = Tanh32(bp);
-	lp = Tanh32(lp + dt*bp);
-	//lp = Tanh32(lp);
+	bp += dt*hp;
+	bp = TanhPade32(bp);
+	lp += dt*bp;
+	lp = TanhPade32(lp);
       }
       break;
     case SVF_PREDICTOR_CORRECTOR:
@@ -234,14 +262,14 @@ void SVFilter::SVFfilter(double input){
 	// predictor
 	hp_prime =  -lp - fb*bp + u_t1;
 	bp_prime = bp + dt*hp_prime;
-	bp_prime = Tanh32(bp_prime);
+	bp_prime = TanhPade32(bp_prime);
 
 	// corrector
 	lp += 0.5 * dt * (bp + bp_prime);
-	lp = Tanh32(lp);
+	lp = TanhPade32(lp);
 	hp2 = -lp - fb*bp_prime + input;
 	bp += 0.5 * dt * (hp_prime + hp2);
-	bp = Tanh32(bp);
+	bp = TanhPade32(bp);
 	hp = -lp - fb*bp + input;
       }
       break;
@@ -255,9 +283,9 @@ void SVFilter::SVFfilter(double input){
 	c = dt / (2.0 + fb*dt + 0.5*dt*dt);
 	bp0 = bp;
 	bp = a*bp - b*lp + c*(input + u_t1);
-	bp = Tanh32(bp);
+	bp = TanhPade32(bp);
 	lp += 0.5*dt*(bp0 + bp);
-	lp = Tanh32(lp);
+	lp = TanhPade32(lp);
 	hp = -lp - fb*bp + input;
       }
       break;
@@ -268,15 +296,15 @@ void SVFilter::SVFfilter(double input){
 
 	a = 0.5*dt;
 	D_t = lp + a*bp;
-    	E_t = Tanh32(bp - a*lp - a*fb*bp + a*u_t1 + a*input);
-	x_k = Tanh32(bp + dt*(-lp - fb*bp + input));
+    	E_t = TanhPade32(bp - a*lp - a*fb*bp + a*u_t1 + a*input);
+	x_k = TanhPade32(bp + dt*(-lp - fb*bp + input));
 
     	// newton-raphson
 	for(int ii=0; ii < 32; ii++) {
 	  double fx, Dfx, T2, T3, DT2, DT3;
 
-	  T2 = Tanh32(a*x_k + D_t);
-	  T3 = Tanh32(-a*fb*x_k - a*T2);
+	  T2 = TanhPade32(a*x_k + D_t);
+	  T3 = TanhPade32(-a*fb*x_k - a*T2);
 	  DT2 = a - a*T2*T2;
 	  DT3 = (1.0 - T3*T3)*(-a*fb - a*DT2);
 
@@ -294,7 +322,7 @@ void SVFilter::SVFfilter(double input){
 	  x_k = x_k2;
 	}
 
-	lp = Tanh32(lp + 0.5*dt*(bp + x_k));
+	lp = TanhPade32(lp + 0.5*dt*(bp + x_k));
 	bp = x_k;
 	hp = -lp - fb*bp + input;
       }

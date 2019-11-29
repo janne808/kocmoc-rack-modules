@@ -65,7 +65,7 @@ public:
   SVFIntegrationMethod GetFilterIntegrationMethod();
   
   // tick filter state
-  void SVFfilter(double input);
+  void filter(double input);
 
   // get filter responses
   double GetFilterLowpass();
@@ -83,8 +83,14 @@ private:
   void SetFilterIntegrationRate();
 
   // pade approximant functions for tanh
-  inline double Tanh32(double x);
-  inline double Tanh54(double x);
+  inline double TanhPade32(double x);
+  inline double TanhPade54(double x);
+
+  // taylor approximated tanh function
+  inline double TanhExpTaylor(double x);
+
+  // taylor approximated exponential function
+  inline double ExpTaylor(double x, int N);
   
   // filter parameters
   double cutoffFrequency;

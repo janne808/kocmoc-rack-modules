@@ -294,10 +294,11 @@ void Ladder::LadderFilter(double input){
 
 	ut = Tanh32(ut_1 - fb*p3);
     	b = (0.5*dt)/(1.0 + 0.5*dt);
-	c = (1.0-0.5*dt)/(1.0+0.5*dt);
+	c = (1.0 - 0.5*dt)/(1.0 + 0.5*dt);
 	g = -fb*b*b*b*b;
 	x_k = ut;
-	D_t = c*p3 + (b + c*b)*p2 + (b*b+b*b*c)*p1 + (b*b*b+b*b*b*c)*p0 + b*b*b*b*ut;
+	D_t = c*p3 + (b + c*b)*p2 + (b*b+b*b*c)*p1 +
+	               (b*b*b+b*b*b*c)*p0 + b*b*b*b*ut;
 	C_t = Tanh32(input - fb*D_t);
 
 	// newton-raphson 
