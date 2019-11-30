@@ -148,41 +148,33 @@ void SVFilter::SetFilterIntegrationRate(){
 inline double SVFilter::TanhPade32(double x) {
   // clamp x to -3..3
   if(x > 3.0) {
-    x=3.0;
+    x = 3.0;
   }
   else if(x < -3.0) {
-    x=-3.0;
+    x = -3.0;
   }
   // return approximant
-  return x*(15.0+x*x)/(15.0+6.0*x*x);
+  return x*(15.0 + x*x)/(15.0 + 6.0*x*x);
 }
 
 // pade 5/4 approximant for tanh
 inline double SVFilter::TanhPade54(double x) {
   // clamp x to -4..4
   if(x > 4.0) {
-    x=4.0;
+    x = 4.0;
   }
   else if(x < -4.0) {
-    x=-4.0;
+    x = -4.0;
   }
   // return approximant
-  return x*(945.0+105.0*x*x+x*x*x*x)/(945.0+420.0*x*x+15.0*x*x*x*x);
+  return x*(945.0 + 105.0*x*x+x*x*x*x)/(945.0 + 420.0*x*x + 15.0*x*x*x*x);
 }
 
 inline double SVFilter::ExpTaylor(double x, int N) {
-  double y=1.0;
-  double e=x;
-  double f=1.0;
+  double y = 1.0;
+  double e = x;
+  double f = 1.0;
   
-  // clamp x to -3..3
-  if(x > 3.0) {
-    x=3.0;
-  }
-  else if(x < -3.0) {
-    x=-3.0;
-  }
-
   // iterate taylor expansion up to N
   for(int ii=0; ii<N; ii++) {
     f *= ii+1;
@@ -194,8 +186,19 @@ inline double SVFilter::ExpTaylor(double x, int N) {
 }
 
 inline double SVFilter::TanhExpTaylor(double x) {
-  double e=ExpTaylor(2.0*x, 8);
-  return (e-1.0)/(e+1.0);
+  double e;
+
+  // clamp x to -3..3
+  if(x > 3.0) {
+    x = 3.0;
+  }
+  else if(x < -3.0) {
+    x = -3.0;
+  }
+  
+  e = ExpTaylor(2.0*x, 8);
+  
+  return (e - 1.0)/(e + 1.0);
 }
 
 double SVFilter::GetFilterCutoff(){
