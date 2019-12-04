@@ -185,7 +185,36 @@ inline double SVFilter::ExpTaylor(double x, int N) {
   return y;
 }
 
-inline double SVFilter::TanhExpTaylor(double x) {
+inline double SVFilter::BramSaturator(double x, double a) {
+  double absX;
+  double out;
+
+  if(x < 0.0) {
+    absX = -x;
+  }
+  else {
+    absX = x;
+  }
+  
+  if(absX < a) {
+    out = absX;
+  }
+  else if(absX > 1.0) {
+    out = (a+1.0)/2.0;
+  }
+  else {
+    out = (absX - a)/(1.0 - a);
+    out = a + (absX - a)/(1.0 + out*out);
+  }
+
+  if(x < 0.0) {
+    out *= -1.0;
+  }
+
+  return out;
+}
+
+inline double SVFilter::TanhExpTaylor(double x, int N) {
   double e;
 
   // clamp x to -3..3
@@ -196,7 +225,7 @@ inline double SVFilter::TanhExpTaylor(double x) {
     x = -3.0;
   }
   
-  e = ExpTaylor(2.0*x, 8);
+  e = ExpTaylor(2.0*x, N);
   
   return (e - 1.0)/(e + 1.0);
 }
@@ -286,9 +315,7 @@ void SVFilter::filter(double input){
 	c = dt / (2.0 + fb*dt + 0.5*dt*dt);
 	bp0 = bp;
 	bp = a*bp - b*lp + c*(input + u_t1);
-	bp = TanhPade32(bp);
 	lp += 0.5*dt*(bp0 + bp);
-	lp = TanhPade32(lp);
 	hp = -lp - fb*bp + input;
       }
       break;

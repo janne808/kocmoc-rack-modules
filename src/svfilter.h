@@ -35,7 +35,6 @@ enum SVFFilterMode {
 enum SVFIntegrationMethod {
    SVF_SEMI_IMPLICIT_EULER,
    SVF_PREDICTOR_CORRECTOR,
-   SVF_TRAPEZOIDAL,
    SVF_SEMI_IMPLICIT_TRAPEZOIDAL,
    SVF_IMPLICIT_TRAPEZOIDAL
 };
@@ -87,10 +86,13 @@ private:
   inline double TanhPade54(double x);
 
   // taylor approximated tanh function
-  inline double TanhExpTaylor(double x);
+  inline double TanhExpTaylor(double x, int N);
 
   // taylor approximated exponential function
   inline double ExpTaylor(double x, int N);
+
+  // bram de jong soft saturator
+  inline double BramSaturator(double x, double a);
   
   // filter parameters
   double cutoffFrequency;
