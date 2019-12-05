@@ -32,3 +32,5 @@ extern Plugin* pluginInstance;
 extern Model* modelSVF;
 extern Model* modelTRG;
 extern Model* modelLADR;
+extern Model* modelOP;
+extern Model* modelPHASR;
