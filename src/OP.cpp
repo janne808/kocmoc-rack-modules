@@ -25,7 +25,7 @@
 
 struct OP : Module {
   enum ParamIds {
-    RATIO_PARAM,
+    SCALE_PARAM,
     OFFSET_PARAM,
     INDEX_PARAM,
     NUM_PARAMS
@@ -45,8 +45,8 @@ struct OP : Module {
 
   OP() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-    configParam(RATIO_PARAM,  1.f, 48.f, 12.f, "Frequency ratio");
-    configParam(OFFSET_PARAM, 0.f, 96.f, 0.f, "Frequency offset");
+    configParam(SCALE_PARAM,  1.f, 48.f, 12.f, "Frequency scale");
+    configParam(OFFSET_PARAM, 0.f, 128.f, 36.f, "Frequency offset");
     configParam(INDEX_PARAM, -1.f, 1.f, 0.f, "Modulation index");
   }
 
@@ -55,16 +55,16 @@ struct OP : Module {
   
   void process(const ProcessArgs& args) override {
     // parameters
-    int ratio = int(params[RATIO_PARAM].getValue());
+    int scale = int(params[SCALE_PARAM].getValue());
     int offset = int(params[OFFSET_PARAM].getValue());
     float index = params[INDEX_PARAM].getValue();
 
     // inputs
-    float cv = inputs[CV_INPUT].getVoltage() + 1.f + (float)(offset)/12.f;
+    float cv = inputs[CV_INPUT].getVoltage() + (float)(offset)/12.f;
     float phase_mod = inputs[PHASE_MOD_INPUT].getVoltage();
 
-    // apply ratio to cv
-    cv *= (float)(ratio)/12.f;
+    // apply scale to cv
+    cv *= (float)(scale)/12.f;
 
     // clip negative cv
     if(cv < 0.0) {
@@ -105,7 +105,7 @@ struct OPWidget : ModuleWidget {
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     
     addParam(createParam<Trimpot>(mm2px(Vec(7.02, 55.103)), module, OP::INDEX_PARAM));
-    addParam(createParam<RoundBlackKnob>(mm2px(Vec(4.94, 16.24)), module, OP::RATIO_PARAM));
+    addParam(createParam<RoundBlackKnob>(mm2px(Vec(4.94, 16.24)), module, OP::SCALE_PARAM));
     addParam(createParam<RoundBlackKnob>(mm2px(Vec(4.94, 35.403)), module, OP::OFFSET_PARAM));
     
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.281, 68.82)), module, OP::PHASE_MOD_INPUT));
