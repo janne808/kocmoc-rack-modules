@@ -279,7 +279,7 @@ void SVFilter::filter(double input){
     case SVF_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       {
-	hp = -lp + - fb*bp + input;
+	hp = -lp - fb*bp + input;
 	bp += dt*hp;
 	bp = TanhPade32(bp);
 	lp += dt*bp;
