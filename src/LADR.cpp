@@ -47,7 +47,7 @@ struct LADR : Module {
   int _oversampling = 2;
   LadderIntegrationMethod _integrationMethod = LADDER_PREDICTOR_CORRECTOR_FULL_TANH;
   
-  // create svf class instance
+  // create ladder class instance
   Ladder *ladder = new Ladder((double)(0.25), (double)(0.0), _oversampling, LADDER_LOWPASS_MODE,
 			      (double)(APP->engine->getSampleRate()), _integrationMethod);
   
@@ -68,7 +68,7 @@ struct LADR : Module {
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
-    gain = 4.f*(gain * gain * gain * gain)/10.f;
+    gain = 32.f*(gain * gain * gain * gain)/10.f;
     
     // sum in linear cv
     cutoff += inputs[LINCV_INPUT].getVoltage()/10.f;
@@ -88,7 +88,7 @@ struct LADR : Module {
     ladder->LadderFilter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder->GetFilterOutput() * 10.0));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder->GetFilterOutput() * 5.0));
   }
   
   void onSampleRateChange() override {
