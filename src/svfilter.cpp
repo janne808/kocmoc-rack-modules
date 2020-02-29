@@ -296,10 +296,10 @@ void SVFilter::filter(double input){
       out = bp;
       break;
     case SVF_BANDPASS_MODE:
-      out = lp;
+      out = hp;
       break;
     case SVF_HIGHPASS_MODE:
-      out = hp;
+      out = bp;
       break;
     default:
       out = 0.0;
