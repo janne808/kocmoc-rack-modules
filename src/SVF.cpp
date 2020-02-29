@@ -1,5 +1,5 @@
 /*
- *  (C) 2019 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -82,17 +82,17 @@ struct SVF : Module {
     svf->SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
+    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 3.0));
 
     // compute gain compensation to normalize output on high drive levels
     gain = params[GAIN_PARAM].getValue() - 0.5;
     if(gain < 0.0) {
       gain = 0.0;
     }
-    gainComp = 7.0 * (1.0 - 1.7 * std::log(1.0 + gain));
+    gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 10.0 * gainComp));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 1.25 * gainComp));
   }
 
   void onSampleRateChange() override {
@@ -212,9 +212,6 @@ struct SVFWidget : ModuleWidget {
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
     menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", SVF_SEMI_IMPLICIT_EULER));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", SVF_PREDICTOR_CORRECTOR));
-    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Trapezoidal", SVF_SEMI_IMPLICIT_TRAPEZOIDAL));
-    menu->addChild(new IntegrationMenuItem(a, "Implicit Trapezoidal", SVF_IMPLICIT_TRAPEZOIDAL));
   }
 };
 

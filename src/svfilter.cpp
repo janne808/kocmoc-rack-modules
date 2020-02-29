@@ -1,5 +1,5 @@
 /*
- *  (C) 2019 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -263,7 +263,7 @@ void SVFilter::filter(double input){
   double noise;
 
   // feedback amount
-  double fb = 1.0 - 2.0 * Resonance;
+  double fb = (1.0 - 0.965*Resonance);
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -279,82 +279,9 @@ void SVFilter::filter(double input){
     case SVF_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       {
-	hp = -lp - fb*bp + input;
-	bp += dt*hp;
-	bp = TanhPade32(bp);
-	lp += dt*bp;
-	lp = TanhPade32(lp);
-      }
-      break;
-    case SVF_PREDICTOR_CORRECTOR:
-      // predictor-corrector integration
-      {
-	double hp_prime, bp_prime, hp2;
-
-	// predictor
-	hp_prime =  -lp - fb*bp + u_t1;
-	bp_prime = bp + dt*hp_prime;
-	bp_prime = TanhPade32(bp_prime);
-
-	// corrector
-	lp += 0.5 * dt * (bp + bp_prime);
-	lp = TanhPade32(lp);
-	hp2 = -lp - fb*bp_prime + input;
-	bp += 0.5 * dt * (hp_prime + hp2);
-	bp = TanhPade32(bp);
-	hp = -lp - fb*bp + input;
-      }
-      break;
-    case SVF_SEMI_IMPLICIT_TRAPEZOIDAL:
-      // trapezoidal integration
-      {
-	double a, b, c, bp0;
-      
-	a = (1.0 - 0.5*fb*dt - 0.25*dt*dt) / (1.0 + 0.5*fb*dt + 0.25*dt*dt);
-	b = dt / (1 + 0.5*fb*dt + 0.25*dt*dt);
-	c = dt / (2.0 + fb*dt + 0.5*dt*dt);
-	bp0 = bp;
-	bp = a*bp - b*lp + c*(input + u_t1);
-	lp += 0.5*dt*(bp0 + bp);
-	hp = -lp - fb*bp + input;
-      }
-      break;
-    case SVF_IMPLICIT_TRAPEZOIDAL:
-      // implicit trapezoidal integration
-      {
-	double a, E_t, D_t, x_k, x_k2;
-
-	a = 0.5*dt;
-	D_t = lp + a*bp;
-    	E_t = TanhPade32(bp - a*lp - a*fb*bp + a*u_t1 + a*input);
-	x_k = TanhPade32(bp + dt*(-lp - fb*bp + input));
-
-    	// newton-raphson
-	for(int ii=0; ii < 32; ii++) {
-	  double fx, Dfx, T2, T3, DT2, DT3;
-
-	  T2 = TanhPade32(a*x_k + D_t);
-	  T3 = TanhPade32(-a*fb*x_k - a*T2);
-	  DT2 = a - a*T2*T2;
-	  DT3 = (1.0 - T3*T3)*(-a*fb - a*DT2);
-
-	  fx = x_k + E_t*x_k*T3 - T3 - E_t;
-	  Dfx = 1.0 + E_t*(T3 + x_k*DT3) - DT3;
-
-	  x_k2 = x_k - fx/Dfx;
-	  
-	  // breaking limit
-	  if(abs(x_k2 - x_k) < 1.0e-15) {
-	    x_k = x_k2;
-	    break;
-	  }
-	  
-	  x_k = x_k2;
-	}
-
-	lp = TanhPade32(lp + 0.5*dt*(bp + x_k));
-	bp = x_k;
-	hp = -lp - fb*bp + input;
+   	hp = - lp - fb*bp;
+ 	bp += dt*hp;
+     	lp += dt*TanhPade32(bp + input);
       }
       break;
     default:
@@ -366,10 +293,10 @@ void SVFilter::filter(double input){
     
     switch(filterMode){
     case SVF_LOWPASS_MODE:
-      out = lp;
+      out = bp;
       break;
     case SVF_BANDPASS_MODE:
-      out = bp;
+      out = lp;
       break;
     case SVF_HIGHPASS_MODE:
       out = hp;

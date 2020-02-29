@@ -1,5 +1,5 @@
 /*
- *  (C) 2019 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -34,9 +34,6 @@ enum SVFFilterMode {
 // integration methods
 enum SVFIntegrationMethod {
    SVF_SEMI_IMPLICIT_EULER,
-   SVF_PREDICTOR_CORRECTOR,
-   SVF_SEMI_IMPLICIT_TRAPEZOIDAL,
-   SVF_IMPLICIT_TRAPEZOIDAL
 };
 
 class SVFilter{
