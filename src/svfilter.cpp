@@ -105,6 +105,11 @@ void SVFilter::SetFilterCutoff(double newCutoff){
 
 void SVFilter::SetFilterResonance(double newResonance){
   Resonance = newResonance;
+
+  // clip resonance amount
+  //if(Resonance > 0.985){
+  //  Resonance = 0.985;
+  //}
 }
 
 void SVFilter::SetFilterOversamplingFactor(int newOversamplingFactor){
@@ -263,7 +268,7 @@ void SVFilter::filter(double input){
   double noise;
 
   // feedback amount
-  double fb = (1.0 - 0.965*Resonance);
+  double fb = 1.0 - (Resonance*0.98);
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -281,7 +286,7 @@ void SVFilter::filter(double input){
       {
    	hp = - lp - fb*bp;
  	bp += dt*hp;
-     	lp += dt*TanhPade32(bp + input);
+     	lp += dt*TanhPade32(bp - input);
       }
       break;
     default:
@@ -299,7 +304,7 @@ void SVFilter::filter(double input){
       out = hp;
       break;
     case SVF_HIGHPASS_MODE:
-      out = bp;
+      out = input - bp - fb*hp;
       break;
     default:
       out = 0.0;
