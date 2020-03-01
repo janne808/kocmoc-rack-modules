@@ -178,7 +178,7 @@ struct TRGDisplay : Widget {
   float initX = 0;
   float initY = 0;
   int currentStep = 0;
-  TRG *module;
+  TRG *module = NULL;
   TRGDisplay(){}
 
   void onButton(const event::Button &e) override {
@@ -239,8 +239,69 @@ struct TRGDisplay : Widget {
     nvgBeginPath(args.vg);
     nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
     nvgFill(args.vg);
-    
-    if(module == NULL) return;
+
+    // draw default grid if on module browser
+    if(module == NULL){
+      int moduleStep = 0;
+      int moduleSeqLength = 32;
+      int moduleSteps[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+      
+      // draw sequence grid
+      for(int ii = 0; ii < MAX_STEPS / 2; ii++){
+	int xx = ii / (MAX_STEPS / 4);
+	int yy = ii % (MAX_STEPS / 4);
+	int page = moduleStep / (MAX_STEPS / 2);
+	NVGcolor step_color;
+	int current_step = ii + page * (MAX_STEPS / 2);
+      
+	// draw active step in bright color
+	if(current_step < moduleSeqLength){
+	  step_color = nvgRGB(252, 252, 3);
+	}
+	else{
+	  step_color = nvgRGB(62, 62, 0);
+	}
+      
+	nvgStrokeColor(args.vg, step_color);
+	nvgFillColor(args.vg, step_color);
+	nvgStrokeWidth(args.vg, 1);
+	nvgBeginPath(args.vg);
+	nvgRect(args.vg, 10 + xx * (20 + 10),
+		10 + yy * (20 + 4), 20, 20);
+      
+	// render step based on its state
+	if(moduleSteps[current_step] == 1){
+	  nvgFill(args.vg);
+	}
+	else{
+	  nvgStroke(args.vg);
+	}
+
+	// render current step
+	if(current_step == moduleStep){
+	  // determine color from step state
+	  if(moduleSteps[current_step] == 1 ){
+	    nvgFillColor(args.vg, nvgRGB(20, 30, 33));
+	  }
+	  else {
+	    nvgFillColor(args.vg, step_color);
+	  }
+	  nvgBeginPath(args.vg);
+	  nvgCircle(args.vg, 10.f + 10.f + xx * (20 + 10),
+		    10.f + 10.f + (moduleStep % (MAX_STEPS / 4)) * (20.f + 4.f), 2.5f);
+	  nvgFill(args.vg);
+	}
+
+	// render current page
+	nvgFillColor(args.vg, nvgRGB(252, 252, 3));
+	nvgBeginPath(args.vg);
+	nvgRect(args.vg, 10 + page * (20 + 10),
+		10 + 8 * (20 + 4), 20, 4);
+	nvgFill(args.vg);
+      }
+      
+      return;
+    };
     
     // draw sequence grid
     for(int ii = 0; ii < MAX_STEPS / 2; ii++){
