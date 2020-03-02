@@ -82,7 +82,7 @@ struct SVF : Module {
     svf->SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
+    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 3.0));
 
     // compute gain compensation to normalize output on high drive levels
     gain = params[GAIN_PARAM].getValue() - 0.5;

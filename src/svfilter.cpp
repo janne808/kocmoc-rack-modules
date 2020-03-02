@@ -263,7 +263,7 @@ void SVFilter::filter(double input){
   double noise;
 
   // feedback amount
-  double fb = 1.0 - (Resonance*0.986);
+  double fb = 1.0 - (Resonance*0.98);
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -282,6 +282,7 @@ void SVFilter::filter(double input){
    	hp = - lp - fb*bp;
  	bp += dt*hp;
      	lp += dt*TanhPade32(bp - input);
+	lp *= 1.0 - (0.0025/oversamplingFactor);
       }
       break;
     default:
