@@ -92,7 +92,7 @@ struct SVF : Module {
     gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 1.25 * gainComp));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 0.9 * gainComp));
   }
 
   void onSampleRateChange() override {
