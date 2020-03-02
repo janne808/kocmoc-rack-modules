@@ -47,10 +47,8 @@ void Phasor::Tick() {
   // increment phase
   phase += phaseIncrement;
 
-  // make sure phase stays in [-PI..PI]
-  if(phase > M_PI) {
-    phase -= 2.0*M_PI;
-  }
+  // make sure phase stays in [0..2*PI]
+  phase = fmod(phase, 2.0*M_PI);
 }
 
 void Phasor::SetPhase(double newPhase) {
