@@ -282,7 +282,7 @@ void SVFilter::filter(double input){
    	hp = - lp - fb*bp;
  	bp += dt*hp;
      	lp += dt*TanhPade32(bp - input);
-	lp *= 1.0 - (0.0025/oversamplingFactor);
+	lp *= 1.0 - (0.0005/oversamplingFactor);
       }
       break;
     default:
