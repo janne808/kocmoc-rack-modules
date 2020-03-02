@@ -105,11 +105,6 @@ void SVFilter::SetFilterCutoff(double newCutoff){
 
 void SVFilter::SetFilterResonance(double newResonance){
   Resonance = newResonance;
-
-  // clip resonance amount
-  //if(Resonance > 0.985){
-  //  Resonance = 0.985;
-  //}
 }
 
 void SVFilter::SetFilterOversamplingFactor(int newOversamplingFactor){
@@ -268,7 +263,7 @@ void SVFilter::filter(double input){
   double noise;
 
   // feedback amount
-  double fb = 1.0 - (Resonance*0.98);
+  double fb = 1.0 - (Resonance*0.986);
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);

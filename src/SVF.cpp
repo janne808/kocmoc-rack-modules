@@ -55,7 +55,7 @@ struct SVF : Module {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "");
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "");
-    configParam(GAIN_PARAM, 0.f, 1.f, 0.5f, "");
+    configParam(GAIN_PARAM, 0.f, 1.f, 1.f, "");
     configParam(MODE_PARAM, 0.f, 2.f, 0.f, "");
   }
 
@@ -82,7 +82,7 @@ struct SVF : Module {
     svf->SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 3.0));
+    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
 
     // compute gain compensation to normalize output on high drive levels
     gain = params[GAIN_PARAM].getValue() - 0.5;
