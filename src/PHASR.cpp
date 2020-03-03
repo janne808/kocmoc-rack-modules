@@ -1,5 +1,5 @@
 /*
- *  (C) 2019 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -74,7 +74,7 @@ struct PHASR : Module {
     phasor->Tick();
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(phasor->GetPhase()));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(phasor->GetPhase()) - M_PI);
   }
 
   void onSampleRateChange() override {
