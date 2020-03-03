@@ -222,15 +222,16 @@ void Ladder::LadderFilter(double input){
     // switch integration method
     switch(integrationMethod){
     case LADDER_EULER_FULL_TANH:
+      // semi-implicit euler integration
+      // with full tanh stages
       {
-	// semi-implicit euler integration
-	// with full tanh stages
 	p0 = p0 + dt*(Tanh32(input - fb*p3) - Tanh32(p0));
 	p1 = p1 + dt*(Tanh32(p0) - Tanh32(p1));
 	p2 = p2 + dt*(Tanh32(p1) - Tanh32(p2));
 	p3 = p3 + dt*(Tanh32(p2) - Tanh32(p3));
       }
       break;
+      
     case LADDER_PREDICTOR_CORRECTOR_FULL_TANH:
       // predictor-corrector integration
       // with full tanh stages
@@ -251,6 +252,7 @@ void Ladder::LadderFilter(double input){
 	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) - Tanh32(p0)) + (Tanh32(input - fb*p3) - Tanh32(p0_prime)));
       }
       break;
+      
     case LADDER_PREDICTOR_CORRECTOR_FEEDBACK_TANH:
       // predictor-corrector integration
       // with feedback tanh stage only
@@ -272,6 +274,7 @@ void Ladder::LadderFilter(double input){
 			  (Tanh32(input - fb*p3) - p0_prime));
       }
       break;
+      
     case LADDER_TRAPEZOIDAL_FEEDBACK_TANH:
       // implicit trapezoidal integration
       // with feedback tanh stage only
@@ -320,6 +323,7 @@ void Ladder::LadderFilter(double input){
 	p3 = c*p3_prime + b*(p2_prime + p2);
       }
       break;
+      
     default:
       break;
     }
