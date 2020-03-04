@@ -22,7 +22,7 @@
 #include "plugin.hpp"
 #include "svfilter.h"
 
-struct SVF : Module {
+struct SVF_1 : Module {
   enum ParamIds {
      FREQ_PARAM,
      RESO_PARAM,
@@ -51,7 +51,7 @@ struct SVF : Module {
   SVFilter *svf = new SVFilter((double)(0.25), (double)(0.0), _oversampling, SVF_LOWPASS_MODE,
 			       (double)(APP->engine->getSampleRate()), _integrationMethod);
   
-  SVF() {
+  SVF_1() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "");
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "");
@@ -132,7 +132,7 @@ struct SVF : Module {
 };
 
 struct SVFWidget : ModuleWidget {
-  SVFWidget(SVF* module) {
+  SVFWidget(SVF_1* module) {
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/SVF.svg")));
 
@@ -141,24 +141,24 @@ struct SVFWidget : ModuleWidget {
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     
-    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(5.95, 15.34)), module, SVF::FREQ_PARAM));
-    addParam(createParam<RoundBlackKnob>(mm2px(Vec(10.24, 42.06)), module, SVF::RESO_PARAM));
-    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, SVF::GAIN_PARAM));
+    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(5.95, 15.34)), module, SVF_1::FREQ_PARAM));
+    addParam(createParam<RoundBlackKnob>(mm2px(Vec(10.24, 42.06)), module, SVF_1::RESO_PARAM));
+    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, SVF_1::GAIN_PARAM));
 
-    addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, SVF::MODE_PARAM));
+    addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, SVF_1::MODE_PARAM));
     
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 69.52)), module, SVF::LINCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 69.52)), module, SVF::EXPCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, SVF::INPUT_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 69.52)), module, SVF_1::LINCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 69.52)), module, SVF_1::EXPCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, SVF_1::INPUT_INPUT));
 
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(21.681, 104.7)), module, SVF::OUTPUT_OUTPUT));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(21.681, 104.7)), module, SVF_1::OUTPUT_OUTPUT));
   }
 
   struct OversamplingMenuItem : MenuItem {
-    SVF* _module;
+    SVF_1* _module;
     const int _oversampling;
 
-    OversamplingMenuItem(SVF* module, const char* label, int oversampling)
+    OversamplingMenuItem(SVF_1* module, const char* label, int oversampling)
       : _module(module)
       , _oversampling(oversampling)
     {
@@ -177,10 +177,10 @@ struct SVFWidget : ModuleWidget {
   };
   
   struct IntegrationMenuItem : MenuItem {
-    SVF* _module;
+    SVF_1* _module;
     const SVFIntegrationMethod _integrationMethod;
 
-    IntegrationMenuItem(SVF* module, const char* label, SVFIntegrationMethod integrationMethod)
+    IntegrationMenuItem(SVF_1* module, const char* label, SVFIntegrationMethod integrationMethod)
       : _module(module)
       , _integrationMethod(integrationMethod)
     {
@@ -199,7 +199,7 @@ struct SVFWidget : ModuleWidget {
   };
   
   void appendContextMenu(Menu* menu) override {
-    SVF* a = dynamic_cast<SVF*>(module);
+    SVF_1* a = dynamic_cast<SVF_1*>(module);
     assert(a);
     
     menu->addChild(new MenuEntry());
@@ -215,4 +215,4 @@ struct SVFWidget : ModuleWidget {
   }
 };
 
-Model* modelSVF = createModel<SVF, SVFWidget>("SVF");
+Model* modelSVF_1 = createModel<SVF_1, SVFWidget>("SVF-1");
