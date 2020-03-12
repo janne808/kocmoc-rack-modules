@@ -263,7 +263,7 @@ void SVFilter::filter(double input){
   double noise;
 
   // feedback amount
-  double fb = 1.0 - (Resonance*(1.0 - 0.0025));
+  double fb = 1.0 - (Resonance);
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -279,10 +279,16 @@ void SVFilter::filter(double input){
     case SVF_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       {
+	// input stage saturation
+	double u_t0, t;
+	t = nn/oversamplingFactor;
+	u_t0 = u_t1 + t*(input - u_t1);
+	u_t0 = BramSaturator(u_t0, 0.25);
+	
    	hp = - lp - fb*bp;
- 	bp += dt*TanhPade32(hp + input);
+ 	bp += dt*BramSaturator(hp + u_t0, 0.5);
 	bp *= 1.0 - (0.0075/oversamplingFactor);
-     	lp += dt*TanhPade32(bp);
+     	lp += dt*BramSaturator(bp, 0.5);
       }
       break;
     default:
