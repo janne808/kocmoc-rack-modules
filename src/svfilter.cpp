@@ -263,7 +263,7 @@ void SVFilter::filter(double input){
   double noise;
 
   // feedback amount
-  double fb = 1.0 - (Resonance*0.98);
+  double fb = 1.0 - (Resonance*(1.0 - 0.0025));
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -279,10 +279,10 @@ void SVFilter::filter(double input){
     case SVF_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       {
-   	hp = - lp - fb*bp;
- 	bp += dt*hp;
-     	lp += dt*TanhPade32(bp - input);
-	lp *= 1.0 - (0.0005/oversamplingFactor);
+   	hp = - TanhPade32(lp) - TanhPade32(fb*bp);
+ 	bp += dt*TanhPade32(hp + input);
+	bp *= 1.0 - (0.0075/oversamplingFactor);
+     	lp += dt*bp;
       }
       break;
     default:
@@ -294,13 +294,13 @@ void SVFilter::filter(double input){
     
     switch(filterMode){
     case SVF_LOWPASS_MODE:
-      out = bp;
+      out = lp;
       break;
     case SVF_BANDPASS_MODE:
-      out = hp;
+      out = bp;
       break;
     case SVF_HIGHPASS_MODE:
-      out = input - bp - fb*hp;
+      out = input - lp - fb*bp;
       break;
     default:
       out = 0.0;
