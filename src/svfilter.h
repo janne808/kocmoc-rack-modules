@@ -34,6 +34,7 @@ enum SVFFilterMode {
 // integration methods
 enum SVFIntegrationMethod {
    SVF_SEMI_IMPLICIT_EULER,
+   SVF_PREDICTOR_CORRECTOR
 };
 
 class SVFilter{

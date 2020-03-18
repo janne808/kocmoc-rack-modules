@@ -291,6 +291,29 @@ void SVFilter::filter(double input){
      	lp += dt*BramSaturator(bp, 0.25);
       }
       break;
+    case SVF_PREDICTOR_CORRECTOR:
+      // predictor-corrector integration
+      {
+	// input stage saturation
+	double u_t0, t;
+	t = nn/oversamplingFactor;
+	u_t0 = u_t1 + t*(input - u_t1);
+	u_t0 = BramSaturator(u_t0, 0.15);
+
+	double hp_prime, bp_prime, hp2;
+	// predictor
+   	hp_prime = - lp - fb*bp;
+ 	bp_prime = bp + dt*BramSaturator(hp_prime + u_t0, 0.25);
+	bp_prime *= 1.0 - (0.0075/oversamplingFactor);
+
+	// corrector
+     	lp += 0.5*dt*BramSaturator(bp + bp_prime, 0.25);
+	hp2 = -lp - fb*bp_prime;
+ 	bp += 0.5*dt*BramSaturator(hp2 + u_t0 + hp_prime, 0.25);
+	bp *= 1.0 - (0.0075/oversamplingFactor);
+	hp = - lp - fb*bp;
+      }
+      break;
     default:
       break;
     }
