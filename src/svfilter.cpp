@@ -286,9 +286,9 @@ void SVFilter::filter(double input){
 	u_t0 = BramSaturator(u_t0, 0.15);
 	
    	hp = - lp - fb*bp;
- 	bp += dt*BramSaturator(hp + u_t0, 0.65);
+ 	bp += dt*BramSaturator(hp + u_t0, 0.25);
 	bp *= 1.0 - (0.0075/oversamplingFactor);
-     	lp += dt*BramSaturator(bp, 0.65);
+     	lp += dt*BramSaturator(bp, 0.25);
       }
       break;
     default:
