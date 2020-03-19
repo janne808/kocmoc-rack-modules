@@ -264,6 +264,8 @@ void SVFilter::filter(double input){
 
   // feedback amount
   double fb = 1.0 - (Resonance);
+
+  double u_t0=0, t;
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -280,11 +282,10 @@ void SVFilter::filter(double input){
       // semi-implicit euler integration
       {
 	// input stage saturation
-	double u_t0, t;
 	t = nn/oversamplingFactor;
 	u_t0 = u_t1 + t*(input - u_t1);
 	u_t0 = BramSaturator(u_t0, 0.15);
-	
+
    	hp = - lp - fb*bp;
  	bp += dt*BramSaturator(hp + u_t0, 0.25);
 	bp *= 1.0 - (0.0075/oversamplingFactor);
@@ -295,21 +296,20 @@ void SVFilter::filter(double input){
       // predictor-corrector integration
       {
 	// input stage saturation
-	double u_t0, t;
-	t = nn/oversamplingFactor;
-	u_t0 = u_t1 + t*(input - u_t1);
-	u_t0 = BramSaturator(u_t0, 0.15);
-
+	double u_t1s;
+	u_t0 = BramSaturator(input, 0.15);
+    	u_t1s = BramSaturator(u_t1, 0.15);
+	
 	double hp_prime, bp_prime, hp2;
 	// predictor
    	hp_prime = - lp - fb*bp;
- 	bp_prime = bp + dt*BramSaturator(hp_prime + u_t0, 0.25);
+ 	bp_prime = bp + dt*BramSaturator(hp_prime + u_t1s, 0.25);
 	bp_prime *= 1.0 - (0.0075/oversamplingFactor);
 
 	// corrector
-     	lp += 0.5*dt*BramSaturator(bp + bp_prime, 0.25);
-	hp2 = -lp - fb*bp_prime;
- 	bp += 0.5*dt*BramSaturator(hp2 + u_t0 + hp_prime, 0.25);
+	lp += 0.5*dt*(BramSaturator(bp_prime, 0.25) + BramSaturator(bp, 0.25));
+     	hp2 = -lp - fb*bp_prime;
+ 	bp += 0.5*dt*(BramSaturator(hp2 + u_t0, 0.25) + BramSaturator(hp_prime + u_t1s, 0.25));
 	bp *= 1.0 - (0.0075/oversamplingFactor);
 	hp = - lp - fb*bp;
       }
@@ -317,9 +317,6 @@ void SVFilter::filter(double input){
     default:
       break;
     }
-    
-    // set input at t-1
-    u_t1 = input;
     
     switch(filterMode){
     case SVF_LOWPASS_MODE:
@@ -329,7 +326,7 @@ void SVFilter::filter(double input){
       out = bp;
       break;
     case SVF_HIGHPASS_MODE:
-      out = input - lp - fb*bp;
+      out = u_t0 - lp - fb*bp;
       break;
     default:
       out = 0.0;
@@ -340,6 +337,9 @@ void SVFilter::filter(double input){
       out = fir->FIRfilter(out) * 0.4;
     }
   }
+  
+  // set input at t-1
+  u_t1 = input;    
 }
 
 double SVFilter::GetFilterLowpass(){
