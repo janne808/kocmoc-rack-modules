@@ -139,8 +139,8 @@ void SKFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 1.2){
-    dt = 1.2;
+  else if(dt > 1.0){
+    dt = 1.0;
   }
 }
 
@@ -282,10 +282,10 @@ void SKFilter::filter(double input){
     case SK_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       {
-	hp = fb*lp;
-	bp += dt*(input-hp - bp);
-	bp *= 1.0 - (0.0025/oversamplingFactor);	
-	lp += dt*(BramSaturator(bp + hp, 0.5) - BramSaturator(lp, 0.5));
+	hp = bp - lp;
+	bp += dt*(BramSaturator(input + fb*hp, 0.1) - BramSaturator(bp, 0.1));
+	bp *= 1.0 - (0.0035/oversamplingFactor);
+	lp += dt*(BramSaturator(bp, 0.1) - BramSaturator(lp, 0.1));
       }
       break;
     default:
@@ -300,7 +300,7 @@ void SKFilter::filter(double input){
       out = bp;
       break;
     case SK_HIGHPASS_MODE:
-      out = input - lp;
+      out = hp;
       break;
     default:
       out = 0.0;

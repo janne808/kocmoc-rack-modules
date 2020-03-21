@@ -82,7 +82,7 @@ struct STEINR : Module {
     skf->SetFilterMode((SKFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    skf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 0.75));
+    skf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 0.35));
 
     // compute gain compensation to normalize output on high drive levels
     gain = params[GAIN_PARAM].getValue() - 0.5;
@@ -92,7 +92,7 @@ struct STEINR : Module {
     gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(skf->GetFilterOutput() * 1.65 * gainComp));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(skf->GetFilterOutput() * 6.0 * gainComp));
   }
 
   void onSampleRateChange() override {
