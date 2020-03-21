@@ -66,7 +66,7 @@ SVFilter::SVFilter(){
   lp = 0.0;
   out = 0.0;
   u_t1 = 0.0;
-
+  
   integrationMethod = SVF_SEMI_IMPLICIT_EULER;
   
   // instantiate downsampling filter
@@ -262,11 +262,22 @@ void SVFilter::filter(double input){
   // noise term
   double noise;
 
-  // feedback amount
-  double fb = 1.0 - (Resonance);
-
+  // feedback amount variables
+  double fb, dt_fb;
+  
   double u_t0=0, t;
   
+  // shape feedback amount with integration rate
+  // to control high frequency overloading
+  dt_fb = dt;
+  if(dt_fb > 1.0){
+    dt_fb = 1.0;
+  }
+  dt_fb = 1.0 - pow(dt_fb, 6.0);
+
+  // feedback amount
+  fb = 1.0 - (Resonance*dt_fb);
+
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
   noise = 1.0e-6 * 2.0 * (noise - 0.5);
@@ -285,7 +296,7 @@ void SVFilter::filter(double input){
 	t = nn/oversamplingFactor;
 	u_t0 = u_t1 + t*(input - u_t1);
 	u_t0 = BramSaturator(u_t0, 0.15);
-
+	
    	hp = - lp - fb*bp;
  	bp += dt*BramSaturator(hp + u_t0, 0.25);
 	bp *= 1.0 - (0.0075/oversamplingFactor);
