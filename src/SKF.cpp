@@ -22,7 +22,7 @@
 #include "plugin.hpp"
 #include "sallenkey.h"
 
-struct STEINR : Module {
+struct SKF : Module {
   enum ParamIds {
      FREQ_PARAM,
      RESO_PARAM,
@@ -51,7 +51,7 @@ struct STEINR : Module {
   SKFilter *skf = new SKFilter((double)(0.25), (double)(0.0), _oversampling, SK_LOWPASS_MODE,
 			       (double)(APP->engine->getSampleRate()), _integrationMethod);
   
-  STEINR() {
+  SKF() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "");
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "");
@@ -82,7 +82,7 @@ struct STEINR : Module {
     skf->SetFilterMode((SKFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    skf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 0.35));
+    skf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 4.0));
 
     // compute gain compensation to normalize output on high drive levels
     gain = params[GAIN_PARAM].getValue() - 0.5;
@@ -92,7 +92,7 @@ struct STEINR : Module {
     gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(skf->GetFilterOutput() * 6.0 * gainComp));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(skf->GetFilterOutput() * 3.0 * gainComp));
   }
 
   void onSampleRateChange() override {
@@ -132,34 +132,34 @@ struct STEINR : Module {
 };
 
 
-struct STEINRWidget : ModuleWidget {
-  STEINRWidget(STEINR* module) {
+struct SKFWidget : ModuleWidget {
+  SKFWidget(SKF* module) {
     setModule(module);
-    setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/STEINR.svg")));
+    setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/SKF.svg")));
 
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     
-    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(5.95, 15.34)), module, STEINR::FREQ_PARAM));
-    addParam(createParam<RoundBlackKnob>(mm2px(Vec(10.24, 42.06)), module, STEINR::RESO_PARAM));
-    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, STEINR::GAIN_PARAM));
+    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(5.95, 15.34)), module, SKF::FREQ_PARAM));
+    addParam(createParam<RoundBlackKnob>(mm2px(Vec(10.24, 42.06)), module, SKF::RESO_PARAM));
+    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, SKF::GAIN_PARAM));
     
-    addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, STEINR::MODE_PARAM));
+    addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, SKF::MODE_PARAM));
     
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 69.52)), module, STEINR::LINCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 69.52)), module, STEINR::EXPCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, STEINR::INPUT_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 69.52)), module, SKF::LINCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 69.52)), module, SKF::EXPCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, SKF::INPUT_INPUT));
     
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(21.681, 104.7)), module, STEINR::OUTPUT_OUTPUT));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(21.681, 104.7)), module, SKF::OUTPUT_OUTPUT));
   }
 
   struct OversamplingMenuItem : MenuItem {
-    STEINR* _module;
+    SKF* _module;
     const int _oversampling;
 
-    OversamplingMenuItem(STEINR* module, const char* label, int oversampling)
+    OversamplingMenuItem(SKF* module, const char* label, int oversampling)
       : _module(module)
       , _oversampling(oversampling)
     {
@@ -178,10 +178,10 @@ struct STEINRWidget : ModuleWidget {
   };
   
   struct IntegrationMenuItem : MenuItem {
-    STEINR* _module;
+    SKF* _module;
     const SKIntegrationMethod _integrationMethod;
 
-    IntegrationMenuItem(STEINR* module, const char* label, SKIntegrationMethod integrationMethod)
+    IntegrationMenuItem(SKF* module, const char* label, SKIntegrationMethod integrationMethod)
       : _module(module)
       , _integrationMethod(integrationMethod)
     {
@@ -200,7 +200,7 @@ struct STEINRWidget : ModuleWidget {
   };
   
   void appendContextMenu(Menu* menu) override {
-    STEINR* a = dynamic_cast<STEINR*>(module);
+    SKF* a = dynamic_cast<SKF*>(module);
     assert(a);
     
     menu->addChild(new MenuEntry());
@@ -217,4 +217,4 @@ struct STEINRWidget : ModuleWidget {
 };
 
 
-Model* modelSTEINR = createModel<STEINR, STEINRWidget>("STEINR");
+Model* modelSKF = createModel<SKF, SKFWidget>("SKF");

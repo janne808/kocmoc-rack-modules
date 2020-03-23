@@ -62,8 +62,8 @@
       ]
     },
     {
-      "slug": "STEINR",
-      "name": "STEINR",
+      "slug": "SKF",
+      "name": "SKF",
       "description": "Sallen-Key filter",
       "tags": [
         "Filter"

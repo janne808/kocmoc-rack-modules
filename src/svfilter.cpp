@@ -276,7 +276,7 @@ void SVFilter::filter(double input){
   dt_fb = 1.0 - pow(dt_fb, 6.0);
 
   // feedback amount
-  fb = 1.0 - (Resonance*dt_fb);
+  fb = 1.0 - (1.0*Resonance*dt_fb);
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -297,7 +297,7 @@ void SVFilter::filter(double input){
 	u_t0 = u_t1 + t*(input - u_t1);
 	u_t0 = BramSaturator(u_t0, 0.15);
 	
-   	hp = - lp - fb*bp;
+   	hp = -lp - fb*bp;
  	bp += dt*BramSaturator(hp + u_t0, 0.25);
 	bp *= 1.0 - (0.0075/oversamplingFactor);
      	lp += dt*BramSaturator(bp, 0.25);

@@ -263,17 +263,41 @@ void SKFilter::filter(double input){
   double noise;
 
   // feedback amount variables
+  double res;
   double fb;
 
   // feedback amount
-  fb = 2.5*Resonance;
+  res = 2.5*Resonance;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
   noise = 1.0e-6 * 2.0 * (noise - 0.5);
 
   input += noise;
+
+  // input variables
+  double input_lp=0.0, input_bp=0.0, input_hp=0.0;
   
+  switch(filterMode){
+  case SK_LOWPASS_MODE:
+    input_lp = input;
+    input_bp = 0.0;
+    input_hp = 0.0;
+    break;
+  case SK_BANDPASS_MODE:
+    input_lp = 0.0;
+    input_bp = input;
+    input_hp = 0.0;
+    break;
+  case SK_HIGHPASS_MODE:
+    input_lp = 0.0;
+    input_bp = 0.0;
+    input_hp = input;
+    break;
+  default:
+    out = 0.0;
+  }
+    
   // integrate filter state
   // with oversampling
   for(int nn = 0; nn < oversamplingFactor; nn++){
@@ -282,29 +306,17 @@ void SKFilter::filter(double input){
     case SK_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       {
-	hp = bp - lp;
-	bp += dt*(BramSaturator(input + fb*hp, 0.1) - BramSaturator(bp, 0.1));
-	bp *= 1.0 - (0.0035/oversamplingFactor);
-	lp += dt*(BramSaturator(bp, 0.1) - BramSaturator(lp, 0.1));
+	fb = input_bp + BramSaturator(res*lp + 0.1, 0.1) - 0.1;
+      	bp += dt*(input_lp - fb - bp);
+	hp = bp + fb - lp + input_hp;
+      	lp += dt*hp;
       }
       break;
     default:
       break;
     }
-    
-    switch(filterMode){
-    case SK_LOWPASS_MODE:
-      out = lp;
-      break;
-    case SK_BANDPASS_MODE:
-      out = bp;
-      break;
-    case SK_HIGHPASS_MODE:
-      out = hp;
-      break;
-    default:
-      out = 0.0;
-    }
+
+    out = lp - input_hp;
 
     // downsampling filter
     if(oversamplingFactor > 1){
