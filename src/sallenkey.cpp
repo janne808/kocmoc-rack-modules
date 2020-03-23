@@ -43,6 +43,11 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
   out = 0.0;
   u_t1 = 0.0;
 
+  // initialize filter inputs
+  input_lp = 0.0;
+  input_bp = 0.0;
+  input_hp = 0.0;
+  
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
@@ -66,6 +71,11 @@ SKFilter::SKFilter(){
   lp = 0.0;
   out = 0.0;
   u_t1 = 0.0;
+  
+  // initialize filter inputs
+  input_lp = 0.0;
+  input_bp = 0.0;
+  input_hp = 0.0;
   
   integrationMethod = SK_SEMI_IMPLICIT_EULER;
   
@@ -92,6 +102,11 @@ void SKFilter::ResetFilterState(){
   out = 0.0;
   u_t1 = 0.0;
 
+  // initialize filter inputs
+  input_lp = 0.0;
+  input_bp = 0.0;
+  input_hp = 0.0;
+  
   // set oversampling
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
   fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
@@ -277,7 +292,8 @@ void SKFilter::filter(double input){
 
   // input variables
   double input_lp=0.0, input_bp=0.0, input_hp=0.0;
-  
+
+  // set filter mode
   switch(filterMode){
   case SK_LOWPASS_MODE:
     input_lp = input;
@@ -295,7 +311,9 @@ void SKFilter::filter(double input){
     input_hp = input;
     break;
   default:
-    out = 0.0;
+    input_lp = 0.0;
+    input_bp = 0.0;
+    input_hp = 0.0;
   }
     
   // integrate filter state
@@ -316,6 +334,7 @@ void SKFilter::filter(double input){
       break;
     }
 
+    // set output
     out = lp - input_hp;
 
     // downsampling filter

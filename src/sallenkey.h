@@ -106,6 +106,11 @@ private:
   double bp;
   double hp;
   double u_t1;
+
+  // filter input
+  double input_lp;
+  double input_bp;
+  double input_hp;
   
   // filter output
   double out;
