@@ -154,8 +154,8 @@ void SKFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 1.0){
-    dt = 1.0;
+  else if(dt > 0.25){
+    dt = 0.25;
   }
 }
 
@@ -229,6 +229,10 @@ inline double SKFilter::BramSaturator(double x, double a) {
   return out;
 }
 
+inline double SKFilter::ASinhSaturator(double x, double a) {
+  return a*x+(1-a)*asinh(x);
+}
+
 inline double SKFilter::TanhExpTaylor(double x, int N) {
   double e;
 
@@ -282,7 +286,7 @@ void SKFilter::filter(double input){
   double fb;
 
   // feedback amount
-  res = 2.5*Resonance;
+  res = 4.5*Resonance;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -324,18 +328,16 @@ void SKFilter::filter(double input){
     case SK_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       {
-	fb = input_bp + BramSaturator(res*lp + 0.1, 0.1) - 0.1;
-      	bp += dt*(input_lp - fb - bp);
-	hp = bp + fb - lp + input_hp;
-      	lp += dt*hp;
+	fb = input_bp + res*asinh(bp);
+      	hp = input_lp - lp - fb;
+	lp += dt*hp;
+       	bp += dt*(lp + fb - bp - sinh(bp) + input_hp);
+	out = bp - 0.5*input_hp;
       }
       break;
     default:
       break;
     }
-
-    // set output
-    out = lp - input_hp;
 
     // downsampling filter
     if(oversamplingFactor > 1){
@@ -344,7 +346,7 @@ void SKFilter::filter(double input){
   }
   
   // set input at t-1
-  u_t1 = input;    
+  u_t1 = input_lp;    
 }
 
 double SKFilter::GetFilterLowpass(){

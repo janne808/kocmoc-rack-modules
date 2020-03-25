@@ -92,6 +92,9 @@ private:
   // bram de jong soft saturator
   inline double BramSaturator(double x, double a);
   
+  // asymptotically linear saturator
+  inline double ASinhSaturator(double x, double a);
+  
   // filter parameters
   double cutoffFrequency;
   double Resonance;
