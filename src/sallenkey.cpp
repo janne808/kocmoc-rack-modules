@@ -275,7 +275,7 @@ void SKFilter::filter(double input){
   double noise;
 
   // feedback amount variables
-  double res=4.5*Resonance;
+  double res=2.5*Resonance;
   double fb=0.0;
 
   // update noise terms
