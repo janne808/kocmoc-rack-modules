@@ -37,9 +37,8 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
   SetFilterIntegrationRate();
 
   // initialize filter state
-  hp = 0.0;
-  bp = 0.0;
-  lp = 0.0;
+  p0 = 0.0;
+  p1 = 0.0;
   out = 0.0;
   u_t1 = 0.0;
 
@@ -66,9 +65,8 @@ SKFilter::SKFilter(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  hp = 0.0;
-  bp = 0.0;
-  lp = 0.0;
+  p0 = 0.0;
+  p1 = 0.0;
   out = 0.0;
   u_t1 = 0.0;
   
@@ -96,9 +94,8 @@ void SKFilter::ResetFilterState(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  hp = 0.0;
-  bp = 0.0;
-  lp = 0.0;
+  p0 = 0.0;
+  p1 = 0.0;
   out = 0.0;
   u_t1 = 0.0;
 
@@ -154,8 +151,8 @@ void SKFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.25){
-    dt = 0.25;
+  else if(dt > 0.35){
+    dt = 0.35;
   }
 }
 
@@ -229,10 +226,6 @@ inline double SKFilter::BramSaturator(double x, double a) {
   return out;
 }
 
-inline double SKFilter::ASinhSaturator(double x, double a) {
-  return a*x+(1-a)*asinh(x);
-}
-
 inline double SKFilter::TanhExpTaylor(double x, int N) {
   double e;
 
@@ -282,20 +275,14 @@ void SKFilter::filter(double input){
   double noise;
 
   // feedback amount variables
-  double res;
-  double fb;
-
-  // feedback amount
-  res = 4.5*Resonance;
+  double res=4.5*Resonance;
+  double fb=0.0;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
   noise = 1.0e-6 * 2.0 * (noise - 0.5);
 
   input += noise;
-
-  // input variables
-  double input_lp=0.0, input_bp=0.0, input_hp=0.0;
 
   // set filter mode
   switch(filterMode){
@@ -328,11 +315,27 @@ void SKFilter::filter(double input){
     case SK_SEMI_IMPLICIT_EULER:
       // semi-implicit euler integration
       {
-	fb = input_bp + res*asinh(bp);
-      	hp = input_lp - lp - fb;
-	lp += dt*hp;
-       	bp += dt*(lp + fb - bp - sinh(bp) + input_hp);
-	out = bp - 0.5*input_hp;
+	fb = input_bp + res*p1;
+	p0 += dt*(input_lp - p0 - fb);
+       	p1 += dt*(p0 + fb - p1 - 1.0/4.0*sinh(p1*4.0) + input_hp);
+	out = p1 - 0.5*input_hp;
+      }
+      break;
+    case SK_PREDICTOR_CORRECTOR:
+      // predictor-corrector integration
+      {
+	double p0_prime, p1_prime, fb_prime;
+
+	fb = input_bp + res*p1;
+	p0_prime = p0 + dt*(input_lp - p0 - fb);
+       	p1_prime = p1 + dt*(p0 + fb - p1 - 1.0/4.0*sinh(p1*4.0) + input_hp);
+	fb_prime = input_bp + res*p1_prime;
+	
+	p0 += 0.5*dt*((input_lp - p0 - fb) +
+		      (input_lp - p0_prime - fb_prime));
+       	p1 += 0.5*dt*((p0 + fb - p1 - 1.0/4.0*sinh(p1*4.0) + input_hp) +
+		      (p0_prime + fb_prime - p1_prime - 1.0/4.0*sinh(p1_prime*4.0) + input_hp));
+	out = p1 - 0.5*input_hp;
       }
       break;
     default:
@@ -349,15 +352,14 @@ void SKFilter::filter(double input){
   u_t1 = input_lp;    
 }
 
-double SKFilter::GetFilterLowpass(){
-  return lp;
+void SKFilter::SetFilterLowpassInput(double input){
+  input_lp = input;
 }
 
-double SKFilter::GetFilterBandpass(){
-  return bp;
+void SKFilter::SetFilterBandpassInput(double input){
+  input_bp = input;
 }
 
-double SKFilter::GetFilterHighpass(){
-  return hp;
+void SKFilter::SetFilterHighpassInput(double input){
+  input_hp = input;
 }
-

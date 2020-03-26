@@ -82,7 +82,7 @@ struct SKF : Module {
     skf->SetFilterMode((SKFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    skf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 4.0));
+    skf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 2.0));
 
     // compute gain compensation to normalize output on high drive levels
     gain = params[GAIN_PARAM].getValue() - 0.5;
@@ -92,7 +92,7 @@ struct SKF : Module {
     gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(skf->GetFilterOutput() * 3.0 * gainComp));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(skf->GetFilterOutput() * 5.0 * gainComp));
   }
 
   void onSampleRateChange() override {
@@ -213,6 +213,7 @@ struct SKFWidget : ModuleWidget {
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
     menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", SK_SEMI_IMPLICIT_EULER));
+    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", SK_PREDICTOR_CORRECTOR));
   }
 };
 

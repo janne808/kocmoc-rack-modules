@@ -64,10 +64,10 @@ public:
   // tick filter state
   void filter(double input);
 
-  // get filter responses
-  double GetFilterLowpass();
-  double GetFilterBandpass();
-  double GetFilterHighpass();
+  // set filter inputs
+  void SetFilterLowpassInput(double input);
+  void SetFilterBandpassInput(double input);
+  void SetFilterHighpassInput(double input);
 
   // get filter output
   double GetFilterOutput();
@@ -92,9 +92,6 @@ private:
   // bram de jong soft saturator
   inline double BramSaturator(double x, double a);
   
-  // asymptotically linear saturator
-  inline double ASinhSaturator(double x, double a);
-  
   // filter parameters
   double cutoffFrequency;
   double Resonance;
@@ -105,9 +102,8 @@ private:
   SKIntegrationMethod integrationMethod;
   
   // filter state
-  double lp;
-  double bp;
-  double hp;
+  double p0;
+  double p1;
   double u_t1;
 
   // filter input
