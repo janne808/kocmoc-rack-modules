@@ -40,12 +40,14 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
   p0 = 0.0;
   p1 = 0.0;
   out = 0.0;
-  u_t1 = 0.0;
 
   // initialize filter inputs
   input_lp = 0.0;
   input_bp = 0.0;
   input_hp = 0.0;
+  input_lp_t1 = 0.0;
+  input_bp_t1 = 0.0;
+  input_hp_t1 = 0.0;
   
   integrationMethod = newIntegrationMethod;
   
@@ -68,12 +70,14 @@ SKFilter::SKFilter(){
   p0 = 0.0;
   p1 = 0.0;
   out = 0.0;
-  u_t1 = 0.0;
   
   // initialize filter inputs
   input_lp = 0.0;
   input_bp = 0.0;
   input_hp = 0.0;
+  input_lp_t1 = 0.0;
+  input_bp_t1 = 0.0;
+  input_hp_t1 = 0.0;
   
   integrationMethod = SK_SEMI_IMPLICIT_EULER;
   
@@ -97,12 +101,15 @@ void SKFilter::ResetFilterState(){
   p0 = 0.0;
   p1 = 0.0;
   out = 0.0;
-  u_t1 = 0.0;
 
   // initialize filter inputs
   input_lp = 0.0;
   input_bp = 0.0;
   input_hp = 0.0;
+  input_lp_t1 = 0.0;
+  input_bp_t1 = 0.0;
+  input_hp_t1 = 0.0;
+  
   
   // set oversampling
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
@@ -151,8 +158,8 @@ void SKFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.35){
-    dt = 0.35;
+  else if(dt > 0.2){
+    dt = 0.2;
   }
 }
 
@@ -275,8 +282,11 @@ void SKFilter::filter(double input){
   double noise;
 
   // feedback amount variables
-  double res=2.5*Resonance;
+  double res=3.5*Resonance;
   double fb=0.0;
+
+  // antisaturator lambda function
+  auto AntiSaturator = [](double input, double drive){ return 1.0/drive*sinh(input*drive); };
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -317,25 +327,58 @@ void SKFilter::filter(double input){
       {
 	fb = input_bp + res*p1;
 	p0 += dt*(input_lp - p0 - fb);
-       	p1 += dt*(p0 + fb - p1 - 1.0/4.0*sinh(p1*4.0) + input_hp);
-	out = p1 - 0.5*input_hp;
+       	p1 += dt*(p0 + fb - p1 - AntiSaturator(p1, 4.0));
+      	out = p1;
       }
       break;
     case SK_PREDICTOR_CORRECTOR:
       // predictor-corrector integration
       {
 	double p0_prime, p1_prime, fb_prime;
-
-	fb = input_bp + res*p1;
-	p0_prime = p0 + dt*(input_lp - p0 - fb);
-       	p1_prime = p1 + dt*(p0 + fb - p1 - 1.0/4.0*sinh(p1*4.0) + input_hp);
+	  
+	fb = input_bp_t1 + res*p1;
+	p0_prime = p0 + dt*(input_lp_t1 - p0 - fb);
+       	p1_prime = p1 + dt*(p0 + fb - p1 - AntiSaturator(p1, 4.0));	
 	fb_prime = input_bp + res*p1_prime;
 	
-	p0 += 0.5*dt*((input_lp - p0 - fb) +
+       	p1 += 0.5*dt*((p0 + fb - p1 - AntiSaturator(p1, 4.0)) +
+		      (p0_prime + fb_prime - p1_prime - AntiSaturator(p1, 4.0)));
+	p0 += 0.5*dt*((input_lp_t1 - p0 - fb) +
 		      (input_lp - p0_prime - fb_prime));
-       	p1 += 0.5*dt*((p0 + fb - p1 - 1.0/4.0*sinh(p1*4.0) + input_hp) +
-		      (p0_prime + fb_prime - p1_prime - 1.0/4.0*sinh(p1_prime*4.0) + input_hp));
-	out = p1 - 0.5*input_hp;
+
+	out = p1;
+      }
+      break;
+    case SK_TRAPEZOIDAL:
+      // trapezoidal integration
+      {
+	double x_k, x_k2;
+	double fb_t = input_bp_t1 + res*p1;
+	double alpha = dt/2.0;
+	double A = p0 + fb_t - p1 - 1.0/4.0*sinh(4.0*p1) +
+	           p0/(1.0 + alpha) + alpha/(1 + alpha)*(input_lp_t1 - p0 - fb_t + input_lp);
+	double c = 1.0 - (alpha + alpha*alpha/(1.0 + alpha))*res + alpha;
+	double D_n = p1 + alpha*A + (alpha + alpha*alpha/(1.0 + alpha))*input_bp;
+
+	x_k = p1;
+	
+	// newton-raphson
+	for(int ii=0; ii < 32; ii++) {
+	  x_k2 = x_k - (c*x_k + alpha*1.0/4.0*sinh(4.0*x_k) - D_n)/(c + alpha*cosh(4.0*x_k));
+	  
+	  // breaking limit
+	  if(abs(x_k2 - x_k) < 1.0e-15) {
+	    x_k = x_k2;
+	    break;
+	  }
+	  
+	  x_k = x_k2;
+	}
+	
+	p1 = x_k;
+	fb = input_bp + res*p1;
+	p0 = p0/(1.0 + alpha) + alpha/(1.0 + alpha)*(input_lp_t1 - p0 - fb_t + input_lp - fb);
+	out = p1;
       }
       break;
     default:
@@ -349,7 +392,9 @@ void SKFilter::filter(double input){
   }
   
   // set input at t-1
-  u_t1 = input_lp;    
+  input_lp_t1 = input_lp;    
+  input_bp_t1 = input_bp;    
+  input_hp_t1 = input_hp;    
 }
 
 void SKFilter::SetFilterLowpassInput(double input){

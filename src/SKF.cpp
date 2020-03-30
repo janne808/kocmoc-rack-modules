@@ -214,6 +214,7 @@ struct SKFWidget : ModuleWidget {
     menu->addChild(createMenuLabel("Integration Method"));
     menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", SK_SEMI_IMPLICIT_EULER));
     menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", SK_PREDICTOR_CORRECTOR));
+    menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SK_TRAPEZOIDAL));
   }
 };
 

@@ -34,7 +34,8 @@ enum SKFilterMode {
 // integration methods
 enum SKIntegrationMethod {
    SK_SEMI_IMPLICIT_EULER,
-   SK_PREDICTOR_CORRECTOR
+   SK_PREDICTOR_CORRECTOR,
+   SK_TRAPEZOIDAL
 };
 
 class SKFilter{
@@ -104,12 +105,14 @@ private:
   // filter state
   double p0;
   double p1;
-  double u_t1;
 
   // filter input
   double input_lp;
   double input_bp;
   double input_hp;
+  double input_lp_t1;
+  double input_bp_t1;
+  double input_hp_t1;
   
   // filter output
   double out;
