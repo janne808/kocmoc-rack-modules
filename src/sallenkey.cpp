@@ -158,8 +158,8 @@ void SKFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.2){
-    dt = 0.2;
+  else if(dt > 0.3){
+    dt = 0.3;
   }
 }
 

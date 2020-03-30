@@ -45,7 +45,7 @@ struct SKF : Module {
   };
 
   int _oversampling = 2;
-  SKIntegrationMethod _integrationMethod = SK_SEMI_IMPLICIT_EULER;
+  SKIntegrationMethod _integrationMethod = SK_TRAPEZOIDAL;
   
   // create sallen-key filter class instance
   SKFilter *skf = new SKFilter((double)(0.25), (double)(0.0), _oversampling, SK_LOWPASS_MODE,
@@ -212,8 +212,6 @@ struct SKFWidget : ModuleWidget {
 
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
-    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", SK_SEMI_IMPLICIT_EULER));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", SK_PREDICTOR_CORRECTOR));
     menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SK_TRAPEZOIDAL));
   }
 };
