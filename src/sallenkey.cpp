@@ -282,11 +282,12 @@ void SKFilter::filter(double input){
   double noise;
 
   // feedback amount variables
-  double res=3.5*Resonance;
+  double res=4.0*Resonance;
   double fb=0.0;
 
   // antisaturator lambda function
   auto AntiSaturator = [](double input, double drive){ return 1.0/drive*sinh(input*drive); };
+  auto dAntiSaturator = [](double input, double drive){ return cosh(input*drive); };
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -355,7 +356,7 @@ void SKFilter::filter(double input){
 	double x_k, x_k2;
 	double fb_t = input_bp_t1 + res*p1;
 	double alpha = dt/2.0;
-	double A = p0 + fb_t - p1 - 1.0/4.0*sinh(4.0*p1) +
+	double A = p0 + fb_t - p1 - AntiSaturator(p1, 4.0) +
 	           p0/(1.0 + alpha) + alpha/(1 + alpha)*(input_lp_t1 - p0 - fb_t + input_lp);
 	double c = 1.0 - (alpha - alpha*alpha/(1.0 + alpha))*res + alpha;
 	double D_n = p1 + alpha*A + (alpha - alpha*alpha/(1.0 + alpha))*input_bp;
@@ -364,7 +365,7 @@ void SKFilter::filter(double input){
 	
 	// newton-raphson
 	for(int ii=0; ii < 32; ii++) {
-	  x_k2 = x_k - (c*x_k + alpha*1.0/4.0*sinh(4.0*x_k) - D_n)/(c + alpha*cosh(4.0*x_k));
+	  x_k2 = x_k - (c*x_k + alpha*AntiSaturator(x_k, 4.0) - D_n)/(c + alpha*dAntiSaturator(x_k, 4.0));
 	  
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-15) {

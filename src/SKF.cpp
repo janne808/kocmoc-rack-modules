@@ -56,7 +56,7 @@ struct SKF : Module {
     configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "");
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "");
     configParam(GAIN_PARAM, 0.f, 1.f, 0.5f, "");
-    configParam(MODE_PARAM, 0.f, 2.f, 0.f, "");
+    configParam(MODE_PARAM, 0.f, 1.f, 0.f, "");
   }
 
   void process(const ProcessArgs& args) override {
@@ -146,7 +146,7 @@ struct SKFWidget : ModuleWidget {
     addParam(createParam<RoundBlackKnob>(mm2px(Vec(10.24, 42.06)), module, SKF::RESO_PARAM));
     addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, SKF::GAIN_PARAM));
     
-    addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, SKF::MODE_PARAM));
+    addParam(createParam<CKSS>(Vec(57.0, 252.3), module, SKF::MODE_PARAM));
     
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 69.52)), module, SKF::LINCV_INPUT));
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 69.52)), module, SKF::EXPCV_INPUT));
