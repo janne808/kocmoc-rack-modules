@@ -158,8 +158,8 @@ void SKFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.3){
-    dt = 0.3;
+  else if(dt > 0.55){
+    dt = 0.55;
   }
 }
 
@@ -357,8 +357,8 @@ void SKFilter::filter(double input){
 	double alpha = dt/2.0;
 	double A = p0 + fb_t - p1 - 1.0/4.0*sinh(4.0*p1) +
 	           p0/(1.0 + alpha) + alpha/(1 + alpha)*(input_lp_t1 - p0 - fb_t + input_lp);
-	double c = 1.0 - (alpha + alpha*alpha/(1.0 + alpha))*res + alpha;
-	double D_n = p1 + alpha*A + (alpha + alpha*alpha/(1.0 + alpha))*input_bp;
+	double c = 1.0 - (alpha - alpha*alpha/(1.0 + alpha))*res + alpha;
+	double D_n = p1 + alpha*A + (alpha - alpha*alpha/(1.0 + alpha))*input_bp;
 
 	x_k = p1;
 	
