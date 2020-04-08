@@ -139,8 +139,8 @@ void SVFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.35){
-    dt = 0.35;
+  else if(dt > 0.325){
+    dt = 0.325;
   }
 }
 
