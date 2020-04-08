@@ -45,7 +45,7 @@ struct SVF_1 : Module {
   };
 
   int _oversampling = 2;
-  SVFIntegrationMethod _integrationMethod = SVF_PREDICTOR_CORRECTOR;
+  SVFIntegrationMethod _integrationMethod = SVF_TRAPEZOIDAL;
   
   // create svf class instance
   SVFilter *svf = new SVFilter((double)(0.25), (double)(0.0), _oversampling, SVF_LOWPASS_MODE,
@@ -68,7 +68,7 @@ struct SVF_1 : Module {
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
-    gain = (gain * gain * gain * gain)/10.f;
+    gain *= gain * gain * gain;
     
     // sum in linear cv
     cutoff += inputs[LINCV_INPUT].getVoltage()/10.f;
@@ -82,17 +82,17 @@ struct SVF_1 : Module {
     svf->SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 3.0));
+    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 2.0));
 
     // compute gain compensation to normalize output on high drive levels
     gain = params[GAIN_PARAM].getValue() - 0.5;
     if(gain < 0.0) {
       gain = 0.0;
     }
-    gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gain));
+    gainComp = 9.0 * (1.0 - 1.5 * std::log(1.0 + gain));
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * 1.65 * gainComp));
+    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * gainComp));
   }
 
   void onSampleRateChange() override {
@@ -211,8 +211,7 @@ struct SVFWidget : ModuleWidget {
 
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
-    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler", SVF_SEMI_IMPLICIT_EULER));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector", SVF_PREDICTOR_CORRECTOR));
+    menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SVF_TRAPEZOIDAL));
   }
 };
 

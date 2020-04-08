@@ -285,7 +285,7 @@ void SKFilter::filter(double input){
   double res=4.0*Resonance;
   double fb=0.0;
 
-  // antisaturator lambda function
+  // antisaturator lambda functions
   auto AntiSaturator = [](double input, double drive){ return 1.0/drive*sinh(input*drive); };
   auto dAntiSaturator = [](double input, double drive){ return cosh(input*drive); };
 

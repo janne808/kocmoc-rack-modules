@@ -67,7 +67,7 @@ SVFilter::SVFilter(){
   out = 0.0;
   u_t1 = 0.0;
   
-  integrationMethod = SVF_SEMI_IMPLICIT_EULER;
+  integrationMethod = SVF_TRAPEZOIDAL;
   
   // instantiate downsampling filter
   fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
@@ -139,8 +139,8 @@ void SVFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 1.2){
-    dt = 1.2;
+  else if(dt > 0.35){
+    dt = 0.35;
   }
 }
 
@@ -263,21 +263,12 @@ void SVFilter::filter(double input){
   double noise;
 
   // feedback amount variables
-  double fb, dt_fb;
+  double fb = 1.0 - (4.0*Resonance);
   
-  double u_t0=0, t;
+  // antisaturator lambda functions
+  auto AntiSaturator = [](double input, double drive){ return 1.0/drive*sinh(input*drive); };
+  auto dAntiSaturator = [](double input, double drive){ return cosh(input*drive); };  
   
-  // shape feedback amount with integration rate
-  // to control high frequency overloading
-  dt_fb = dt;
-  if(dt_fb > 1.0){
-    dt_fb = 1.0;
-  }
-  dt_fb = 1.0 - pow(dt_fb, 6.0);
-
-  // feedback amount
-  fb = 1.0 - (1.0*Resonance*dt_fb);
-
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
   noise = 1.0e-6 * 2.0 * (noise - 0.5);
@@ -289,40 +280,34 @@ void SVFilter::filter(double input){
   for(int nn = 0; nn < oversamplingFactor; nn++){
     // switch integration method
     switch(integrationMethod){
-    case SVF_SEMI_IMPLICIT_EULER:
-      // semi-implicit euler integration
+    case SVF_TRAPEZOIDAL:
+      // trapezoidal integration
       {
-	// input stage saturation
-	t = nn/oversamplingFactor;
-	u_t0 = u_t1 + t*(input - u_t1);
-	u_t0 = BramSaturator(u_t0, 0.15);
+	double alpha = dt/2.0;
+	double beta = 1.0 - (0.0015/oversamplingFactor);
+	double D_t = (1.0 - alpha*alpha)*bp +
+	                 alpha*(u_t1 + input - 2.0*lp - fb*bp - AntiSaturator(bp, 4.0));
+	double x_k, x_k2, bp2;
+	x_k = bp;
 	
-   	hp = -lp - fb*bp;
- 	bp += dt*BramSaturator(hp + u_t0, 0.25);
-	bp *= 1.0 - (0.0075/oversamplingFactor);
-     	lp += dt*BramSaturator(bp, 0.25);
-      }
-      break;
-    case SVF_PREDICTOR_CORRECTOR:
-      // predictor-corrector integration
-      {
-	// input stage saturation
-	double u_t1s;
-	u_t0 = BramSaturator(input, 0.15);
-    	u_t1s = BramSaturator(u_t1, 0.15);
-	
-	double hp_prime, bp_prime, hp2;
-	// predictor
-   	hp_prime = - lp - fb*bp;
- 	bp_prime = bp + dt*BramSaturator(hp_prime + u_t1s, 0.25);
-	bp_prime *= 1.0 - (0.0075/oversamplingFactor);
+	// newton-raphson
+	for(int ii=0; ii < 32; ii++) {
+	  x_k2 = x_k - (x_k + alpha*AntiSaturator(x_k, 4.0) +(alpha*alpha + fb*alpha)*x_k - D_t)/
+	                  (1.0 + alpha*dAntiSaturator(x_k, 4.0) + (alpha*alpha + fb*alpha));
+	  
+	  // breaking limit
+	  if(abs(x_k2 - x_k) < 1.0e-15) {
+	    x_k = x_k2;
+	    break;
+	  }
+	  
+	  x_k = x_k2;
+	}
 
-	// corrector
-	lp += 0.5*dt*(BramSaturator(bp_prime, 0.25) + BramSaturator(bp, 0.25));
-     	hp2 = -lp - fb*bp_prime;
- 	bp += 0.5*dt*(BramSaturator(hp2 + u_t0, 0.25) + BramSaturator(hp_prime + u_t1s, 0.25));
-	bp *= 1.0 - (0.0075/oversamplingFactor);
-	hp = - lp - fb*bp;
+	bp2 = beta*x_k;
+	lp += alpha*(bp + bp2);
+      	hp = input - lp - fb*bp2;
+	bp = bp2;
       }
       break;
     default:
@@ -337,12 +322,12 @@ void SVFilter::filter(double input){
       out = bp;
       break;
     case SVF_HIGHPASS_MODE:
-      out = u_t0 - lp - fb*bp;
+      out = hp;
       break;
     default:
       out = 0.0;
     }
-
+    
     // downsampling filter
     if(oversamplingFactor > 1){
       out = fir->FIRfilter(out) * 0.4;
