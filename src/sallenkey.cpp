@@ -163,6 +163,42 @@ void SKFilter::SetFilterIntegrationRate(){
   }
 }
 
+// pade 3/2 approximant for sinh
+inline double SKFilter::SinhPade32(double x) {
+  // return approximant
+  return -(x*(7.0*x*x + 60.0))/(3.0*(x*x - 20.0));
+}
+
+// pade 3/4 approximant for sinh
+inline double SKFilter::SinhPade34(double x) {
+  // return approximant
+  return (20.0*x*(31.0*x*x*x*x + 294.0))/(11.0*x*x*x*x - 360.0*x*x + 5880.0);
+}
+
+// pade 5/4 approximant for sinh
+inline double SKFilter::SinhPade54(double x) {
+  // return approximant
+  return (x*(551.0*x*x*x*x + 22260*x*x + 166320.0))/(15.0*(5.0*x*x*x*x - 364.0*x*x + 11088.0));
+}
+
+// pade 3/2 approximant for cosh
+inline double SKFilter::CoshPade32(double x) {
+  // return approximant
+  return -(5.0*x*x + 12.0)/(x*x - 12.0);
+}
+
+// pade 3/4 approximant for cosh
+inline double SKFilter::CoshPade34(double x) {
+  // return approximant
+  return (4.0*(61.0*x*x + 150.0))/(3.0*x*x*x*x - 56.0*x*x + 600.0);
+}
+
+// pade 5/4 approximant for cosh
+inline double SKFilter::CoshPade54(double x) {
+  // return approximant
+  return (313.0*x*x*x*x + 6900.0*x*x + 15120.0)/(13.0*x*x*x*x - 660.0*x*x + 15120.0);
+}
+
 // pade 3/2 approximant for tanh
 inline double SKFilter::TanhPade32(double x) {
   // clamp x to -3..3
@@ -285,10 +321,6 @@ void SKFilter::filter(double input){
   double res=4.0*Resonance;
   double fb=0.0;
 
-  // antisaturator lambda functions
-  auto AntiSaturator = [](double input, double drive){ return 1.0/drive*sinh(input*drive); };
-  auto dAntiSaturator = [](double input, double drive){ return cosh(input*drive); };
-
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
   noise = 1.0e-6 * 2.0 * (noise - 0.5);
@@ -328,7 +360,7 @@ void SKFilter::filter(double input){
       {
 	fb = input_bp + res*p1;
 	p0 += dt*(input_lp - p0 - fb);
-       	p1 += dt*(p0 + fb - p1 - AntiSaturator(p1, 4.0));
+       	p1 += dt*(p0 + fb - p1 - 1.0/4.0*SinhPade34(p0*4.0));
       	out = p1;
       }
       break;
@@ -339,11 +371,11 @@ void SKFilter::filter(double input){
 	  
 	fb = input_bp_t1 + res*p1;
 	p0_prime = p0 + dt*(input_lp_t1 - p0 - fb);
-       	p1_prime = p1 + dt*(p0 + fb - p1 - AntiSaturator(p1, 4.0));	
+       	p1_prime = p1 + dt*(p0 + fb - p1 - 1.0/4.0*SinhPade34(p1*4.0));	
 	fb_prime = input_bp + res*p1_prime;
 	
-       	p1 += 0.5*dt*((p0 + fb - p1 - AntiSaturator(p1, 4.0)) +
-		      (p0_prime + fb_prime - p1_prime - AntiSaturator(p1, 4.0)));
+       	p1 += 0.5*dt*((p0 + fb - p1 - 1.0/4.0*SinhPade34(p1*4.0)) +
+		      (p0_prime + fb_prime - p1_prime - 1.0/4.0*SinhPade34(p1*4.0)));
 	p0 += 0.5*dt*((input_lp_t1 - p0 - fb) +
 		      (input_lp - p0_prime - fb_prime));
 
@@ -356,7 +388,7 @@ void SKFilter::filter(double input){
 	double x_k, x_k2;
 	double fb_t = input_bp_t1 + res*p1;
 	double alpha = dt/2.0;
-	double A = p0 + fb_t - p1 - AntiSaturator(p1, 4.0) +
+	double A = p0 + fb_t - p1 - 1.0/4.0*SinhPade54(p1*4.0) +
 	           p0/(1.0 + alpha) + alpha/(1 + alpha)*(input_lp_t1 - p0 - fb_t + input_lp);
 	double c = 1.0 - (alpha - alpha*alpha/(1.0 + alpha))*res + alpha;
 	double D_n = p1 + alpha*A + (alpha - alpha*alpha/(1.0 + alpha))*input_bp;
@@ -365,7 +397,7 @@ void SKFilter::filter(double input){
 	
 	// newton-raphson
 	for(int ii=0; ii < 32; ii++) {
-	  x_k2 = x_k - (c*x_k + alpha*AntiSaturator(x_k, 4.0) - D_n)/(c + alpha*dAntiSaturator(x_k, 4.0));
+	  x_k2 = x_k - (c*x_k + alpha*1.0/4.0*SinhPade54(x_k*4.0) - D_n)/(c + alpha*CoshPade54(x_k*4.0));
 	  
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-15) {

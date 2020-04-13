@@ -80,7 +80,13 @@ private:
   // set integration rate
   void SetFilterIntegrationRate();
 
-  // pade approximant functions for tanh
+  // pade approximant functions for hyperbolic functions
+  inline double SinhPade32(double x);  
+  inline double SinhPade34(double x);  
+  inline double SinhPade54(double x);  
+  inline double CoshPade32(double x);  
+  inline double CoshPade34(double x);  
+  inline double CoshPade54(double x);  
   inline double TanhPade32(double x);
   inline double TanhPade54(double x);
 
