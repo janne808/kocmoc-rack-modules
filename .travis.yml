@@ -14,12 +14,10 @@ matrix:
             - libgtk2.0-dev
             - g++-7
 	    - libjack-dev
+	    - libjack-jackd2-dev
+	    - jackd2-dev
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-    - os: osx
-      osx_image: xcode8.3
-      env:
-        - MATRIX_EVAL="CC=clang && CXX=clang++"
 
 before_install:
  - RACK_GIT_COMMIT=600268ba65539771dac67d316e2d2a0d999e7b42
