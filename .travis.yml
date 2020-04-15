@@ -17,8 +17,6 @@ matrix:
       env:
         - MATRIX_EVAL="CC=clang && CXX=clang++"
     - os: windows
-      env:
-        - MATRIX_EVAL="CC=gcc && CXX=g++"
 
 before_install:
 - |-
@@ -37,7 +35,6 @@ before_install:
         taskkill //IM gpg-agent.exe //F  # https://travis-ci.community/t/4967
         export PATH=/C/tools/msys64/mingw64/bin:$PATH
         export MAKE=mingw32-make  # so that Autotools can find it
-        eval "${MATRIX_EVAL}"
         export RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
         cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
         cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
