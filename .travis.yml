@@ -25,12 +25,12 @@ matrix:
 
 before_install:
  - eval "${MATRIX_EVAL}"
- - RACK_GIT_COMMIT=600268ba65539771dac67d316e2d2a0d999e7b42
- - cd .. && git clone --recursive https://github.com/VCVRack/Rack.git
- - cd ./Rack && git reset --hard "${RACK_GIT_COMMIT}" && git submodule update && cd ..
- - mv kocmoc-rack-modules ./Rack/plugins/kocmoc-rack-modules
- - cd Rack
- - make dep && make
+ - RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
+ - cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
+ - cd ./vcv-rack-sdk && git reset --hard "${RACK_GIT_COMMIT}" && mkdir modules && cd ..
+ - mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
+ - cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
+ - export RACK_DIR=../../
 
 script:
- - make plugins
+ - make dist
