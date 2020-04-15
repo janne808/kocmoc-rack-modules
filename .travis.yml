@@ -33,7 +33,7 @@ before_install:
  - cd .. && rm -rf Rack && git clone --recursive https://github.com/VCVRack/Rack.git
  - cd ./Rack && git reset --hard "${RACK_GIT_COMMIT}" && git submodule update && cd ..
  - mv kocmoc-rack-modules ./Rack/plugins/kocmoc-rack-modules
- - cd ../Rack
+ - cd Rack
  - make dep && make
 
 script:
