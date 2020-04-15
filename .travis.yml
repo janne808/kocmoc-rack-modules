@@ -94,7 +94,7 @@ deploy:
   provider: releases
   api_key:
     secure: f06TxUj8iogW21DA/kqx8JnukXIsPnkZBarrtm8k/DdyDSsKYO7Q3WwS++4DqnL1qz0OJ0IJt4zrhmjbE4UMGWjGlM9UBLJXcCdEszKXqrmdAGZHlZqP4CE08NWuFa8D0WVM1WrJhIRmEwazPbwI4PKiilsOWVzrFqHZdhD2q3QtFhXBIilb3wAvm+8EX0zqemRywf2xf8XVuUySWxRMed36oLKMMBIrTiNjTZKmmAOyvNPzx4rZnmKa//a6xSc9lUcaTrCoTbzThXClB/bg+b/+8YcgPT13jK7RffKFpni75dJYJiVpIYU+z2DFICdGQ2AfENqQtyhTqk2rxstqY3iLvvdP/a1QjyqX1R70pshCBejzzgUMoxcS+1cG4IYsozCwSXTSIdSrKjM/xvys1U+GsjgYYA3hrSbh0MoyIgWpQyTfzIRqY05wukPVVzmQLSTun/q52IsQz/w89EWDWfT/PCAYiWjM54gp4IVgztpCtiw+sO9PHdeT1HwZFY5v+jm8hQhvONI3xd+ezpCxJoB9Xxud4blPrnf4DntYUacCFHOo6FDTh4cythDiUhunZjcifsqRiF7Pw0qOZtPy92kEnhmzvZ0MyMAIYuW9VlpQ82bcWkiY3fp0TKHcKH6tSIXXdibgnH4gpIDGEdUujl+vXrszueeENkZ1JsuJkAs=
-  file: dist/kocmoc-*.zip
+  file: kocmoc-*.zip
   skip_cleanup: true
   on:
     tags: true
