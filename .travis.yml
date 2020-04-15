@@ -20,6 +20,8 @@ matrix:
       osx_image: xcode11.3
       env:
         - MATRIX_EVAL="CC=clang && CXX=clang++"
+      install:
+        - HOMEBREW_NO_INSTALL_CLEANUP=true brew install jq
 
 before_install:
  - RACK_GIT_COMMIT=600268ba65539771dac67d316e2d2a0d999e7b42
