@@ -31,7 +31,7 @@ before_install:
  - RACK_GIT_COMMIT=600268ba65539771dac67d316e2d2a0d999e7b42
  - eval "${MATRIX_EVAL}"
  - "[[ -d ../Rack/.git ]] && cd ../Rack/ && git pull && cd .."
- - "[[ -d ../Rack/.git ]] || cd .. && rm -rf Rack && git clone --recursive https://github.com/VCVRack/Rack.git && cd ./Rack && git reset --hard "${RACK_GIT_COMMIT}" && git submodule update && cd .."
+ - "[[ -d ../Rack/.git ]] || cd .. && rm -rf Rack && git clone --recursive https://github.com/VCVRack/Rack.git && cd ./Rack && git reset --hard \"${RACK_GIT_COMMIT}\" && git submodule update && cd .."
  - mv kocmoc-rack-modules ./Rack/plugins/kocmoc-rack-modules
  - cd Rack
  - make dep && make
