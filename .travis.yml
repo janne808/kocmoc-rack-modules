@@ -25,7 +25,7 @@ matrix:
 
 cache:
   directories:
-  - ../Rack
+  - ../Rack/dep
 
 before_install:
  - RACK_GIT_COMMIT=600268ba65539771dac67d316e2d2a0d999e7b42
