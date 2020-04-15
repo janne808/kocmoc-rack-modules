@@ -1,94 +1,99 @@
 language: cpp
-
 matrix:
   include:
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - libglu1-mesa-dev
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-    - os: osx
-      osx_image: xcode11.3
-      env:
-        - MATRIX_EVAL="CC=clang && CXX=clang++"
-    - os: windows
-
+  - os: linux
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - g++-7
+        - libglu1-mesa-dev
+    env:
+    - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+  - os: osx
+    osx_image: xcode11.3
+    env:
+    - MATRIX_EVAL="CC=clang && CXX=clang++"
+  - os: windows
 before_install:
 - |-
-    case $TRAVIS_OS_NAME in
-      windows)
-        [[ ! -f C:/tools/msys64/msys2_shell.cmd ]] && rm -rf C:/tools/msys64
-        choco uninstall -y mingw
-        choco upgrade --no-progress -y msys2
-        export msys2='cmd //C RefreshEnv.cmd '
-        export msys2+='& set MSYS=winsymlinks:nativestrict '
-        export msys2+='& C:\\tools\\msys64\\msys2_shell.cmd -defterm -no-start'
-        export mingw64="$msys2 -mingw64 -full-path -here -c "\"\$@"\" --"
-        export msys2+=" -msys2 -c "\"\$@"\" --"
-        $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-toolchain
-        ## Install more MSYS2 packages from https://packages.msys2.org/base here
-        $mingw64 pacman -Syu --noconfirm
-        $mingw64 pacman -Su --noconfirm git wget make tar unzip zip mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-libtool mingw-w64-x86_64-jq python
-        taskkill //IM gpg-agent.exe //F  # https://travis-ci.community/t/4967
-        export PATH=/C/tools/msys64/mingw64/bin:$PATH
-        export MAKE=mingw32-make  # so that Autotools can find it
-        export RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
-        cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
-        cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
-        mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
-        cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
-        export RACK_DIR=../../
-        ;;
-      linux)
-        eval "${MATRIX_EVAL}"
-        RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
-        cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
-        cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
-        mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
-        cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
-        export RACK_DIR=../../
-        ;;
-      osx)
-        HOMEBREW_NO_INSTALL_CLEANUP=true brew install jq
-        eval "${MATRIX_EVAL}"
-        RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
-        cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
-        cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
-        mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
-        cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
-        export RACK_DIR=../../
-        ;;
-    esac
-    
+  case $TRAVIS_OS_NAME in
+    windows)
+      [[ ! -f C:/tools/msys64/msys2_shell.cmd ]] && rm -rf C:/tools/msys64
+      choco uninstall -y mingw
+      choco upgrade --no-progress -y msys2
+      export msys2='cmd //C RefreshEnv.cmd '
+      export msys2+='& set MSYS=winsymlinks:nativestrict '
+      export msys2+='& C:\\tools\\msys64\\msys2_shell.cmd -defterm -no-start'
+      export mingw64="$msys2 -mingw64 -full-path -here -c "\"\$@"\" --"
+      export msys2+=" -msys2 -c "\"\$@"\" --"
+      $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-toolchain
+      ## Install more MSYS2 packages from https://packages.msys2.org/base here
+      $mingw64 pacman -Syu --noconfirm
+      $mingw64 pacman -Su --noconfirm git wget make tar unzip zip mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-cmake autoconf automake mingw-w64-x86_64-libtool mingw-w64-x86_64-jq python
+      taskkill //IM gpg-agent.exe //F  # https://travis-ci.community/t/4967
+      export PATH=/C/tools/msys64/mingw64/bin:$PATH
+      export MAKE=mingw32-make  # so that Autotools can find it
+      export RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
+      cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
+      cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
+      mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
+      cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
+      export RACK_DIR=../../
+      ;;
+    linux)
+      eval "${MATRIX_EVAL}"
+      RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
+      cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
+      cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
+      mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
+      cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
+      export RACK_DIR=../../
+      ;;
+    osx)
+      HOMEBREW_NO_INSTALL_CLEANUP=true brew install jq
+      eval "${MATRIX_EVAL}"
+      RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
+      cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
+      cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
+      mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
+      cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
+      export RACK_DIR=../../
+      ;;
+  esac
 before_cache:
 - |-
-    case $TRAVIS_OS_NAME in
-      windows)
-        # https://unix.stackexchange.com/a/137322/107554
-        $msys2 pacman --sync --clean --noconfirm
-        ;;
-    esac
-    
+  case $TRAVIS_OS_NAME in
+    windows)
+      # https://unix.stackexchange.com/a/137322/107554
+      $msys2 pacman --sync --clean --noconfirm
+      ;;
+  esac
 cache:
-    directories:
-      - $HOME/AppData/Local/Temp/chocolatey
-      - /C/tools/msys64
-      
+  directories:
+  - "$HOME/AppData/Local/Temp/chocolatey"
+  - "/C/tools/msys64"
 script:
 - |-
-    case $TRAVIS_OS_NAME in
-      windows)
-        $mingw64 make dist
-        ;;
-      linux)
-        make dist
-        ;;
-      osx)
-        make dist
-        ;;
-    esac
+  case $TRAVIS_OS_NAME in
+    windows)
+      $mingw64 make dep
+      $mingw64 make dist
+      ;;
+    linux)
+      make dep
+      make dist
+      ;;
+    osx)
+      make dep
+      make dist
+      ;;
+  esac
+deploy:
+  provider: releases
+  api_key:
+    secure: f06TxUj8iogW21DA/kqx8JnukXIsPnkZBarrtm8k/DdyDSsKYO7Q3WwS++4DqnL1qz0OJ0IJt4zrhmjbE4UMGWjGlM9UBLJXcCdEszKXqrmdAGZHlZqP4CE08NWuFa8D0WVM1WrJhIRmEwazPbwI4PKiilsOWVzrFqHZdhD2q3QtFhXBIilb3wAvm+8EX0zqemRywf2xf8XVuUySWxRMed36oLKMMBIrTiNjTZKmmAOyvNPzx4rZnmKa//a6xSc9lUcaTrCoTbzThXClB/bg+b/+8YcgPT13jK7RffKFpni75dJYJiVpIYU+z2DFICdGQ2AfENqQtyhTqk2rxstqY3iLvvdP/a1QjyqX1R70pshCBejzzgUMoxcS+1cG4IYsozCwSXTSIdSrKjM/xvys1U+GsjgYYA3hrSbh0MoyIgWpQyTfzIRqY05wukPVVzmQLSTun/q52IsQz/w89EWDWfT/PCAYiWjM54gp4IVgztpCtiw+sO9PHdeT1HwZFY5v+jm8hQhvONI3xd+ezpCxJoB9Xxud4blPrnf4DntYUacCFHOo6FDTh4cythDiUhunZjcifsqRiF7Pw0qOZtPy92kEnhmzvZ0MyMAIYuW9VlpQ82bcWkiY3fp0TKHcKH6tSIXXdibgnH4gpIDGEdUujl+vXrszueeENkZ1JsuJkAs=
+  file: dist/kocmoc-*.zip
+  on:
+    repo: janne808/kocmoc-rack-modules
