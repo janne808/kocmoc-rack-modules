@@ -23,6 +23,10 @@ matrix:
       install:
         - HOMEBREW_NO_INSTALL_CLEANUP=true brew install jq
 
+cache:
+  directories:
+  - ./Rack
+
 before_install:
  - RACK_GIT_COMMIT=600268ba65539771dac67d316e2d2a0d999e7b42
  - eval "${MATRIX_EVAL}"
