@@ -98,3 +98,5 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
+    repo: janne808/kocmoc-rack-modules
+
