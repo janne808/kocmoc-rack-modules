@@ -38,12 +38,12 @@ before_install:
         export PATH=/C/tools/msys64/mingw64/bin:$PATH
         export MAKE=mingw32-make  # so that Autotools can find it
         eval "${MATRIX_EVAL}"
-        $mingw64 RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
-        $mingw64 cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
-        $mingw64 cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
-        $mingw64 mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
-        $mingw64 cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
-        $mingw64 export RACK_DIR=../../
+        export RACK_SDK_GIT_COMMIT=e487820b786ee3a764b9a71bc60c3a31f8105408
+        cd .. && git clone --recursive https://github.com/stellare-modular/vcv-rack-sdk
+        cd ./vcv-rack-sdk && git reset --hard "${RACK_SDK_GIT_COMMIT}" && mkdir modules && cd ..
+        mv kocmoc-rack-modules ./vcv-rack-sdk/modules/kocmoc-rack-modules
+        cd ./vcv-rack-sdk/modules/kocmoc-rack-modules
+        export RACK_DIR=../../
         ;;
       linux)
         eval "${MATRIX_EVAL}"
