@@ -34,7 +34,8 @@ enum SVFFilterMode {
 // integration methods
 enum SVFIntegrationMethod {
    SVF_SEMI_IMPLICIT_EULER,
-   SVF_TRAPEZOIDAL
+   SVF_TRAPEZOIDAL,
+   SVF_INV_TRAPEZOIDAL
 };
 
 class SVFilter{
@@ -80,9 +81,12 @@ private:
   void SetFilterIntegrationRate();
 
   // pade approximant functions for hyperbolic functions
+  inline double SinhExpTaylor(double x, int N);
   inline double SinhPade32(double x);  
   inline double SinhPade34(double x);  
   inline double SinhPade54(double x);  
+  inline double dASinhPade54(double x);  
+  inline double ASinhPade54(double x);  
   inline double CoshPade32(double x);  
   inline double CoshPade34(double x);  
   inline double CoshPade54(double x);  

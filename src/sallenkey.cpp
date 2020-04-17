@@ -163,6 +163,22 @@ void SKFilter::SetFilterIntegrationRate(){
   }
 }
 
+inline double SKFilter::SinhExpTaylor(double x, int N) {
+  double n=1.0, d=1.0, s=-1.0, t=1.0, exp_plus=1.0, exp_minus=1.0;
+  
+  // compute power series approximation
+  for(int ii=2; ii < N; ii++){
+    n *= x;
+    t = n/d;
+    exp_plus += t;
+    exp_minus += s*t;
+    d *= ii;
+    s *= -1.0;
+  }
+
+  return (exp_plus - exp_minus)/2.0;
+}
+
 // pade 3/2 approximant for sinh
 inline double SKFilter::SinhPade32(double x) {
   // return approximant
@@ -226,18 +242,17 @@ inline double SKFilter::TanhPade54(double x) {
 }
 
 inline double SKFilter::ExpTaylor(double x, int N) {
-  double y = 1.0;
-  double e = x;
-  double f = 1.0;
+  double n=1.0, d=1.0, t=1.0, exp=1.0;
   
-  // iterate taylor expansion up to N
-  for(int ii=0; ii<N; ii++) {
-    f *= ii+1;
-    y += e/f;
-    e *= x;
+  // compute power series approximation
+  for(int ii=2; ii < N; ii++){
+    n *= x;
+    t = n/d;
+    exp += t;
+    d *= ii;
   }
-  
-  return y;
+
+  return exp;
 }
 
 inline double SKFilter::BramSaturator(double x, double a) {
@@ -388,7 +403,7 @@ void SKFilter::filter(double input){
 	double x_k, x_k2;
 	double fb_t = input_bp_t1 + res*p1;
 	double alpha = dt/2.0;
-	double A = p0 + fb_t - p1 - 1.0/4.0*SinhPade54(p1*4.0) +
+	double A = p0 + fb_t - p1 - SinhPade54(p1) +
 	           p0/(1.0 + alpha) + alpha/(1 + alpha)*(input_lp_t1 - p0 - fb_t + input_lp);
 	double c = 1.0 - (alpha - alpha*alpha/(1.0 + alpha))*res + alpha;
 	double D_n = p1 + alpha*A + (alpha - alpha*alpha/(1.0 + alpha))*input_bp;
@@ -397,7 +412,7 @@ void SKFilter::filter(double input){
 	
 	// newton-raphson
 	for(int ii=0; ii < 32; ii++) {
-	  x_k2 = x_k - (c*x_k + alpha*1.0/4.0*SinhPade54(x_k*4.0) - D_n)/(c + alpha*CoshPade54(x_k*4.0));
+	  x_k2 = x_k - (c*x_k + alpha*SinhPade54(x_k) - D_n)/(c + alpha*CoshPade54(x_k));
 	  
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-15) {

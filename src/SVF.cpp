@@ -212,6 +212,7 @@ struct SVFWidget : ModuleWidget {
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
     menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SVF_TRAPEZOIDAL));
+    menu->addChild(new IntegrationMenuItem(a, "Inverse Trapezoidal", SVF_INV_TRAPEZOIDAL));
   }
 };
 

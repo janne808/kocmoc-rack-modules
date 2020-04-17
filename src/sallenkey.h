@@ -81,6 +81,7 @@ private:
   void SetFilterIntegrationRate();
 
   // pade approximant functions for hyperbolic functions
+  inline double SinhExpTaylor(double x, int N);  
   inline double SinhPade32(double x);  
   inline double SinhPade34(double x);  
   inline double SinhPade54(double x);  

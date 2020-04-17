@@ -139,9 +139,37 @@ void SVFilter::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.325){
-    dt = 0.325;
+  else if(dt > 1.0){
+    dt = 1.0;
   }
+}
+
+inline double SVFilter::SinhExpTaylor(double x, int N) {
+  double n=1.0, d=1.0, s=-1.0, t=1.0, exp_plus=1.0, exp_minus=1.0;
+  
+  // compute power series approximation
+  for(int ii=2; ii < N; ii++){
+    n *= x;
+    t = n/d;
+    exp_plus += t;
+    exp_minus += s*t;
+    d *= ii;
+    s *= -1.0;
+  }
+
+  return (exp_plus - exp_minus)/2.0;
+}
+
+// pade 5/4 approximant for asinh
+inline double SVFilter::ASinhPade54(double x) {
+  // return approximant
+  return (x*(69049.0*x*x*x*x + 717780.0*x*x + 922320.0))/(15.0*(9675.0*x*x*x*x + 58100.0*x*x + 61488.0));
+}
+
+// pade 5/4 approximant for derivative of asinh
+inline double SVFilter::dASinhPade54(double x) {
+  // return approximant
+  return (x*x*x*x + 12.0*x*x + 16.0)/(5.0*x*x*x*x + 20.0*x*x + 16.0);
 }
 
 // pade 3/2 approximant for sinh
@@ -207,18 +235,17 @@ inline double SVFilter::TanhPade54(double x) {
 }
 
 inline double SVFilter::ExpTaylor(double x, int N) {
-  double y = 1.0;
-  double e = x;
-  double f = 1.0;
+  double n=1.0, d=1.0, t=1.0, exp=1.0;
   
-  // iterate taylor expansion up to N
-  for(int ii=0; ii<N; ii++) {
-    f *= ii+1;
-    y += e/f;
-    e *= x;
+  // compute power series approximation
+  for(int ii=2; ii < N; ii++){
+    n *= x;
+    t = n/d;
+    exp += t;
+    d *= ii;
   }
-  
-  return y;
+
+  return exp;
 }
 
 inline double SVFilter::BramSaturator(double x, double a) {
@@ -327,7 +354,8 @@ void SVFilter::filter(double input){
       {
 	double alpha = dt/2.0;
 	double beta = 1.0 - (0.0075/oversamplingFactor);
-	double D_t = (1.0 - alpha*alpha)*bp +
+	double alpha2 = dt*dt/4.0 + fb*alpha;
+	double D_t = (1.0 - dt*dt/4.0)*bp +
 	              alpha*(u_t1 + input - 2.0*lp - fb*bp - SinhPade54(bp));
 	double x_k, x_k2;
 
@@ -336,8 +364,8 @@ void SVFilter::filter(double input){
 	
 	// newton-raphson
 	for(int ii=0; ii < 32; ii++) {
-	  x_k2 = x_k - (x_k + alpha*SinhPade54(x_k) +(alpha*alpha + fb*alpha)*x_k - D_t)/
-	                  (1.0 + alpha*CoshPade54(x_k) + (alpha*alpha + fb*alpha));
+	  x_k2 = x_k - (x_k + alpha*SinhPade54(x_k) + alpha2*x_k - D_t)/
+	               (1.0 + alpha*CoshPade54(x_k) + alpha2);
 	  
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-15) {
@@ -350,6 +378,39 @@ void SVFilter::filter(double input){
 
 	lp += alpha*bp;
 	bp = beta*x_k;
+	lp += alpha*bp;
+      	hp = input - lp - fb*bp;
+      }
+      break;
+    case SVF_INV_TRAPEZOIDAL:
+      // trapezoidal integration
+      {
+	double alpha = dt/2.0;
+	double beta = 1.0 - (0.0075/oversamplingFactor);
+	double alpha2 = dt*dt/4.0 + fb*alpha;
+	double D_t = (1.0 - dt*dt/4.0)*bp +
+	              alpha*(u_t1 + input - 2.0*lp - fb*bp - sinh(bp));
+	double y_k, y_k2;
+
+	// starting point is last output
+	y_k = sinh(bp);
+	
+	// newton-raphson
+	for(int ii=0; ii < 32; ii++) {
+	  y_k2 = y_k - (alpha*y_k + asinh(y_k)*(1.0 + alpha2) - D_t)/
+	               (alpha + 1.0/sqrt(1.0 + y_k*y_k)*(1.0 + alpha2));
+	  
+	  // breaking limit
+	  if(abs(y_k2 - y_k) < 1.0e-15) {
+	    y_k = y_k2;
+	    break;
+	  }
+	  
+	  y_k = y_k2;
+	}
+
+     	lp += alpha*bp;
+	bp = beta*asinh(y_k);
 	lp += alpha*bp;
       	hp = input - lp - fb*bp;
       }
