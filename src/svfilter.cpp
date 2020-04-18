@@ -168,8 +168,11 @@ inline double SVFilter::ASinhPade54(double x) {
 
 // pade 5/4 approximant for derivative of asinh
 inline double SVFilter::dASinhPade54(double x) {
+  double n = 44536605.0*x*x*x*x*x*x*x*x + 339381280.0*x*x*x*x*x*x + 2410740304.0*x*x*x*x + 5254518528.0*x*x + 3780774144.0;
+  double d = 9675.0*x*x*x*x + 58100.0*x*x + 61488.0;
+
   // return approximant
-  return (x*x*x*x + 12.0*x*x + 16.0)/(5.0*x*x*x*x + 20.0*x*x + 16.0);
+  return n/(d*d);
 }
 
 // pade 3/2 approximant for sinh
@@ -356,7 +359,7 @@ void SVFilter::filter(double input){
 	double beta = 1.0 - (0.0075/oversamplingFactor);
 	double alpha2 = dt*dt/4.0 + fb*alpha;
 	double D_t = (1.0 - dt*dt/4.0)*bp +
-	              alpha*(u_t1 + input - 2.0*lp - fb*bp - SinhPade54(bp));
+	              alpha*(u_t1 + input - 2.0*lp - fb*bp - sinh(bp));
 	double x_k, x_k2;
 
 	// starting point is last output
@@ -383,7 +386,7 @@ void SVFilter::filter(double input){
       }
       break;
     case SVF_INV_TRAPEZOIDAL:
-      // trapezoidal integration
+      // inverse trapezoidal integration
       {
 	double alpha = dt/2.0;
 	double beta = 1.0 - (0.0075/oversamplingFactor);
@@ -398,7 +401,7 @@ void SVFilter::filter(double input){
 	// newton-raphson
 	for(int ii=0; ii < 32; ii++) {
 	  y_k2 = y_k - (alpha*y_k + asinh(y_k)*(1.0 + alpha2) - D_t)/
-	               (alpha + 1.0/sqrt(1.0 + y_k*y_k)*(1.0 + alpha2));
+	               (alpha + (1.0 + alpha2)/sqrt(1.0 + y_k*y_k));
 	  
 	  // breaking limit
 	  if(abs(y_k2 - y_k) < 1.0e-15) {

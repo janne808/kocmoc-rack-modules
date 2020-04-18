@@ -45,7 +45,7 @@ struct SVF_1 : Module {
   };
 
   int _oversampling = 2;
-  SVFIntegrationMethod _integrationMethod = SVF_TRAPEZOIDAL;
+  SVFIntegrationMethod _integrationMethod = SVF_INV_TRAPEZOIDAL;
   
   // create svf class instance
   SVFilter *svf = new SVFilter((double)(0.25), (double)(0.0), _oversampling, SVF_LOWPASS_MODE,
@@ -82,14 +82,14 @@ struct SVF_1 : Module {
     svf->SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 2.0));
+    svf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
 
     // compute gain compensation to normalize output on high drive levels
     gain = params[GAIN_PARAM].getValue() - 0.5;
     if(gain < 0.0) {
       gain = 0.0;
     }
-    gainComp = 9.0 * (1.0 - 2.0 * std::log(1.0 + 0.925*gain));
+    gainComp = 5.0 * (1.0 - 2.0 * std::log(1.0 + 0.925*gain));
     
     // set output
     outputs[OUTPUT_OUTPUT].setVoltage((float)(svf->GetFilterOutput() * gainComp));
@@ -211,7 +211,6 @@ struct SVFWidget : ModuleWidget {
 
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
-    menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SVF_TRAPEZOIDAL));
     menu->addChild(new IntegrationMenuItem(a, "Inverse Trapezoidal", SVF_INV_TRAPEZOIDAL));
   }
 };
