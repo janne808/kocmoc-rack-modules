@@ -160,6 +160,26 @@ inline double SVFilter::SinhExpTaylor(double x, int N) {
   return (exp_plus - exp_minus)/2.0;
 }
 
+// pade 9/8 approximant for sinh
+inline double SVFilter::SinhPade98(double x) {
+  // return approximant
+  return (x*(4585922449.0*x*x*x*x*x*x*x*x + 1066023933480.0*x*x*x*x*x*x + 83284044283440.0*x*x*x*x + 2303682236856000.0*x*x + 15605159573203200.0))/
+            (45.0*(1029037.0*x*x*x*x*x*x*x*x - 345207016.0*x*x*x*x*x*x + 61570292784.0*x*x*x*x - 6603948711360.0*x*x + 346781323848960.0));
+}
+
+// pade 9/8 approximant for asinh
+inline double SVFilter::ASinhPade98(double x) {
+  // return approximant
+  return (x*(4474275508260072601.0*x*x*x*x*x*x*x*x + 152904157921385089560.0*x*x*x*x*x*x + 876802506140506785840.0*x*x*x*x + 1599149222427667310400.0*x*x + 900717260398840684800.0))/
+    (315.0*(42981288509837475.0*x*x*x*x*x*x*x*x + 779000561224162200.0*x*x*x*x*x*x + 3494582558460865872.0*x*x*x*x + 5553234177230076480.0*x*x + 2859419874282033920.0));
+}
+
+// pade 5/4 approximant for sinh
+inline double SVFilter::SinhPade54(double x) {
+  // return approximant
+  return (x*(551.0*x*x*x*x + 22260*x*x + 166320.0))/(15.0*(5.0*x*x*x*x - 364.0*x*x + 11088.0));
+}
+
 // pade 5/4 approximant for asinh
 inline double SVFilter::ASinhPade54(double x) {
   // return approximant
@@ -185,12 +205,6 @@ inline double SVFilter::SinhPade32(double x) {
 inline double SVFilter::SinhPade34(double x) {
   // return approximant
   return (20.0*x*(31.0*x*x*x*x + 294.0))/(11.0*x*x*x*x - 360.0*x*x + 5880.0);
-}
-
-// pade 5/4 approximant for sinh
-inline double SVFilter::SinhPade54(double x) {
-  // return approximant
-  return (x*(551.0*x*x*x*x + 22260*x*x + 166320.0))/(15.0*(5.0*x*x*x*x - 364.0*x*x + 11088.0));
 }
 
 // pade 3/2 approximant for cosh
@@ -329,7 +343,7 @@ void SVFilter::filter(double input){
   double noise;
 
   // feedback amount variables
-  double fb = 1.0 - (4.0*Resonance);
+  double fb = 1.0 - (3.5*Resonance);
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -399,9 +413,9 @@ void SVFilter::filter(double input){
 	y_k = sinh(bp);
 	
 	// newton-raphson
-	for(int ii=0; ii < 32; ii++) {
-	  y_k2 = y_k - (alpha*y_k + asinh(y_k)*(1.0 + alpha2) - D_t)/
-	               (alpha + (1.0 + alpha2)/sqrt(1.0 + y_k*y_k));
+	for(int ii=0; ii < 16; ii++) {
+	  y_k2 = y_k - (alpha*y_k + ASinhPade54(y_k)*(1.0 + alpha2) - D_t)/
+	                  (alpha + (1.0 + alpha2)*dASinhPade54(y_k));
 	  
 	  // breaking limit
 	  if(abs(y_k2 - y_k) < 1.0e-15) {

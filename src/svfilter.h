@@ -87,6 +87,8 @@ private:
   inline double SinhPade54(double x);  
   inline double dASinhPade54(double x);  
   inline double ASinhPade54(double x);  
+  inline double SinhPade98(double x);  
+  inline double ASinhPade98(double x);  
   inline double CoshPade32(double x);  
   inline double CoshPade34(double x);  
   inline double CoshPade54(double x);  
