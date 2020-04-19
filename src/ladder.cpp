@@ -23,6 +23,7 @@
 #include <cmath>
 #include "ladder.h"
 #include "fir.h"
+#include "fastmath.h"
 
 // constructor
 Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
@@ -147,34 +148,6 @@ void Ladder::SetFilterIntegrationRate(){
   }
 }
 
-// pade 3/2 approximant for tanh
-inline double Ladder::Tanh32(double x) {
-  // clamp x to -3..3
-  if(x > 3.0) {
-    x=3.0;
-  }
-  else if(x < -3.0) {
-    x=-3.0;
-  }
-
-  // return approximant
-  return x*(15.0+x*x)/(15.0+6.0*x*x);
-}
-
-// pade 5/4 approximant for tanh
-inline double Ladder::Tanh54(double x) {
-  // clamp x to -4..4
-  if(x > 4.0) {
-    x=4.0;
-  }
-  else if(x < -4.0) {
-    x=-4.0;
-  }
-  
-  // return approximant
-  return x*(945.0+105.0*x*x+x*x*x*x)/(945.0+420.0*x*x+15.0*x*x*x*x);
-}
-
 double Ladder::GetFilterCutoff(){
   return cutoffFrequency;
 }
@@ -225,10 +198,10 @@ void Ladder::LadderFilter(double input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + dt*(Tanh32(input - fb*p3) - Tanh32(p0));
-	p1 = p1 + dt*(Tanh32(p0) - Tanh32(p1));
-	p2 = p2 + dt*(Tanh32(p1) - Tanh32(p2));
-	p3 = p3 + dt*(Tanh32(p2) - Tanh32(p3));
+	p0 = p0 + dt*(TanhPade32(input - fb*p3) - TanhPade32(p0));
+	p1 = p1 + dt*(TanhPade32(p0) - TanhPade32(p1));
+	p2 = p2 + dt*(TanhPade32(p1) - TanhPade32(p2));
+	p3 = p3 + dt*(TanhPade32(p2) - TanhPade32(p3));
       }
       break;
       
@@ -239,17 +212,17 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(Tanh32(ut_1 - fb*p3) - Tanh32(p0));
-	p1_prime = p1 + dt*(Tanh32(p0) - Tanh32(p1));
-	p2_prime = p2 + dt*(Tanh32(p1) - Tanh32(p2));
-	p3_prime = p3 + dt*(Tanh32(p2) - Tanh32(p3));
+	p0_prime = p0 + dt*(TanhPade32(ut_1 - fb*p3) - TanhPade32(p0));
+	p1_prime = p1 + dt*(TanhPade32(p0) - TanhPade32(p1));
+	p2_prime = p2 + dt*(TanhPade32(p1) - TanhPade32(p2));
+	p3_prime = p3 + dt*(TanhPade32(p2) - TanhPade32(p3));
 
 	// corrector
 	p3t_1 = p3;
-	p3 = p3 + 0.5*dt*((Tanh32(p2) - Tanh32(p3)) + (Tanh32(p2_prime) - Tanh32(p3_prime)));
-	p2 = p2 + 0.5*dt*((Tanh32(p1) - Tanh32(p2)) + (Tanh32(p1_prime) - Tanh32(p2_prime)));
-	p1 = p1 + 0.5*dt*((Tanh32(p0) - Tanh32(p1)) + (Tanh32(p0_prime) - Tanh32(p1_prime)));
-	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) - Tanh32(p0)) + (Tanh32(input - fb*p3) - Tanh32(p0_prime)));
+	p3 = p3 + 0.5*dt*((TanhPade32(p2) - TanhPade32(p3)) + (TanhPade32(p2_prime) - TanhPade32(p3_prime)));
+	p2 = p2 + 0.5*dt*((TanhPade32(p1) - TanhPade32(p2)) + (TanhPade32(p1_prime) - TanhPade32(p2_prime)));
+	p1 = p1 + 0.5*dt*((TanhPade32(p0) - TanhPade32(p1)) + (TanhPade32(p0_prime) - TanhPade32(p1_prime)));
+	p0 = p0 + 0.5*dt*((TanhPade32(ut_1 - fb*p3t_1) - TanhPade32(p0)) + (TanhPade32(input - fb*p3) - TanhPade32(p0_prime)));
       }
       break;
       
@@ -260,7 +233,7 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt*(Tanh32(ut_1 - fb*p3) - p0);
+	p0_prime = p0 + dt*(TanhPade32(ut_1 - fb*p3) - p0);
 	p1_prime = p1 + dt*(p0 - p1);
 	p2_prime = p2 + dt*(p1 - p2);
 	p3_prime = p3 + dt*(p2 - p3);
@@ -270,8 +243,8 @@ void Ladder::LadderFilter(double input){
 	p3 = p3 + 0.5*dt*((p2 - p3) + (p2_prime - p3_prime));
 	p2 = p2 + 0.5*dt*((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5*dt*((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5*dt*((Tanh32(ut_1 - fb*p3t_1) - p0) +
-			  (Tanh32(input - fb*p3) - p0_prime));
+	p0 = p0 + 0.5*dt*((TanhPade32(ut_1 - fb*p3t_1) - p0) +
+			  (TanhPade32(input - fb*p3) - p0_prime));
       }
       break;
       
@@ -282,21 +255,21 @@ void Ladder::LadderFilter(double input){
 	double x_k, x_k2, g, b, c, C_t, D_t, ut, ut_2;
 	double p0_prime, p1_prime, p2_prime, p3_prime;
 
-	ut = Tanh32(ut_1 - fb*p3);
+	ut = TanhPade32(ut_1 - fb*p3);
     	b = (0.5*dt)/(1.0 + 0.5*dt);
 	c = (1.0 - 0.5*dt)/(1.0 + 0.5*dt);
 	g = -fb*b*b*b*b;
 	x_k = ut;
 	D_t = c*p3 + (b + c*b)*p2 + (b*b+b*b*c)*p1 +
 	               (b*b*b+b*b*b*c)*p0 + b*b*b*b*ut;
-	C_t = Tanh32(input - fb*D_t);
+	C_t = TanhPade32(input - fb*D_t);
 
 	// newton-raphson 
 	for(int ii=0; ii < 32; ii++) {
 	  double tanh_g_xk, tanh_g_xk2;
 	  
-	  tanh_g_xk = Tanh32(g*x_k);
-	  tanh_g_xk2 = g*(1.0 - Tanh32(g*x_k)*Tanh32(g*x_k));
+	  tanh_g_xk = TanhPade32(g*x_k);
+	  tanh_g_xk2 = g*(1.0 - TanhPade32(g*x_k)*TanhPade32(g*x_k));
 	  
 	  x_k2 = x_k - (x_k + x_k*tanh_g_xk*C_t - tanh_g_xk - C_t) /
 	                 (1.0 + C_t*(tanh_g_xk + x_k*tanh_g_xk2) - tanh_g_xk2);
@@ -340,7 +313,7 @@ void Ladder::LadderFilter(double input){
       out = p1 - p3;
       break;
     case LADDER_HIGHPASS_MODE:
-      out = Tanh32(input - p0 - fb*p3);
+      out = TanhPade32(input - p0 - fb*p3);
       break;
     default:
       out = 0.0;

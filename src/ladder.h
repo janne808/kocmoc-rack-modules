@@ -81,10 +81,6 @@ private:
   // set integration rate
   void SetFilterIntegrationRate();
 
-  // tanh approximant functions
-  inline double Tanh32(double x);
-  inline double Tanh54(double x);
-  
   // filter parameters
   double cutoffFrequency;
   double Resonance;

@@ -81,29 +81,6 @@ private:
   void SetFilterIntegrationRate();
 
   // pade approximant functions for hyperbolic functions
-  inline double SinhExpTaylor(double x, int N);
-  inline double SinhPade32(double x);  
-  inline double SinhPade34(double x);  
-  inline double SinhPade54(double x);  
-  inline double dASinhPade54(double x);  
-  inline double ASinhPade54(double x);  
-  inline double SinhPade98(double x);  
-  inline double ASinhPade98(double x);  
-  inline double CoshPade32(double x);  
-  inline double CoshPade34(double x);  
-  inline double CoshPade54(double x);  
-  inline double TanhPade32(double x);
-  inline double TanhPade54(double x);
-
-  // taylor approximated tanh function
-  inline double TanhExpTaylor(double x, int N);
-
-  // taylor approximated exponential function
-  inline double ExpTaylor(double x, int N);
-
-  // bram de jong soft saturator
-  inline double BramSaturator(double x, double a);
-  
   // filter parameters
   double cutoffFrequency;
   double Resonance;
