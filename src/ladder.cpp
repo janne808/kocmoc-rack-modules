@@ -38,12 +38,7 @@ Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
   SetFilterIntegrationRate();
 
   // initialize filter state
-  p0 = 0.0;
-  p1 = 0.0;
-  p2 = 0.0;
-  p3 = 0.0;
-  out = 0.0;
-  ut_1 = 0.0;
+  p0 = p1 = p2 = p3 = out = ut_1 = 0.0;
   
   integrationMethod = newIntegrationMethod;
   
@@ -63,12 +58,7 @@ Ladder::Ladder(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  p0 = 0.0;
-  p1 = 0.0;
-  p2 = 0.0;
-  p3 = 0.0;
-  out = 0.0;
-  ut_1 = 0.0;
+  p0 = p1 = p2 = p3 = out = ut_1 = 0.0;
   
   integrationMethod = LADDER_PREDICTOR_CORRECTOR_FULL_TANH;
   
@@ -89,12 +79,7 @@ void Ladder::ResetFilterState(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  p0 = 0.0;
-  p1 = 0.0;
-  p2 = 0.0;
-  p3 = 0.0;
-  out = 0.0;
-  ut_1 = 0.0;
+  p0 = p1 = p2 = p3 = out = ut_1 = 0.0;
   
   // set oversampling
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);

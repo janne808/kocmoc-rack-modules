@@ -38,17 +38,11 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
   SetFilterIntegrationRate();
 
   // initialize filter state
-  p0 = 0.0;
-  p1 = 0.0;
-  out = 0.0;
+  p0 = p1 = out = 0.0;
 
   // initialize filter inputs
-  input_lp = 0.0;
-  input_bp = 0.0;
-  input_hp = 0.0;
-  input_lp_t1 = 0.0;
-  input_bp_t1 = 0.0;
-  input_hp_t1 = 0.0;
+  input_lp = input_bp = input_hp = 0.0;
+  input_lp_t1 = input_bp_t1 = input_hp_t1 = 0.0;
   
   integrationMethod = newIntegrationMethod;
   
@@ -68,19 +62,13 @@ SKFilter::SKFilter(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  p0 = 0.0;
-  p1 = 0.0;
-  out = 0.0;
-  
+  p0 = p1 = out = 0.0;
+
   // initialize filter inputs
-  input_lp = 0.0;
-  input_bp = 0.0;
-  input_hp = 0.0;
-  input_lp_t1 = 0.0;
-  input_bp_t1 = 0.0;
-  input_hp_t1 = 0.0;
+  input_lp = input_bp = input_hp = 0.0;
+  input_lp_t1 = input_bp_t1 = input_hp_t1 = 0.0;
   
-  integrationMethod = SK_SEMI_IMPLICIT_EULER;
+  integrationMethod = SK_TRAPEZOIDAL;
   
   // instantiate downsampling filter
   fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
@@ -99,18 +87,11 @@ void SKFilter::ResetFilterState(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  p0 = 0.0;
-  p1 = 0.0;
-  out = 0.0;
+  p0 = p1 = out = 0.0;
 
   // initialize filter inputs
-  input_lp = 0.0;
-  input_bp = 0.0;
-  input_hp = 0.0;
-  input_lp_t1 = 0.0;
-  input_bp_t1 = 0.0;
-  input_hp_t1 = 0.0;
-  
+  input_lp = input_bp = input_hp = 0.0;
+  input_lp_t1 = input_bp_t1 = input_hp_t1 = 0.0;
   
   // set oversampling
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
@@ -267,7 +248,7 @@ void SKFilter::filter(double input){
 	double x_k, x_k2;
 	double fb_t = input_bp_t1 + res*p1;
 	double alpha = dt/2.0;
-	double A = p0 + fb_t - p1 - SinhPade54(p1) +
+	double A = p0 + fb_t - p1 - 1.0/4.0*SinhPade54(4.0*p1) +
 	           p0/(1.0 + alpha) + alpha/(1 + alpha)*(input_lp_t1 - p0 - fb_t + input_lp);
 	double c = 1.0 - (alpha - alpha*alpha/(1.0 + alpha))*res + alpha;
 	double D_n = p1 + alpha*A + (alpha - alpha*alpha/(1.0 + alpha))*input_bp;
@@ -276,7 +257,7 @@ void SKFilter::filter(double input){
 	
 	// newton-raphson
 	for(int ii=0; ii < 32; ii++) {
-	  x_k2 = x_k - (c*x_k + alpha*SinhPade54(x_k) - D_n)/(c + alpha*CoshPade54(x_k));
+	  x_k2 = x_k - (c*x_k + alpha*1.0/4.0*SinhPade54(4.0*x_k) - D_n)/(c + alpha*CoshPade54(4.0*x_k));
 	  
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-15) {

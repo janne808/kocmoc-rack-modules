@@ -38,12 +38,8 @@ SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFac
   SetFilterIntegrationRate();
 
   // initialize filter state
-  hp = 0.0;
-  bp = 0.0;
-  lp = 0.0;
-  out = 0.0;
-  u_t1 = 0.0;
-
+  hp = bp = lp = out = u_t1 = 0.0;
+  
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
@@ -62,11 +58,7 @@ SVFilter::SVFilter(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  hp = 0.0;
-  bp = 0.0;
-  lp = 0.0;
-  out = 0.0;
-  u_t1 = 0.0;
+  hp = bp = lp = out = u_t1 = 0.0;
   
   integrationMethod = SVF_TRAPEZOIDAL;
   
@@ -87,12 +79,8 @@ void SVFilter::ResetFilterState(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  hp = 0.0;
-  bp = 0.0;
-  lp = 0.0;
-  out = 0.0;
-  u_t1 = 0.0;
-
+  hp = bp = lp = out = u_t1 = 0.0;
+  
   // set oversampling
   fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
   fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
@@ -138,10 +126,7 @@ void SVFilter::SetFilterIntegrationRate(){
 
   // clamp integration rate
   if(dt < 0.0){
-    dt = 0.0;
-  }
-  else if(dt > 1.0){
-    dt = 1.0;
+    dt=0.0;
   }
 }
 
@@ -179,12 +164,34 @@ void SVFilter::filter(double input){
 
   // feedback amount variables
   double fb = 1.0 - (3.5*Resonance);
+
+  // integration rate
+  double dt2 = dt;
   
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
   noise = 1.0e-6 * 2.0 * (noise - 0.5);
 
   input += noise;
+
+  // clamp integration rate
+  switch(integrationMethod){
+  case SVF_TRAPEZOIDAL:
+    if(dt2 > 0.65){
+      dt2 = 0.65;
+    }
+    break;
+  case SVF_INV_TRAPEZOIDAL:
+    if(dt2 > 1.0){
+      dt2 = 1.0;
+    }
+    break;
+  default:
+    if(dt2 > 0.25){
+      dt2 = 0.25;
+    }
+    break;
+  }
   
   // integrate filter state
   // with oversampling
@@ -193,22 +200,23 @@ void SVFilter::filter(double input){
     switch(integrationMethod){
     case SVF_SEMI_IMPLICIT_EULER:
       {
+	// loss factor
 	double beta = 1.0 - (0.0075/oversamplingFactor);
 
        	hp = input - lp - fb*bp - SinhPade54(bp);
-	bp += dt*hp;
+	bp += dt2*hp;
 	bp *= beta;
-	lp += dt*bp;
+	lp += dt2*bp;
       }
       break;
     case SVF_TRAPEZOIDAL:
       // trapezoidal integration
       {
-	double alpha = dt/2.0;
+	double alpha = dt2/2.0;
 	double beta = 1.0 - (0.0075/oversamplingFactor);
-	double alpha2 = dt*dt/4.0 + fb*alpha;
-	double D_t = (1.0 - dt*dt/4.0)*bp +
-	              alpha*(u_t1 + input - 2.0*lp - fb*bp - sinh(bp));
+	double alpha2 = dt2*dt2/4.0 + fb*alpha;
+	double D_t = (1.0 - dt2*dt2/4.0)*bp +
+	              alpha*(u_t1 + input - 2.0*lp - fb*bp - SinhPade54(bp));
 	double x_k, x_k2;
 
 	// starting point is last output
@@ -237,10 +245,10 @@ void SVFilter::filter(double input){
     case SVF_INV_TRAPEZOIDAL:
       // inverse trapezoidal integration
       {
-	double alpha = dt/2.0;
+	double alpha = dt2/2.0;
 	double beta = 1.0 - (0.0075/oversamplingFactor);
-	double alpha2 = dt*dt/4.0 + fb*alpha;
-	double D_t = (1.0 - dt*dt/4.0)*bp +
+	double alpha2 = dt2*dt2/4.0 + fb*alpha;
+	double D_t = (1.0 - dt2*dt2/4.0)*bp +
 	              alpha*(u_t1 + input - 2.0*lp - fb*bp - sinh(bp));
 	double y_k, y_k2;
 
