@@ -74,7 +74,7 @@ struct PHASR : Module {
     phasor->Tick();
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(phasor->GetPhase()) - M_PI);
+    outputs[OUTPUT_OUTPUT].setVoltage(-((float)(phasor->GetPhase()) - M_PI));
   }
 
   void onSampleRateChange() override {

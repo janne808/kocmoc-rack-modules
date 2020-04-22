@@ -28,10 +28,12 @@ struct OP : Module {
     SCALE_PARAM,
     OFFSET_PARAM,
     INDEX_PARAM,
+    PHASE_PARAM,
     NUM_PARAMS
   };
   enum InputIds {
     PHASE_MOD_INPUT,
+    RESET_INPUT,
     CV_INPUT,
     NUM_INPUTS
   };
@@ -48,21 +50,35 @@ struct OP : Module {
     configParam(SCALE_PARAM,  1.f, 48.f, 12.f, "Frequency scale");
     configParam(OFFSET_PARAM, 0.f, 128.f, 36.f, "Frequency offset");
     configParam(INDEX_PARAM, -1.f, 1.f, 0.f, "Modulation index");
+    configParam(PHASE_PARAM, -1.f*M_PI, 1.f*M_PI, 0.f, "Phase offset");
   }
 
   // create phasor instance
-  Phasor *phasor = new Phasor((double)(0.0), (double)(440.0), (double)(APP->engine->getSampleRate()));
+  Phasor *phasor = new Phasor((double)(0.0f), (double)(440.0f), (double)(APP->engine->getSampleRate()));
+
+  // reset state handling variables
+  float last_reset = 0.0f;
   
   void process(const ProcessArgs& args) override {
     // parameters
     int scale = int(params[SCALE_PARAM].getValue());
     int offset = int(params[OFFSET_PARAM].getValue());
     float index = params[INDEX_PARAM].getValue();
+    float phase_offset = params[PHASE_PARAM].getValue();
 
     // inputs
     float cv = inputs[CV_INPUT].getVoltage() + (float)(offset)/12.f;
     float phase_mod = inputs[PHASE_MOD_INPUT].getVoltage();
+    float reset = inputs[RESET_INPUT].getVoltage();
 
+    // detect rising zero crossing as a reset state
+    if(last_reset <= 0.0f && reset > 0.0f){
+      phasor->SetPhase((double)(0.0f));
+    }
+
+    // store last reset input signal
+    last_reset = reset;
+    
     // apply scale to cv
     cv *= (float)(scale)/12.f;
 
@@ -78,7 +94,7 @@ struct OP : Module {
     phasor->SetFrequency((double)((440.0/128.0) * std::pow(2.f, cv)));
 
     // set operator phase modulation
-    phasor->SetPhaseModulation((double)(32.0*index*phase_mod));
+    phasor->SetPhaseModulation((double)(32.0*index*phase_mod + phase_offset));
     
     // tick state
     phasor->Tick();
@@ -104,14 +120,16 @@ struct OPWidget : ModuleWidget {
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     
-    addParam(createParam<Trimpot>(mm2px(Vec(7.02, 55.103)), module, OP::INDEX_PARAM));
-    addParam(createParam<RoundBlackKnob>(mm2px(Vec(4.94, 16.24)), module, OP::SCALE_PARAM));
-    addParam(createParam<RoundBlackKnob>(mm2px(Vec(4.94, 35.403)), module, OP::OFFSET_PARAM));
+    addParam(createParam<Trimpot>(mm2px(Vec(3.72, 55.103)), module, OP::INDEX_PARAM));
+    addParam(createParam<RoundBlackKnob>(mm2px(Vec(7.981, 16.04)), module, OP::SCALE_PARAM));
+    addParam(createParam<RoundBlackKnob>(mm2px(Vec(7.981, 33.703)), module, OP::OFFSET_PARAM));
+    addParam(createParam<Trimpot>(mm2px(Vec(15.525, 55.103)), module, OP::PHASE_PARAM));
     
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.281, 68.82)), module, OP::PHASE_MOD_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(10.281, 85.327)), module, OP::CV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(6.881, 68.82)), module, OP::PHASE_MOD_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(18.675, 68.82)), module, OP::RESET_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(12.981, 86.427)), module, OP::CV_INPUT));
 
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(10.281, 103.3)), module, OP::OUTPUT_OUTPUT));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(12.981, 103.3)), module, OP::OUTPUT_OUTPUT));
   }
 };
 
