@@ -64,7 +64,7 @@ struct SKF : Module {
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
     float gain = params[GAIN_PARAM].getValue();
-    float gainComp;
+    float gainComp = params[GAIN_PARAM].getValue() - 0.5;
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
@@ -82,14 +82,13 @@ struct SKF : Module {
     skf->SetFilterMode((SKFilterMode)(params[MODE_PARAM].getValue()));
     
     // tick filter state
-    skf->filter((double)(inputs[INPUT_INPUT].getVoltage() * gain * 2.0));
+    skf->filter((double)(inputs[INPUT_INPUT].getVoltageSum() * gain * 2.0));
 
     // compute gain compensation to normalize output on high drive levels
-    gain = params[GAIN_PARAM].getValue() - 0.5;
-    if(gain < 0.0) {
-      gain = 0.0;
+    if(gainComp < 0.0) {
+      gainComp = 0.0;
     }
-    gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gain));
+    gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gainComp));
     
     // set output
     outputs[OUTPUT_OUTPUT].setVoltage((float)(skf->GetFilterOutput() * 5.0 * gainComp));

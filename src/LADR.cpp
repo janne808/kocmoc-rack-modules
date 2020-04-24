@@ -85,7 +85,7 @@ struct LADR : Module {
     ladder->SetFilterMode(filterMode);
     
     // tick filter state
-    ladder->LadderFilter((double)(inputs[INPUT_INPUT].getVoltage() * gain));
+    ladder->LadderFilter((double)(inputs[INPUT_INPUT].getVoltageSum() * gain));
     
     // set output
     outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder->GetFilterOutput() * 5.0));
