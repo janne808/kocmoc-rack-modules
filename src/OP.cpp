@@ -54,58 +54,77 @@ struct OP : Module {
   }
 
   // create phasor instance
-  Phasor *phasor = new Phasor((double)(0.0f), (double)(440.0f), (double)(APP->engine->getSampleRate()));
-
+  Phasor phasor[16];
+  
   // reset state handling variables
-  float last_reset = 0.0f;
+  float last_reset[16];
   
   void process(const ProcessArgs& args) override {
+    // get channels from primary input 
+    int channels = inputs[CV_INPUT].getChannels();
+    
     // parameters
     int scale = int(params[SCALE_PARAM].getValue());
     int offset = int(params[OFFSET_PARAM].getValue());
     float index = params[INDEX_PARAM].getValue();
     float phase_offset = params[PHASE_PARAM].getValue();
 
-    // inputs
-    float cv = inputs[CV_INPUT].getVoltage() + (float)(offset)/12.f;
-    float phase_mod = inputs[PHASE_MOD_INPUT].getVoltage();
-    float reset = inputs[RESET_INPUT].getVoltage();
-
-    // detect rising zero crossing as a reset state
-    if(last_reset <= 0.0f && reset > 0.0f){
-      phasor->SetPhase((double)(0.0f));
-    }
-
-    // store last reset input signal
-    last_reset = reset;
-    
-    // apply scale to cv
-    cv *= (float)(scale)/12.f;
-
-    // clip negative cv
-    if(cv < 0.0) {
-      cv = 0.0;
-    }
-
     // shape index parameter
     index *= index*index*index;
     
-    // set operator frequency
-    phasor->SetFrequency((double)((440.0/128.0) * std::pow(2.f, cv)));
+    for(int ii = 0; ii < channels; ii++){
+      float cv = inputs[CV_INPUT].getVoltage(ii) + (float)(offset)/12.f;
+      float phase_mod = inputs[PHASE_MOD_INPUT].getVoltage(ii);
+      float reset = inputs[RESET_INPUT].getVoltage(ii);
+      
+      // apply scale to cv
+      cv *= (float)(scale)/12.f;
 
-    // set operator phase modulation
-    phasor->SetPhaseModulation((double)(32.0*index*phase_mod + phase_offset));
+      // clip negative cv
+      if(cv < 0.0) {
+	cv = 0.0;
+      }
+
+      // detect rising zero crossing as a reset state
+      if(last_reset[ii] <= 0.0f && reset > 0.0f){
+	phasor[ii].SetPhase((double)(0.0f));
+      }
+
+      // store last reset input signal
+      last_reset[ii] = reset;
+      
+      // set operator frequency
+      phasor[ii].SetFrequency((double)((440.0/128.0) * std::pow(2.f, cv)));
+
+      // set operator phase modulation
+      phasor[ii].SetPhaseModulation((double)(32.0*index*phase_mod + phase_offset));
     
-    // tick state
-    phasor->Tick();
-    
-    // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(10.0*std::sin(phasor->GetPhase())));
+      // tick state
+      phasor[ii].Tick();
+      
+      // set output
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(10.0*std::sin(phasor[ii].GetPhase())), ii);
+    }
+
+    // set output to be polyphonic
+    outputs[OUTPUT_OUTPUT].setChannels(channels);
+  }
+
+  void onReset() override {
+    float sr = APP->engine->getSampleRate();
+    for(int ii = 0; ii < 16; ii++){
+      phasor[ii].SetPhase(0.f);
+      phasor[ii].SetFrequency((double)(440.0/128.0));
+      phasor[ii].SetSampleRate((double)(sr));
+      last_reset[ii] = 0.f;
+    }
   }
   
   void onSampleRateChange() override {
     float sr = APP->engine->getSampleRate();
-    phasor->SetSampleRate((double)(sr));
+    for(int ii = 0; ii < 16; ii++){
+      phasor[ii].SetSampleRate((double)(sr));
+    }
   }
 };
 
