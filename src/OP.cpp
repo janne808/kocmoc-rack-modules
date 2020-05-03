@@ -53,7 +53,7 @@ struct OP : Module {
     configParam(PHASE_PARAM, -1.f*M_PI, 1.f*M_PI, 0.f, "Phase offset");
   }
 
-  // create phasor instance
+  // create phasor instances
   Phasor phasor[16];
   
   // reset state handling variables
@@ -62,6 +62,11 @@ struct OP : Module {
   void process(const ProcessArgs& args) override {
     // get channels from primary input 
     int channels = inputs[CV_INPUT].getChannels();
+
+    // process at minimum single monophonic channel
+    if(channels == 0){
+      channels = 1;
+    }    
     
     // parameters
     int scale = int(params[SCALE_PARAM].getValue());
@@ -95,7 +100,7 @@ struct OP : Module {
       
       // set operator frequency
       phasor[ii].SetFrequency((double)((440.0/128.0) * std::pow(2.f, cv)));
-
+      
       // set operator phase modulation
       phasor[ii].SetPhaseModulation((double)(32.0*index*phase_mod + phase_offset));
     

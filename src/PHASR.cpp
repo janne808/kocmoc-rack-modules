@@ -49,10 +49,18 @@ struct PHASR : Module {
     configParam(INDEX_PARAM, -1.f, 1.f, 0.f, "");
   }
 
-  // create phasor instance
-  Phasor *phasor = new Phasor((double)(0.0), (double)(440.0), (double)(APP->engine->getSampleRate()));
+  // create phasor instances
+  Phasor phasor[16];
   
   void process(const ProcessArgs& args) override {
+    // get channels from primary input 
+    int channels = inputs[CV_INPUT].getChannels();
+
+    // process at minimum single monophonic channel
+    if(channels == 0){
+      channels = 1;
+    }
+    
     // parameters
     float freq = params[TUNE_PARAM].getValue();
     float fine = params[FINE_TUNE_PARAM].getValue();
@@ -64,22 +72,46 @@ struct PHASR : Module {
     // shape index parameter
     index *= index*index*index;
     
-    // set operator frequency
-    phasor->SetFrequency((double)(freq * std::pow(2.f, inputs[CV_INPUT].getVoltage())));
+    for(int ii = 0; ii < channels; ii++){
+      float cv = inputs[CV_INPUT].getVoltage(ii);
+      float phase_mod = inputs[PHASE_MOD_INPUT].getVoltage(ii);
+      
+      // clip negative cv
+      if(cv < 0.0) {
+	cv = 0.0;
+      }
 
-    // set operator phase modulation
-    phasor->SetPhaseModulation((double)(64.0*index*inputs[PHASE_MOD_INPUT].getVoltage()));
+      // set frequency
+      phasor[ii].SetFrequency((double)(freq * std::pow(2.f, cv)));
+
+      // set phase modulation
+      phasor[ii].SetPhaseModulation((double)(32.0*index*phase_mod));
     
-    // tick state
-    phasor->Tick();
+      // tick state
+      phasor[ii].Tick();
     
-    // set output
-    outputs[OUTPUT_OUTPUT].setVoltage(-((float)(phasor->GetPhase()) - M_PI));
+      // set output
+      outputs[OUTPUT_OUTPUT].setVoltage(-((float)(phasor[ii].GetPhase()) - M_PI), ii);
+    }
+    
+    // set output to be polyphonic
+    outputs[OUTPUT_OUTPUT].setChannels(channels);
   }
 
+  void onReset() override {
+    float sr = APP->engine->getSampleRate();
+    for(int ii = 0; ii < 16; ii++){
+      phasor[ii].SetPhase(0.f);
+      phasor[ii].SetFrequency((double)(440.0));
+      phasor[ii].SetSampleRate((double)(sr));
+    }
+  }
+  
   void onSampleRateChange() override {
     float sr = APP->engine->getSampleRate();
-    phasor->SetSampleRate((double)(sr));
+    for(int ii = 0; ii < 16; ii++){
+      phasor[ii].SetSampleRate((double)(sr));
+    }
   }
 };
 
