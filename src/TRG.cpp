@@ -1,5 +1,5 @@
 /*
- *  (C) 2019 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -64,6 +64,10 @@ struct TRG : Module {
   int reset_state = 0;
   float gate_state = 0.f;
   int seq_length;
+  int page = 0;
+  
+  // menu variables
+  int _followactivestep = 1;
   
   void process(const ProcessArgs& args) override {
     // switch clock state
@@ -80,6 +84,11 @@ struct TRG : Module {
       }
       else{
 	gate_state = 0.f;
+      }
+      
+      // compute ui page
+      if(_followactivestep){
+	updatePage();
       }
     }
     else if(clock_state == 1 && inputs[CLK_INPUT].getVoltage() < 0.5f){
@@ -99,6 +108,11 @@ struct TRG : Module {
       }
       else{
 	gate_state = 0.f;
+      }
+
+      // compute ui page
+      if(_followactivestep){
+	updatePage();
       }
     }
     else if(reset_state == 1 && inputs[RST_INPUT].getVoltage() < 0.5f){
@@ -144,7 +158,10 @@ struct TRG : Module {
     json_object_set_new(rootJ, "steps", stepsJ);
     
     json_object_set_new(rootJ, "step", json_integer(step));
+    json_object_set_new(rootJ, "page", json_integer(page));
 
+    json_object_set_new(rootJ, "followactivestep", json_integer(_followactivestep));
+    
     return rootJ;
   }
 
@@ -160,6 +177,16 @@ struct TRG : Module {
     if(stepJ){
       step = (int)(json_integer_value(stepJ));
     }
+
+    json_t *pageJ = json_object_get(rootJ, "page");
+    if(pageJ){
+      page = (int)(json_integer_value(pageJ));
+    }
+    
+    json_t *followactivestepJ = json_object_get(rootJ, "followactivestep");
+    if(followactivestepJ){
+      _followactivestep = (int)(json_integer_value(followactivestepJ));
+    }    
   }
 
   bool isClickOnStep(float x, float y){
@@ -169,6 +196,19 @@ struct TRG : Module {
     }
     
     return false;
+  }
+
+  bool isClickOnPageSelect(float x, float y){
+    if(( (x > 10 && x < 60) ) &&
+         y > 10 + (MAX_STEPS / 4) * (20 + 4) - 4 && y < 10 + (MAX_STEPS / 4) * (20 + 4) + 12){
+      return true;
+    }
+    
+    return false;
+  }
+
+  void updatePage(){
+    page = step / (MAX_STEPS / 2);
   }
 };
 
@@ -197,9 +237,15 @@ struct TRGDisplay : Widget {
 	  nn += 8;
 	}
 	// add in page
-	nn += (module->step / (MAX_STEPS / 2)) * (MAX_STEPS / 2);
+	nn += module->page * (MAX_STEPS / 2);
   	module->steps[nn] = !module->steps[nn];
 	currentStep = nn;
+      }
+      // is click on page select button
+      else if(module->isClickOnPageSelect(e.pos.x, e.pos.y)){
+	if(!module->_followactivestep){
+	  module->page = !module->page;
+	}
       }
     }
   }
@@ -223,7 +269,7 @@ struct TRGDisplay : Widget {
 	nn += 8;
       }
       // add in page
-      nn += (module->step / (MAX_STEPS / 2)) * (MAX_STEPS / 2);
+      nn += module->page * (MAX_STEPS / 2);
 
       // switch state just once
       if( nn != currentStep) {
@@ -233,15 +279,15 @@ struct TRGDisplay : Widget {
     }
   }
 
-  void drawSequenceGrid(const DrawArgs &args, int moduleStep, int moduleSeqLength, int *moduleSteps) {
+  void drawSequenceGrid(const DrawArgs &args, int moduleStep, int modulePage, int moduleSeqLength, int *moduleSteps) {
     // draw sequence grid
     for(int ii = 0; ii < MAX_STEPS / 2; ii++){
       int xx = ii / (MAX_STEPS / 4);
       int yy = ii % (MAX_STEPS / 4);
-      int page = moduleStep / (MAX_STEPS / 2);
+      int page = modulePage;
       NVGcolor step_color;
       int current_step = ii + page * (MAX_STEPS / 2);
-      
+
       // draw active step in bright color
       if(current_step < moduleSeqLength){
 	step_color = nvgRGB(252, 252, 3);
@@ -299,17 +345,18 @@ struct TRGDisplay : Widget {
     // draw default grid if on module browser
     if(module == NULL){
       int moduleStep = 0;
+      int modulePage = 0;
       int moduleSeqLength = 32;
       int moduleSteps[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
       // draw default sequence grid
-      drawSequenceGrid(args, moduleStep, moduleSeqLength, moduleSteps);
+      drawSequenceGrid(args, moduleStep, modulePage, moduleSeqLength, moduleSteps);
       
       return;
     };
     
     // draw sequence grid
-    drawSequenceGrid(args, module->step, module->seq_length, module->steps);
+    drawSequenceGrid(args, module->step, module->page, module->seq_length, module->steps);
   }
 };
 
@@ -340,7 +387,41 @@ struct TRGWidget : ModuleWidget {
 
     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.96, 110.68)), module, TRG::GATE_OUTPUT));
   }
-};
 
+  struct TRGMenuItem : MenuItem {
+    TRG* _module;
+    const int _followactivestep;
+
+    TRGMenuItem(TRG* module, const char* label, int followactivestep)
+      : _module(module)
+      , _followactivestep(followactivestep)
+    {
+      this->text = label;
+    }
+
+    void onAction(const event::Action& e) override {
+      // toggle action
+      if(_module->_followactivestep){
+	_module->_followactivestep = 0;
+      }else{
+	_module->_followactivestep = 1;
+	_module->updatePage();
+      }
+    }
+
+    void step() override {
+      MenuItem::step();
+      rightText = _module->_followactivestep == _followactivestep ? "✔" : "";
+    }
+  };
+  
+  void appendContextMenu(Menu* menu) override {
+    TRG* a = dynamic_cast<TRG*>(module);
+    assert(a);
+    
+    menu->addChild(new MenuEntry());
+    menu->addChild(new TRGMenuItem(a, "Follow active step", 1));
+  }  
+};
 
 Model* modelTRG = createModel<TRG, TRGWidget>("TRG");

@@ -25,6 +25,9 @@
 #include "fir.h"
 #include "fastmath.h"
 
+// steepness of oversampling downsample filter response
+#define FIR_DOWNSAMPLE_ORDER 32
+
 // constructor
 SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFactor,
 		   SKFilterMode newFilterMode, double newSampleRate, SKIntegrationMethod newIntegrationMethod){
@@ -47,7 +50,7 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
+  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
 }
 
 // default constructor
@@ -71,7 +74,7 @@ SKFilter::SKFilter(){
   integrationMethod = SK_TRAPEZOIDAL;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
+  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
 }
 
 // default destructor

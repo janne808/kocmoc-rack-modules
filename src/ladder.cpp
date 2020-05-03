@@ -25,6 +25,9 @@
 #include "fir.h"
 #include "fastmath.h"
 
+// steepness of oversampling downsample filter response
+#define FIR_DOWNSAMPLE_ORDER 32
+
 // constructor
 Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
 	       LadderFilterMode newFilterMode, double newSampleRate, LadderIntegrationMethod newIntegrationMethod){
@@ -43,7 +46,7 @@ Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
+  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
 }
 
 // default constructor
@@ -63,7 +66,7 @@ Ladder::Ladder(){
   integrationMethod = LADDER_PREDICTOR_CORRECTOR_FULL_TANH;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
+  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
 }
 
 // default destructor

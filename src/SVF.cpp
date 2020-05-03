@@ -45,7 +45,7 @@ struct SVF_1 : Module {
   };
 
   int _oversampling = 2;
-  SVFIntegrationMethod _integrationMethod = SVF_TRAPEZOIDAL;
+  SVFIntegrationMethod _integrationMethod = SVF_INV_TRAPEZOIDAL;
   
   // create svf class instances
   SVFilter svf;

@@ -25,6 +25,9 @@
 #include "fir.h"
 #include "fastmath.h"
 
+// steepness of oversampling downsample filter response
+#define FIR_DOWNSAMPLE_ORDER 32
+
 // constructor
 SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
 		   SVFFilterMode newFilterMode, double newSampleRate, SVFIntegrationMethod newIntegrationMethod){
@@ -43,7 +46,7 @@ SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFac
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
+  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
 }
 
 // default constructor
@@ -63,7 +66,7 @@ SVFilter::SVFilter(){
   integrationMethod = SVF_TRAPEZOIDAL;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), 32);
+  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
 }
 
 // default destructor
