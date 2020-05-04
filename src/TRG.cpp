@@ -23,6 +23,17 @@
 
 #define MAX_STEPS 32
 
+// define grid geometry
+#define GRID_X_OFFSET 10
+#define GRID_Y_OFFSET 6
+#define GRID_STEP_WIDTH 20
+#define GRID_STEP_HEIGHT 20
+#define GRID_STEP_X_MARGIN 10
+#define GRID_STEP_Y_MARGIN 4
+#define GRID_ACTIVE_STEP_RADIUS 2.5
+#define GRID_PAGE_TOGGLE_HEIGHT 6
+#define GRID_PAGE_TOGGLE_Y_MARGIN 2
+
 struct TRG : Module {
   enum ParamIds {
     LEN_PARAM,
@@ -190,8 +201,10 @@ struct TRG : Module {
   }
 
   bool isClickOnStep(float x, float y){
-    if(( (x > 10 && x < 30) || (x > 40 && x < 60) ) &&
-	 y > 10 && y < 10 + (MAX_STEPS / 4) * (20 + 4)){
+    if(( (x > GRID_X_OFFSET && x < GRID_X_OFFSET + GRID_STEP_WIDTH) ||
+	 (x > GRID_X_OFFSET + GRID_STEP_WIDTH + GRID_STEP_X_MARGIN &&
+	  x < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN ) ) &&
+	 y > GRID_Y_OFFSET && y < GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN)){
       return true;
     }
     
@@ -199,8 +212,9 @@ struct TRG : Module {
   }
 
   bool isClickOnPageSelect(float x, float y){
-    if(( (x > 10 && x < 60) ) &&
-         y > 10 + (MAX_STEPS / 4) * (20 + 4) - 4 && y < 10 + (MAX_STEPS / 4) * (20 + 4) + 12){
+    if(( (x > GRID_X_OFFSET && x < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN) ) &&
+         y > GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN) + 2 &&
+         y < GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN) + 2 + 12){
       return true;
     }
     
@@ -232,8 +246,9 @@ struct TRGDisplay : Widget {
       // is click on a step button
       if(module->isClickOnStep(e.pos.x, e.pos.y)){
 	// compute step number
-	int nn = (int)((e.pos.y - 10.f) / 24.f);
-	if(e.pos.x > 40 && e.pos.x < 60){
+	int nn = (int)((e.pos.y - GRID_Y_OFFSET) / (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN));
+	if(e.pos.x > GRID_X_OFFSET + GRID_STEP_WIDTH + GRID_STEP_X_MARGIN &&
+	   e.pos.x < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN ){
 	  nn += 8;
 	}
 	// add in page
@@ -264,10 +279,12 @@ struct TRGDisplay : Widget {
     // is drag on a step button
     if(module->isClickOnStep(currentX, currentY)){
       // compute step number
-      int nn = (int)((currentY - 10.f) / 24.f);
-      if(currentX > 40 && currentX < 60){
-	nn += 8;
-      }
+	// compute step number
+	int nn = (int)((currentY - GRID_Y_OFFSET) / (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN));
+	if(currentX > GRID_X_OFFSET + GRID_STEP_WIDTH + GRID_STEP_X_MARGIN &&
+	   currentX < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN ){
+	  nn += 8;
+	}
       // add in page
       nn += module->page * (MAX_STEPS / 2);
 
@@ -300,8 +317,10 @@ struct TRGDisplay : Widget {
       nvgFillColor(args.vg, step_color);
       nvgStrokeWidth(args.vg, 1);
       nvgBeginPath(args.vg);
-      nvgRect(args.vg, 10 + xx * (20 + 10),
-	      10 + yy * (20 + 4), 20, 20);
+      //nvgRect(args.vg, 10 + xx * (20 + 10),
+      //	      10 + yy * (20 + 4), 20, 20);
+      nvgRect(args.vg, GRID_X_OFFSET + xx * (GRID_STEP_WIDTH + GRID_STEP_X_MARGIN),
+	      GRID_Y_OFFSET + yy * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN), GRID_STEP_WIDTH, GRID_STEP_HEIGHT);
       
       // render step based on its state
       if(moduleSteps[current_step] == 1){
@@ -321,16 +340,16 @@ struct TRGDisplay : Widget {
 	  nvgFillColor(args.vg, step_color);
 	}
 	nvgBeginPath(args.vg);
-	nvgCircle(args.vg, 10.f + 10.f + xx * (20 + 10),
-		  10.f + 10.f + (moduleStep % (MAX_STEPS / 4)) * (20.f + 4.f), 2.5f);
+	nvgCircle(args.vg, GRID_X_OFFSET + GRID_STEP_WIDTH/2.f + xx * (GRID_STEP_WIDTH + GRID_STEP_X_MARGIN),
+		  GRID_Y_OFFSET + GRID_STEP_HEIGHT/2.f + (moduleStep % (MAX_STEPS / 4)) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN), GRID_ACTIVE_STEP_RADIUS);
 	nvgFill(args.vg);
       }
 
       // render current page
       nvgFillColor(args.vg, nvgRGB(252, 252, 3));
       nvgBeginPath(args.vg);
-      nvgRect(args.vg, 10 + page * (20 + 10),
-	      10 + 8 * (20 + 4), 20, 4);
+      nvgRect(args.vg, GRID_X_OFFSET + page * (GRID_STEP_WIDTH + GRID_STEP_X_MARGIN),
+	      GRID_Y_OFFSET + GRID_PAGE_TOGGLE_Y_MARGIN + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN), GRID_STEP_WIDTH, GRID_PAGE_TOGGLE_HEIGHT);
       nvgFill(args.vg);
     }      
   }
