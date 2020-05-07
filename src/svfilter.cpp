@@ -121,6 +121,7 @@ void SVFilter::SetFilterSampleRate(double newSampleRate){
 
 void SVFilter::SetFilterIntegrationMethod(SVFIntegrationMethod method){
   integrationMethod = method;
+  ResetFilterState();
 }
 
 void SVFilter::SetFilterIntegrationRate(){
@@ -226,12 +227,12 @@ void SVFilter::filter(double input){
 	x_k = bp;
 	
 	// newton-raphson
-	for(int ii=0; ii < 32; ii++) {
+	for(int ii=0; ii < 16; ii++) {
 	  x_k2 = x_k - (x_k + alpha*SinhPade54(x_k) + alpha2*x_k - D_t)/
 	               (1.0 + alpha*CoshPade54(x_k) + alpha2);
 	  
 	  // breaking limit
-	  if(abs(x_k2 - x_k) < 1.0e-15) {
+	  if(abs(x_k2 - x_k) < 1.0e-9) {
 	    x_k = x_k2;
 	    break;
 	  }
@@ -264,7 +265,7 @@ void SVFilter::filter(double input){
 	                  (alpha + (1.0 + alpha2)*dASinhPade54(y_k));
 	  
 	  // breaking limit
-	  if(abs(y_k2 - y_k) < 1.0e-15) {
+	  if(abs(y_k2 - y_k) < 1.0e-9) {
 	    y_k = y_k2;
 	    break;
 	  }

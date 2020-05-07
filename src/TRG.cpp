@@ -213,7 +213,7 @@ struct TRG : Module {
 
   bool isClickOnPageSelect(float x, float y){
     if(( (x > GRID_X_OFFSET && x < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN) ) &&
-         y > GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN) + 2 &&
+         y > GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN) &&
          y < GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN) + 2 + 12){
       return true;
     }
@@ -317,8 +317,6 @@ struct TRGDisplay : Widget {
       nvgFillColor(args.vg, step_color);
       nvgStrokeWidth(args.vg, 1);
       nvgBeginPath(args.vg);
-      //nvgRect(args.vg, 10 + xx * (20 + 10),
-      //	      10 + yy * (20 + 4), 20, 20);
       nvgRect(args.vg, GRID_X_OFFSET + xx * (GRID_STEP_WIDTH + GRID_STEP_X_MARGIN),
 	      GRID_Y_OFFSET + yy * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN), GRID_STEP_WIDTH, GRID_STEP_HEIGHT);
       

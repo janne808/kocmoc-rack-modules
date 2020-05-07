@@ -107,7 +107,7 @@ struct SVF_1 : Module {
     svf.SetFilterCutoff((double)(0.25));
     svf.SetFilterResonance((double)(0.0));
     svf.SetFilterMode(SVF_LOWPASS_MODE);
-    svf.SetFilterIntegrationMethod(SVF_TRAPEZOIDAL);
+    svf.SetFilterIntegrationMethod(_integrationMethod);
   }
 
   void onAdd() override {
@@ -119,7 +119,7 @@ struct SVF_1 : Module {
     svf.SetFilterCutoff((double)(0.25));
     svf.SetFilterResonance((double)(0.0));
     svf.SetFilterMode(SVF_LOWPASS_MODE);
-    svf.SetFilterIntegrationMethod(SVF_TRAPEZOIDAL);
+    svf.SetFilterIntegrationMethod(_integrationMethod);
   }
   
   json_t* dataToJson() override {

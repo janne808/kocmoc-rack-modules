@@ -259,11 +259,11 @@ void SKFilter::filter(double input){
 	x_k = p1;
 	
 	// newton-raphson
-	for(int ii=0; ii < 32; ii++) {
+	for(int ii=0; ii < 16; ii++) {
 	  x_k2 = x_k - (c*x_k + alpha*1.0/4.0*SinhPade54(4.0*x_k) - D_n)/(c + alpha*CoshPade54(4.0*x_k));
 	  
 	  // breaking limit
-	  if(abs(x_k2 - x_k) < 1.0e-15) {
+	  if(abs(x_k2 - x_k) < 1.0e-9) {
 	    x_k = x_k2;
 	    break;
 	  }

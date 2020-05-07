@@ -253,7 +253,7 @@ void Ladder::LadderFilter(double input){
 	C_t = TanhPade32(input - fb*D_t);
 
 	// newton-raphson 
-	for(int ii=0; ii < 32; ii++) {
+	for(int ii=0; ii < 16; ii++) {
 	  double tanh_g_xk, tanh_g_xk2;
 	  
 	  tanh_g_xk = TanhPade32(g*x_k);
@@ -263,7 +263,7 @@ void Ladder::LadderFilter(double input){
 	                 (1.0 + C_t*(tanh_g_xk + x_k*tanh_g_xk2) - tanh_g_xk2);
 	  
 	  // breaking limit
-	  if(abs(x_k2 - x_k) < 1.0e-15) {
+	  if(abs(x_k2 - x_k) < 1.0e-9) {
 	    x_k = x_k2;
 	    break;
 	  }
