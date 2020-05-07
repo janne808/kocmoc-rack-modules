@@ -28,6 +28,8 @@ struct LADR : Module {
      RESO_PARAM,
      GAIN_PARAM,
      MODE_PARAM,
+     LINCV_ATTEN_PARAM,
+     EXPCV_ATTEN_PARAM,
      NUM_PARAMS
   };
   enum InputIds {
@@ -57,6 +59,8 @@ struct LADR : Module {
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "");
     configParam(GAIN_PARAM, 0.f, 1.f, 0.5f, "");
     configParam(MODE_PARAM, 0.f, 2.f, 0.f, "");
+    configParam(LINCV_ATTEN_PARAM, -1.f, 1.f, 0.f, "");
+    configParam(EXPCV_ATTEN_PARAM, -1.f, 1.f, 0.f, "");
   }
 
   void process(const ProcessArgs& args) override {
@@ -64,6 +68,8 @@ struct LADR : Module {
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
     float gain = params[GAIN_PARAM].getValue();
+    float lincv_atten = params[LINCV_ATTEN_PARAM].getValue();
+    float expcv_atten = params[EXPCV_ATTEN_PARAM].getValue();
     LadderFilterMode filterMode;
     
     // shape panel input for a pseudoexponential response
@@ -71,10 +77,12 @@ struct LADR : Module {
     gain = 32.f*(gain * gain * gain * gain)/10.f;
     
     // sum in linear cv
-    cutoff += inputs[LINCV_INPUT].getVoltage()/10.f;
+    lincv_atten *= lincv_atten*lincv_atten;
+    cutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
 
     // apply exponential cv
-    cutoff = cutoff * std::pow(2.f, inputs[EXPCV_INPUT].getVoltage());
+    expcv_atten *= expcv_atten*expcv_atten;
+    cutoff = cutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage());
 
     // filter mode
     filterMode = (LadderFilterMode)(params[MODE_PARAM].getValue());
@@ -137,14 +145,17 @@ struct LADRWidget : ModuleWidget {
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     
-    addParam(createParam<RoundHugeBlackKnob>(mm2px(Vec(5.95, 15.34)), module, LADR::FREQ_PARAM));
-    addParam(createParam<RoundBlackKnob>(mm2px(Vec(10.24, 42.06)), module, LADR::RESO_PARAM));
+    addParam(createParam<RoundLargeBlackKnob>(mm2px(Vec(8.84, 13.64)), module, LADR::FREQ_PARAM));
+    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(11.24, 33.86)), module, LADR::RESO_PARAM));
     addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, LADR::GAIN_PARAM));
     
+    addParam(createParam<Trimpot>(mm2px(Vec(5.66, 51.52)), module, LADR::LINCV_ATTEN_PARAM));
+    addParam(createParam<Trimpot>(mm2px(Vec(18.621, 51.52)), module, LADR::EXPCV_ATTEN_PARAM));
+        
     addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, LADR::MODE_PARAM));
     
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 69.52)), module, LADR::LINCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 69.52)), module, LADR::EXPCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 65.52)), module, LADR::LINCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 65.52)), module, LADR::EXPCV_INPUT));
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, LADR::INPUT_INPUT));
     
     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(21.681, 104.7)), module, LADR::OUTPUT_OUTPUT));
