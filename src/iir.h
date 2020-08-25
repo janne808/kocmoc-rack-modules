@@ -33,6 +33,9 @@ public:
   void SetFilterOrder(int newOrder);
   void SetFilterSamplerate(double newSamplerate);
   void SetFilterCutoff(double newCutoff);
+
+  // initialize biquad cascade delayline
+  void InitializeBiquadCascade();
   
   // IIR filter signal 
   double IIRfilter(double input);

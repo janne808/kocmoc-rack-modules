@@ -42,6 +42,9 @@ IIRLowpass::IIRLowpass(double newSamplerate, double newCutoff, int newOrder)
   // allocate cascaded biquad buffer
   z = new double[order];
   
+  // initialize cascade delayline
+  InitializeBiquadCascade();
+  
   // compute impulse response
   ComputeCoefficients();
 }
@@ -65,6 +68,9 @@ IIRLowpass::IIRLowpass()
 
   // allocate cascaded biquad buffer
   z = new double[order];
+  
+  // initialize cascade delayline
+  InitializeBiquadCascade();
   
   // compute impulse response
   ComputeCoefficients();
@@ -111,6 +117,9 @@ void IIRLowpass::SetFilterOrder(int newOrder){
 
   // allocate cascaded biquad buffer
   z = new double[order];
+
+  // initialize cascade delayline
+  InitializeBiquadCascade();
   
   // compute new impulse response
   ComputeCoefficients();
@@ -128,6 +137,13 @@ void IIRLowpass::SetFilterCutoff(double newCutoff){
 
   // compute new cascade coefficients
   ComputeCoefficients();
+}
+
+void FIRLowpass::InitializeBiquadCascade(){
+  for(int ii=0; ii<order/2; ii++){
+    z[ii*2+1] = 0.0;
+    z[ii*2] = 0.0;
+  }
 }
 
 double IIRLowpass::IIRfilter(double input){
@@ -175,8 +191,7 @@ void IIRLowpass::ComputeCoefficients(){
   }
 
   // prewarp and scale poles
-  double Fc = samplerate/M_PI*tan(M_PI*cutoff/samplerate);
-  
+  double Fc = samplerate/M_PI*tan(M_PI*cutoff/samplerate);  
   for(int ii = 0; ii<order/2; ii++) {
     pa_real[ii] *= 2.0*M_PI*Fc; 
     pa_imag[ii] *= 2.0*M_PI*Fc; 
