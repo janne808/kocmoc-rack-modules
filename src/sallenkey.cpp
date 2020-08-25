@@ -22,11 +22,14 @@
 #include <cstdlib>
 #include <cmath>
 #include "sallenkey.h"
-#include "fir.h"
+#include "iir.h"
 #include "fastmath.h"
 
-// steepness of oversampling downsample filter response
-#define FIR_DOWNSAMPLE_ORDER 32
+// steepness of downsample filter response
+#define IIR_DOWNSAMPLE_ORDER 32
+
+// downsampling passthrough bandwidth
+#define IIR_DOWNSAMPLING_BANDWIDTH 0.9
 
 // constructor
 SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFactor,
@@ -50,7 +53,7 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, IIR_DOWNSAMPLE_ORDER);
 }
 
 // default constructor
@@ -74,12 +77,12 @@ SKFilter::SKFilter(){
   integrationMethod = SK_TRAPEZOIDAL;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, IIR_DOWNSAMPLE_ORDER);
 }
 
 // default destructor
 SKFilter::~SKFilter(){
-  delete fir;
+  delete iir;
 }
 
 void SKFilter::ResetFilterState(){
@@ -97,8 +100,8 @@ void SKFilter::ResetFilterState(){
   input_lp_t1 = input_bp_t1 = input_hp_t1 = 0.0;
   
   // set oversampling
-  fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
-  fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
+  iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
 }
 
 void SKFilter::SetFilterCutoff(double newCutoff){
@@ -113,8 +116,8 @@ void SKFilter::SetFilterResonance(double newResonance){
 
 void SKFilter::SetFilterOversamplingFactor(int newOversamplingFactor){
   oversamplingFactor = newOversamplingFactor;
-  fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
-  fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
+  iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
 
   SetFilterIntegrationRate();
 }
@@ -125,8 +128,8 @@ void SKFilter::SetFilterMode(SKFilterMode newFilterMode){
 
 void SKFilter::SetFilterSampleRate(double newSampleRate){
   sampleRate = newSampleRate;
-  fir->SetFilterSamplerate(sampleRate * (double)(oversamplingFactor));
-  fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
+  iir->SetFilterSamplerate(sampleRate * (double)(oversamplingFactor));
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
 
   SetFilterIntegrationRate();
 }
@@ -283,7 +286,7 @@ void SKFilter::filter(double input){
 
     // downsampling filter
     if(oversamplingFactor > 1){
-      out = fir->FIRfilter(out) * 0.4;
+      out = iir->IIRfilter(out);
     }
   }
   

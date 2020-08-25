@@ -50,7 +50,7 @@ struct SVF_1 : Module {
   SVFIntegrationMethod _integrationMethod = SVF_INV_TRAPEZOIDAL;
   
   // create svf class instances
-  SVFilter svf;
+  SVFilter svf[16];
   
   SVF_1() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -63,71 +63,102 @@ struct SVF_1 : Module {
   }
 
   void process(const ProcessArgs& args) override {
+    // get channels from primary input 
+    int channels = inputs[INPUT_INPUT].getChannels();
+
+    // process at minimum single monophonic channel
+    if(channels == 0){
+      channels = 1;
+    }    
+    
     // parameters
     float cutoff = params[FREQ_PARAM].getValue();
-    float reso = params[RESO_PARAM].getValue();
-    float gain = params[GAIN_PARAM].getValue();
     float lincv_atten = params[LINCV_ATTEN_PARAM].getValue();
     float expcv_atten = params[EXPCV_ATTEN_PARAM].getValue();
+    float reso = params[RESO_PARAM].getValue();
+    float gain = params[GAIN_PARAM].getValue();
     float gainComp = params[GAIN_PARAM].getValue() - 0.5;
-    
+
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
     gain *= gain * gain * gain;
-
-    // sum in linear cv
     lincv_atten *= lincv_atten*lincv_atten;
-    cutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
-
-    // apply exponential cv
     expcv_atten *= expcv_atten*expcv_atten;
-    cutoff = cutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage());
-      
-    // set filter parameters
-    svf.SetFilterCutoff((double)(cutoff));
-    svf.SetFilterResonance((double)(reso));
-    svf.SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
     
-    // tick filter state
-    svf.filter((double)(inputs[INPUT_INPUT].getVoltageSum() * gain));
-
     // compute gain compensation to normalize output on high drive levels
     if(gainComp < 0.0) {
       gainComp = 0.0;
     }
     gainComp = 5.0 * (1.0 - 2.0 * std::log(1.0 + 0.925*gainComp));
     
-    // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(svf.GetFilterOutput() * gainComp));
+    for(int ii = 0; ii < channels; ii++){      
+      float channelCutoff = cutoff;
+      
+      // sum in linear cv
+      if(inputs[LINCV_INPUT].getChannels() == 1){
+	channelCutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
+      }
+      else{
+	channelCutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage(ii)/10.f;
+      }
+      
+      // apply exponential cv
+      if(inputs[EXPCV_INPUT].getChannels() == 1){
+	channelCutoff = channelCutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage());
+      }
+      else{
+	channelCutoff = channelCutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage(ii));
+      }
+      
+      // set filter parameters
+      svf[ii].SetFilterCutoff((double)(channelCutoff));
+      svf[ii].SetFilterResonance((double)(reso));
+      svf[ii].SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
+    
+      // tick filter state
+      svf[ii].filter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
+
+      // set output
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(svf[ii].GetFilterOutput() * gainComp), ii);
+    }
+
+    // set output to be polyphonic
+    outputs[OUTPUT_OUTPUT].setChannels(channels);    
   }
 
   void onSampleRateChange() override {
     float sr = APP->engine->getSampleRate();
-    svf.SetFilterSampleRate(sr);
+    for(int ii = 0; ii < 16; ii++){    
+      svf[ii].SetFilterSampleRate(sr);
+    }
   }
 
   void onReset() override {
     float sr = APP->engine->getSampleRate();
     
-    svf.ResetFilterState();
-    svf.SetFilterOversamplingFactor(_oversampling);
-    svf.SetFilterSampleRate(sr);
-    svf.SetFilterCutoff((double)(0.25));
-    svf.SetFilterResonance((double)(0.0));
-    svf.SetFilterMode(SVF_LOWPASS_MODE);
-    svf.SetFilterIntegrationMethod(_integrationMethod);
+    for(int ii = 0; ii < 16; ii++){    
+      svf[ii].ResetFilterState();
+      svf[ii].SetFilterOversamplingFactor(_oversampling);
+      svf[ii].SetFilterSampleRate(sr);
+      svf[ii].SetFilterCutoff((double)(0.25));
+      svf[ii].SetFilterResonance((double)(0.0));
+      svf[ii].SetFilterMode(SVF_LOWPASS_MODE);
+      svf[ii].SetFilterIntegrationMethod(_integrationMethod);
+    }
   }
 
   void onAdd() override {
     float sr = APP->engine->getSampleRate();
     
-    svf.ResetFilterState();
-    svf.SetFilterOversamplingFactor(_oversampling);
-    svf.SetFilterSampleRate(sr);
-    svf.SetFilterCutoff((double)(0.25));
-    svf.SetFilterResonance((double)(0.0));
-    svf.SetFilterMode(SVF_LOWPASS_MODE);
-    svf.SetFilterIntegrationMethod(_integrationMethod);
+    for(int ii = 0; ii < 16; ii++){    
+      svf[ii].ResetFilterState();
+      svf[ii].SetFilterOversamplingFactor(_oversampling);
+      svf[ii].SetFilterSampleRate(sr);
+      svf[ii].SetFilterCutoff((double)(0.25));
+      svf[ii].SetFilterResonance((double)(0.0));
+      svf[ii].SetFilterMode(SVF_LOWPASS_MODE);
+      svf[ii].SetFilterIntegrationMethod(_integrationMethod);
+    }
   }
   
   json_t* dataToJson() override {
@@ -186,7 +217,9 @@ struct SVFWidget : ModuleWidget {
 
     void onAction(const event::Action& e) override {
       _module->_oversampling = _oversampling;
-      _module->svf.SetFilterOversamplingFactor(_module->_oversampling);
+      for(int ii = 0; ii < 16; ii++){    
+	_module->svf[ii].SetFilterOversamplingFactor(_module->_oversampling);
+      }
     }
 
     void step() override {
@@ -208,7 +241,9 @@ struct SVFWidget : ModuleWidget {
 
     void onAction(const event::Action& e) override {
       _module->_integrationMethod = _integrationMethod;
-      _module->svf.SetFilterIntegrationMethod(_module->_integrationMethod);
+      for(int ii = 0; ii < 16; ii++){    
+	_module->svf[ii].SetFilterIntegrationMethod(_module->_integrationMethod);
+      }
     }
 
     void step() override {

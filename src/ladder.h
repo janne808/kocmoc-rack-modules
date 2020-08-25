@@ -22,7 +22,7 @@
 #ifndef __dspladderh__
 #define __dspladderh__
 
-#include "fir.h"
+#include "iir.h"
 
 // filter modes
 enum LadderFilterMode {
@@ -97,8 +97,8 @@ private:
   // filter output
   double out;
 
-  // FIR downsampling filter
-  FIRLowpass *fir;
+  // IIR downsampling filter
+  IIRLowpass *iir;
 };
 
 #endif

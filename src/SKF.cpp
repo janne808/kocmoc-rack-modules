@@ -49,9 +49,8 @@ struct SKF : Module {
   int _oversampling = 2;
   SKIntegrationMethod _integrationMethod = SK_TRAPEZOIDAL;
   
-  // create sallen-key filter class instance
-  SKFilter *skf = new SKFilter((double)(0.25), (double)(0.0), _oversampling, SK_LOWPASS_MODE,
-			       (double)(APP->engine->getSampleRate()), _integrationMethod);
+  // create sallen-key filter class instances
+  SKFilter skf[16];
   
   SKF() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -64,6 +63,14 @@ struct SKF : Module {
   }
 
   void process(const ProcessArgs& args) override {
+    // get channels from primary input 
+    int channels = inputs[INPUT_INPUT].getChannels();
+
+    // process at minimum single monophonic channel
+    if(channels == 0){
+      channels = 1;
+    }    
+    
     // parameters
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
@@ -75,51 +82,78 @@ struct SKF : Module {
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
     gain = (gain * gain * gain * gain)/10.f;
-    
-    // sum in linear cv
     lincv_atten *= lincv_atten*lincv_atten;
-    cutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
-
-    // apply exponential cv
     expcv_atten *= expcv_atten*expcv_atten;
-    cutoff = cutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage());
       
-    // set filter parameters
-    skf->SetFilterCutoff((double)(cutoff));
-    skf->SetFilterResonance((double)(reso));
-    skf->SetFilterMode((SKFilterMode)(params[MODE_PARAM].getValue()));
-    
-    // tick filter state
-    skf->filter((double)(inputs[INPUT_INPUT].getVoltageSum() * gain * 2.0));
-
     // compute gain compensation to normalize output on high drive levels
     if(gainComp < 0.0) {
       gainComp = 0.0;
     }
+    
     gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gainComp));
     
-    // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(skf->GetFilterOutput() * 5.0 * gainComp));
+    for(int ii = 0; ii < channels; ii++){
+      float channelCutoff = cutoff;
+      
+      // sum in linear cv
+      if(inputs[LINCV_INPUT].getChannels() == 1){
+	channelCutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
+      }
+      else{
+	channelCutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage(ii)/10.f;
+      }
+      
+      // apply exponential cv
+      if(inputs[EXPCV_INPUT].getChannels() == 1){
+	channelCutoff = channelCutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage());
+      }
+      else{
+	channelCutoff = channelCutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage(ii));
+      }
+    
+      // set filter parameters
+      skf[ii].SetFilterCutoff((double)(channelCutoff));
+      skf[ii].SetFilterResonance((double)(reso));
+      skf[ii].SetFilterMode((SKFilterMode)(params[MODE_PARAM].getValue()));
+    
+      // tick filter state
+      skf[ii].filter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain * 2.0));
+
+      // set output
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(skf[ii].GetFilterOutput() * 5.0 * gainComp), ii);
+    }
+    
+    // set output to be polyphonic
+    outputs[OUTPUT_OUTPUT].setChannels(channels);    
   }
 
   void onSampleRateChange() override {
     float sr = APP->engine->getSampleRate();
-    skf->SetFilterSampleRate(sr);
+    
+    for(int ii = 0; ii < 16; ii++){    
+      skf[ii].SetFilterSampleRate(sr);
+    }
   }
 
   void onReset() override {
     float sr = APP->engine->getSampleRate();
-    skf->ResetFilterState();
-    skf->SetFilterOversamplingFactor(_oversampling);
-    skf->SetFilterSampleRate(sr);
-    skf->SetFilterIntegrationMethod(_integrationMethod);
+    
+    for(int ii = 0; ii < 16; ii++){    
+      skf[ii].ResetFilterState();
+      skf[ii].SetFilterOversamplingFactor(_oversampling);
+      skf[ii].SetFilterSampleRate(sr);
+      skf[ii].SetFilterIntegrationMethod(_integrationMethod);
+    }
   }
 
   void onAdd() override {
     float sr = APP->engine->getSampleRate();
-    skf->SetFilterOversamplingFactor(_oversampling);
-    skf->SetFilterSampleRate(sr);
-    skf->SetFilterIntegrationMethod(_integrationMethod);
+    
+    for(int ii = 0; ii < 16; ii++){    
+      skf[ii].SetFilterOversamplingFactor(_oversampling);
+      skf[ii].SetFilterSampleRate(sr);
+      skf[ii].SetFilterIntegrationMethod(_integrationMethod);
+    }
   }
   
   json_t* dataToJson() override {
@@ -179,7 +213,9 @@ struct SKFWidget : ModuleWidget {
 
     void onAction(const event::Action& e) override {
       _module->_oversampling = _oversampling;
-      _module->skf->SetFilterOversamplingFactor(_module->_oversampling);
+      for(int ii = 0; ii < 16; ii++){    
+	_module->skf[ii].SetFilterOversamplingFactor(_module->_oversampling);
+      }
     }
 
     void step() override {
@@ -201,7 +237,9 @@ struct SKFWidget : ModuleWidget {
 
     void onAction(const event::Action& e) override {
       _module->_integrationMethod = _integrationMethod;
-      _module->skf->SetFilterIntegrationMethod(_module->_integrationMethod);
+      for(int ii = 0; ii < 16; ii++){ 
+	_module->skf[ii].SetFilterIntegrationMethod(_module->_integrationMethod);
+      }
     }
 
     void step() override {

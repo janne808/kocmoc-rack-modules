@@ -22,11 +22,14 @@
 #include <cstdlib>
 #include <cmath>
 #include "svfilter.h"
-#include "fir.h"
+#include "iir.h"
 #include "fastmath.h"
 
-// steepness of oversampling downsample filter response
-#define FIR_DOWNSAMPLE_ORDER 32
+// steepness of downsample filter response
+#define IIR_DOWNSAMPLE_ORDER 32
+
+// downsampling passthrough bandwidth
+#define IIR_DOWNSAMPLING_BANDWIDTH 0.9
 
 // constructor
 SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
@@ -46,7 +49,7 @@ SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFac
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, IIR_DOWNSAMPLE_ORDER);
 }
 
 // default constructor
@@ -66,12 +69,12 @@ SVFilter::SVFilter(){
   integrationMethod = SVF_TRAPEZOIDAL;
   
   // instantiate downsampling filter
-  fir = new FIRLowpass(sampleRate * oversamplingFactor, (sampleRate / (double)(oversamplingFactor)), FIR_DOWNSAMPLE_ORDER);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, IIR_DOWNSAMPLE_ORDER);
 }
 
 // default destructor
 SVFilter::~SVFilter(){
-  delete fir;
+  delete iir;
 }
 
 void SVFilter::ResetFilterState(){
@@ -85,8 +88,8 @@ void SVFilter::ResetFilterState(){
   hp = bp = lp = out = u_t1 = 0.0;
   
   // set oversampling
-  fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
-  fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
+  iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
 }
 
 void SVFilter::SetFilterCutoff(double newCutoff){
@@ -101,8 +104,8 @@ void SVFilter::SetFilterResonance(double newResonance){
 
 void SVFilter::SetFilterOversamplingFactor(int newOversamplingFactor){
   oversamplingFactor = newOversamplingFactor;
-  fir->SetFilterSamplerate(sampleRate * oversamplingFactor);
-  fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
+  iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
 
   SetFilterIntegrationRate();
 }
@@ -113,8 +116,8 @@ void SVFilter::SetFilterMode(SVFFilterMode newFilterMode){
 
 void SVFilter::SetFilterSampleRate(double newSampleRate){
   sampleRate = newSampleRate;
-  fir->SetFilterSamplerate(sampleRate * (double)(oversamplingFactor));
-  fir->SetFilterCutoff((sampleRate / (double)(oversamplingFactor)));
+  iir->SetFilterSamplerate(sampleRate * (double)(oversamplingFactor));
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
 
   SetFilterIntegrationRate();
 }
@@ -126,7 +129,7 @@ void SVFilter::SetFilterIntegrationMethod(SVFIntegrationMethod method){
 
 void SVFilter::SetFilterIntegrationRate(){
   // normalize cutoff freq to samplerate
-  dt = 44100.0 / (sampleRate * oversamplingFactor) * cutoffFrequency;
+  dt = 44100.0 / (sampleRate * (double)(oversamplingFactor)) * cutoffFrequency;
 
   // clamp integration rate
   if(dt < 0.0){
@@ -229,7 +232,7 @@ void SVFilter::filter(double input){
 	// newton-raphson
 	for(int ii=0; ii < 16; ii++) {
 	  x_k2 = x_k - (x_k + alpha*SinhPade54(x_k) + alpha2*x_k - D_t)/
-	               (1.0 + alpha*CoshPade54(x_k) + alpha2);
+	                  (1.0 + alpha*CoshPade54(x_k) + alpha2);
 	  
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-9) {
@@ -299,7 +302,7 @@ void SVFilter::filter(double input){
     
     // downsampling filter
     if(oversamplingFactor > 1){
-      out = fir->FIRfilter(out) * 0.4;
+      out = iir->IIRfilter(out);
     }
   }
   

@@ -22,7 +22,7 @@
 #ifndef __dspskfh__
 #define __dspskfh__
 
-#include "fir.h"
+#include "iir.h"
 
 // filter modes
 enum SKFilterMode {
@@ -104,8 +104,8 @@ private:
   // filter output
   double out;
 
-  // FIR downsampling filter
-  FIRLowpass *fir;
+  // IIR downsampling filter
+  IIRLowpass *iir;
 };
 
 #endif

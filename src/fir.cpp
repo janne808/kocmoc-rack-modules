@@ -1,5 +1,5 @@
 /*
- *  (C) 2019 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -36,12 +36,7 @@ FIRLowpass::FIRLowpass(double newSamplerate, double newCutoff, int newOrder)
   w = new double[order];
 
   // initialize ring buffer delay line
-  ringBufferIndex = 0;
-  ringBuffer = new double[order];
-
-  for(int n=0; n<order; n++){
-    ringBuffer[n] = 0.0;
-  }
+  InitializeRingbuffer();
 
   // compute impulse response
   ComputeImpulseResponse();
@@ -61,12 +56,7 @@ FIRLowpass::FIRLowpass()
   w = new double[order];
 
   // initialize ring buffer delay line
-  ringBufferIndex = 0;
-  ringBuffer = new double[order];
-
-  for(int n=0; n<order; n++){
-    ringBuffer[n] = 0.0;
-  }
+  InitializeRingbuffer();
 
   // compute impulse response
   ComputeImpulseResponse();
@@ -97,12 +87,7 @@ void FIRLowpass::SetFilterOrder(int newOrder){
   ComputeImpulseResponse();
 
   // initialize ring buffer delay line
-  ringBufferIndex = 0;
-  ringBuffer = new double[order];
-
-  for(int n=0; n<order; n++){
-    ringBuffer[n] = 0.0;
-  }
+  InitializeRingbuffer();
 }
 
 void FIRLowpass::SetFilterSamplerate(double newSamplerate){
@@ -112,12 +97,7 @@ void FIRLowpass::SetFilterSamplerate(double newSamplerate){
   ComputeImpulseResponse();
 
   // initialize ring buffer delay line
-  ringBufferIndex = 0;
-  ringBuffer = new double[order];
-
-  for(int n=0; n<order; n++){
-    ringBuffer[n] = 0.0;
-  }
+  InitializeRingbuffer();
 }
 
 void FIRLowpass::SetFilterCutoff(double newCutoff){
@@ -126,6 +106,13 @@ void FIRLowpass::SetFilterCutoff(double newCutoff){
   // compute new impulse response
   ComputeImpulseResponse();
 
+}
+
+double* FIRLowpass::GetImpulseResponse(){
+  return h;
+}
+
+void FIRLowpass::InitializeRingbuffer(){
   // initialize ring buffer delay line
   ringBufferIndex = 0;
   ringBuffer = new double[order];
@@ -133,10 +120,6 @@ void FIRLowpass::SetFilterCutoff(double newCutoff){
   for(int n=0; n<order; n++){
     ringBuffer[n] = 0.0;
   }
-}
-
-double* FIRLowpass::GetImpulseResponse(){
-  return h;
 }
 
 double FIRLowpass::FIRfilter(double input){
@@ -167,7 +150,7 @@ void FIRLowpass::ComputeImpulseResponse(){
   double ii;
   
   // set cutoff frequency in radians
-  omega_c = (double)(cutoff/samplerate) * 2.0 * M_PI;
+  omega_c = cutoff/samplerate;
 
   // compute truncated ideal impulse response
   for(int n=0; n<order; n++){
@@ -175,7 +158,7 @@ void FIRLowpass::ComputeImpulseResponse(){
     ii = (double)(n) - 1.0 - (double)(floor((double)(order)/2.0)) + 1.0e-9;
 
     // sample sinc function
-    h_d[n] = omega_c * std::sin((double)(omega_c * ii))/(double)(omega_c * ii);
+    h_d[n] = std::sin((double)(2.0 * M_PI * omega_c * ii))/(double)(2.0 * M_PI * omega_c * ii);
   }
 
   // compute windowing function

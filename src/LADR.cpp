@@ -49,9 +49,8 @@ struct LADR : Module {
   int _oversampling = 2;
   LadderIntegrationMethod _integrationMethod = LADDER_PREDICTOR_CORRECTOR_FULL_TANH;
   
-  // create ladder class instance
-  Ladder *ladder = new Ladder((double)(0.25), (double)(0.0), _oversampling, LADDER_LOWPASS_MODE,
-			      (double)(APP->engine->getSampleRate()), _integrationMethod);
+  // create ladder class instances
+  Ladder ladder[16];
   
   LADR() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -64,6 +63,14 @@ struct LADR : Module {
   }
 
   void process(const ProcessArgs& args) override {
+    // get channels from primary input 
+    int channels = inputs[INPUT_INPUT].getChannels();
+
+    // process at minimum single monophonic channel
+    if(channels == 0){
+      channels = 1;
+    }    
+    
     // parameters
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
@@ -74,48 +81,74 @@ struct LADR : Module {
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
-    gain = 32.f*(gain * gain * gain * gain)/10.f;
-    
-    // sum in linear cv
+    gain = 32.f*(gain * gain * gain * gain)/10.f;    
     lincv_atten *= lincv_atten*lincv_atten;
-    cutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
-
-    // apply exponential cv
     expcv_atten *= expcv_atten*expcv_atten;
-    cutoff = cutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage());
 
     // filter mode
     filterMode = (LadderFilterMode)(params[MODE_PARAM].getValue());
     
-    // set filter parameters
-    ladder->SetFilterCutoff((double)(cutoff));
-    ladder->SetFilterResonance((double)(reso));
-    ladder->SetFilterMode(filterMode);
+    for(int ii = 0; ii < channels; ii++){    
+      float channelCutoff = cutoff;
+      
+      // sum in linear cv
+      if(inputs[LINCV_INPUT].getChannels() == 1){
+	channelCutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
+      }
+      else{
+	channelCutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage(ii)/10.f;
+      }
+      
+      // apply exponential cv
+      if(inputs[EXPCV_INPUT].getChannels() == 1){
+	channelCutoff = channelCutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage());
+      }
+      else{
+	channelCutoff = channelCutoff * std::pow(2.f, expcv_atten*inputs[EXPCV_INPUT].getVoltage(ii));
+      }
+      
+      // set filter parameters
+      ladder[ii].SetFilterCutoff((double)(channelCutoff));
+      ladder[ii].SetFilterResonance((double)(reso));
+      ladder[ii].SetFilterMode(filterMode);
     
-    // tick filter state
-    ladder->LadderFilter((double)(inputs[INPUT_INPUT].getVoltageSum() * gain));
+      // tick filter state
+      ladder[ii].LadderFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
     
-    // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder->GetFilterOutput() * 5.0));
+      // set output
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 5.0), ii);
+    }
+    
+    // set output to be polyphonic
+    outputs[OUTPUT_OUTPUT].setChannels(channels);    
   }
   
   void onSampleRateChange() override {
     float sr = APP->engine->getSampleRate();
-    ladder->SetFilterSampleRate(sr);
+    
+    for(int ii = 0; ii < 16; ii++){    
+      ladder[ii].SetFilterSampleRate(sr);
+    }
   }
 
   void onReset() override {
     float sr = APP->engine->getSampleRate();
-    ladder->ResetFilterState();
-    ladder->SetFilterOversamplingFactor(_oversampling);
-    ladder->SetFilterSampleRate(sr);
+    
+    for(int ii = 0; ii < 16; ii++){    
+      ladder[ii].ResetFilterState();
+      ladder[ii].SetFilterOversamplingFactor(_oversampling);
+      ladder[ii].SetFilterSampleRate(sr);
+    }
   }
 
   void onAdd() override {
     float sr = APP->engine->getSampleRate();
-    ladder->SetFilterOversamplingFactor(_oversampling);
-    ladder->SetFilterSampleRate(sr);
-    ladder->SetFilterIntegrationMethod(_integrationMethod);
+    
+    for(int ii = 0; ii < 16; ii++){    
+      ladder[ii].SetFilterOversamplingFactor(_oversampling);
+      ladder[ii].SetFilterSampleRate(sr);
+      ladder[ii].SetFilterIntegrationMethod(_integrationMethod);
+    }
   }
 
   json_t* dataToJson() override {
@@ -174,7 +207,9 @@ struct LADRWidget : ModuleWidget {
 
     void onAction(const event::Action& e) override {
       _module->_oversampling = _oversampling;
-      _module->ladder->SetFilterOversamplingFactor(_module->_oversampling);
+      for(int ii = 0; ii < 16; ii++){    
+	_module->ladder[ii].SetFilterOversamplingFactor(_module->_oversampling);
+      }
     }
 
     void step() override {
@@ -196,7 +231,9 @@ struct LADRWidget : ModuleWidget {
 
     void onAction(const event::Action& e) override {
       _module->_integrationMethod = (LadderIntegrationMethod)(_integrationMethod);
-      _module->ladder->SetFilterIntegrationMethod(_module->_integrationMethod);
+      for(int ii = 0; ii < 16; ii++){    
+	_module->ladder[ii].SetFilterIntegrationMethod(_module->_integrationMethod);
+      }
     }
 
     void step() override {

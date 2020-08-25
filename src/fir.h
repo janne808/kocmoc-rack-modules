@@ -39,6 +39,9 @@ public:
 
   // get impulse response
   double* GetImpulseResponse();
+
+  // clean filter ring buffer
+  void InitializeRingbuffer();
   
 private:
   // compute windowed ideal impulse response
