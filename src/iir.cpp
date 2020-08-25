@@ -145,7 +145,7 @@ void IIRLowpass::SetFilterCutoff(double newCutoff){
   ComputeCoefficients();
 }
 
-void FIRLowpass::InitializeBiquadCascade(){
+void IIRLowpass::InitializeBiquadCascade(){
   for(int ii=0; ii<order/2; ii++){
     z[ii*2+1] = 0.0;
     z[ii*2] = 0.0;
