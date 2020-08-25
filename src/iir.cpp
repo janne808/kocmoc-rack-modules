@@ -128,6 +128,9 @@ void IIRLowpass::SetFilterOrder(int newOrder){
 void IIRLowpass::SetFilterSamplerate(double newSamplerate){
   samplerate = newSamplerate;
 
+  // initialize cascade delayline
+  InitializeBiquadCascade();
+  
   // compute new cascade coefficients
   ComputeCoefficients();
 }
@@ -135,6 +138,9 @@ void IIRLowpass::SetFilterSamplerate(double newSamplerate){
 void IIRLowpass::SetFilterCutoff(double newCutoff){
   cutoff = newCutoff;
 
+  // initialize cascade delayline
+  InitializeBiquadCascade();
+  
   // compute new cascade coefficients
   ComputeCoefficients();
 }
