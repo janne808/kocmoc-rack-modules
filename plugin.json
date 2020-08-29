@@ -18,7 +18,8 @@
       "name": "SVF",
       "description": "State Variable Filter",
       "tags": [
-        "Filter"
+        "Filter",
+	"Polyphonic"
       ]
     },
     {
@@ -34,7 +35,8 @@
       "name": "LADR",
       "description": "4-pole Ladder Filter",
       "tags": [
-        "Filter"
+        "Filter",
+	"Polyphonic"
       ]
     },
     {
@@ -67,7 +69,8 @@
       "name": "SKF",
       "description": "Sallen-Key filter",
       "tags": [
-        "Filter"
+        "Filter",
+	"Polyphonic"
       ]
     }
   ]
