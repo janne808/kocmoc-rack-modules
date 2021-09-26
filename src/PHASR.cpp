@@ -44,9 +44,9 @@ struct PHASR : Module {
 
   PHASR() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-    configParam(TUNE_PARAM, 0.f, 1.f, 0.5f, "");
-    configParam(FINE_TUNE_PARAM, -1.f, 1.f, 0.f, "");
-    configParam(INDEX_PARAM, -1.f, 1.f, 0.f, "");
+    configParam(TUNE_PARAM, 0.f, 1.f, 0.5f, "Frequency tune");
+    configParam(FINE_TUNE_PARAM, -1.f, 1.f, 0.f, "Frequency finetune");
+    configParam(INDEX_PARAM, -1.f, 1.f, 0.f, "Modulation index");
   }
 
   // create phasor instances

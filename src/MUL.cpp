@@ -44,8 +44,8 @@ struct MUL : Module {
 
   MUL() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-    configParam(CONST1_PARAM, -8.f, 8.f, 0.f, "");
-    configParam(CONST2_PARAM, -8.f, 8.f, 0.f, "");
+    configParam(CONST1_PARAM, -8.f, 8.f, 0.f, "Multiplier");
+    configParam(CONST2_PARAM, -8.f, 8.f, 0.f, "Multiplier");
   }
 
   void process(const ProcessArgs& args) override {
