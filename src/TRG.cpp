@@ -266,13 +266,13 @@ struct TRGDisplay : Widget {
   }
 
   void onDragStart(const event::DragStart &e) override {
-    dragX = APP->scene->rack->mousePos.x;
-    dragY = APP->scene->rack->mousePos.y;
+    dragX = APP->scene->rack->getMousePos().x;
+    dragY = APP->scene->rack->getMousePos().y;
   }
 
   void onDragMove(const event::DragMove &e) override {
-    float newDragX = APP->scene->rack->mousePos.x;
-    float newDragY = APP->scene->rack->mousePos.y;
+    float newDragX = APP->scene->rack->getMousePos().x;
+    float newDragY = APP->scene->rack->getMousePos().y;
     float currentX = initX+(newDragX-dragX);
     float currentY = initY+(newDragY-dragY);
     
