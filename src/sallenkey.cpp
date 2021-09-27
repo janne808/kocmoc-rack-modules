@@ -26,7 +26,7 @@
 #include "fastmath.h"
 
 // steepness of downsample filter response
-#define IIR_DOWNSAMPLE_ORDER 32
+#define IIR_DOWNSAMPLE_ORDER 16
 
 // downsampling passthrough bandwidth
 #define IIR_DOWNSAMPLING_BANDWIDTH 0.9

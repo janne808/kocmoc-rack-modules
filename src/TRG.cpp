@@ -55,6 +55,9 @@ struct TRG : Module {
   TRG() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(LEN_PARAM, 1.f, 32.f, 32.f, "Seq length");
+    configInput(CLK_INPUT, "Clock");
+    configInput(RST_INPUT, "Reset");
+    configOutput(GATE_OUTPUT, "Gate");
     
     // reset current step
     step = 0;
@@ -353,12 +356,15 @@ struct TRGDisplay : Widget {
   }
   
   void draw(const DrawArgs &args) override {
-    //background
+    // background
     nvgFillColor(args.vg, nvgRGB(20, 30, 33));
     nvgBeginPath(args.vg);
     nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
     nvgFill(args.vg);
 
+    // support rack brightness
+    nvgGlobalAlpha(args.vg, 1.0);
+    
     // draw default grid if on module browser
     if(module == NULL){
       int moduleStep = 0;

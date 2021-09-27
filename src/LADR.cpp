@@ -57,9 +57,14 @@ struct LADR : Module {
     configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "Cutoff frequency");
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "Resonance");
     configParam(GAIN_PARAM, 0.f, 1.f, 0.5f, "Gain");
-    configParam(MODE_PARAM, 0.f, 2.f, 0.f, "Mode");
+    configSwitch(MODE_PARAM, 0.f, 2.f, 0.f, "Mode", {"Lowpass", "Bandpass", "Highpass"});
     configParam(LINCV_ATTEN_PARAM, -1.f, 1.f, 0.f, "CV Amount");
     configParam(EXPCV_ATTEN_PARAM, -1.f, 1.f, 0.f, "CV Amount");
+    configInput(LINCV_INPUT, "Linear CV");
+    configInput(EXPCV_INPUT, "Exponential CV");
+    configInput(INPUT_INPUT, "Audio");
+    configOutput(OUTPUT_OUTPUT, "Filter");
+    configBypass(INPUT_INPUT, OUTPUT_OUTPUT);
   }
 
   void process(const ProcessArgs& args) override {

@@ -47,6 +47,9 @@ struct PHASR : Module {
     configParam(TUNE_PARAM, 0.f, 1.f, 0.5f, "Frequency tune");
     configParam(FINE_TUNE_PARAM, -1.f, 1.f, 0.f, "Frequency finetune");
     configParam(INDEX_PARAM, -1.f, 1.f, 0.f, "Modulation index");
+    configInput(PHASE_MOD_INPUT, "Phase modulation");
+    configInput(CV_INPUT, "V/Oct CV");
+    configOutput(OUTPUT_OUTPUT, "Phasor");
   }
 
   // create phasor instances

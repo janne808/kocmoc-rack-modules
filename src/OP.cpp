@@ -51,6 +51,10 @@ struct OP : Module {
     configParam(OFFSET_PARAM, 0.f, 128.f, 36.f, "Frequency offset");
     configParam(INDEX_PARAM, -1.f, 1.f, 0.f, "Modulation index");
     configParam(PHASE_PARAM, -1.f*M_PI, 1.f*M_PI, 0.f, "Phase offset");
+    configInput(PHASE_MOD_INPUT, "Phase modulation");
+    configInput(RESET_INPUT, "Phase reset");
+    configInput(CV_INPUT, "V/Oct CV");
+    configOutput(OUTPUT_OUTPUT, "Operator");
   }
 
   // create phasor instances
