@@ -1,22 +1,22 @@
 /*
- *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
- *  This file is part of Sallen-Key Filter VCV Rack plugin.
+ *  This file is part of Kocmoc VCV Rack plugin.
  *
- *  Sallen-Key Filter VCV Rack plugin is free software: you can redistribute it and/or modify
+ *  Kocmoc VCV Rack plugin is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Sallen-Key Filter VCV Rack plugin is distributed in the hope that it will be useful,
+ *  Kocmoc VCV Rack plugin is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Sallen-Key Filter VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <cstdlib>
@@ -33,13 +33,15 @@
 
 // constructor
 SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFactor,
-		   SKFilterMode newFilterMode, double newSampleRate, SKIntegrationMethod newIntegrationMethod){
+		   SKFilterMode newFilterMode, double newSampleRate,
+		   SKIntegrationMethod newIntegrationMethod, int newDecimatorOrder){
   // initialize filter parameters
   cutoffFrequency = newCutoff;
   Resonance = newResonance;
-  oversamplingFactor = newOversamplingFactor;
   filterMode = newFilterMode;
   sampleRate = newSampleRate;
+  oversamplingFactor = newOversamplingFactor;
+  decimatorOrder = newDecimatorOrder;
 
   SetFilterIntegrationRate();
 
@@ -53,7 +55,9 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
-  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, IIR_DOWNSAMPLE_ORDER);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor,
+		       IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0,
+		       decimatorOrder);
 }
 
 // default constructor
@@ -61,9 +65,10 @@ SKFilter::SKFilter(){
   // initialize filter parameters
   cutoffFrequency = 0.25;
   Resonance = 0.5;
-  oversamplingFactor = 2;
   filterMode = SK_LOWPASS_MODE;
   sampleRate = 44100.0;
+  oversamplingFactor = 2;
+  decimatorOrder = IIR_DOWNSAMPLE_ORDER;
 
   SetFilterIntegrationRate();
   
@@ -77,7 +82,9 @@ SKFilter::SKFilter(){
   integrationMethod = SK_TRAPEZOIDAL;
   
   // instantiate downsampling filter
-  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, IIR_DOWNSAMPLE_ORDER);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor,
+		       IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0,
+		       decimatorOrder);
 }
 
 // default destructor
@@ -102,6 +109,7 @@ void SKFilter::ResetFilterState(){
   // set oversampling
   iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
   iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
+  iir->SetFilterOrder(decimatorOrder);
 }
 
 void SKFilter::SetFilterCutoff(double newCutoff){
@@ -112,14 +120,6 @@ void SKFilter::SetFilterCutoff(double newCutoff){
 
 void SKFilter::SetFilterResonance(double newResonance){
   Resonance = newResonance;
-}
-
-void SKFilter::SetFilterOversamplingFactor(int newOversamplingFactor){
-  oversamplingFactor = newOversamplingFactor;
-  iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
-  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
-
-  SetFilterIntegrationRate();
 }
 
 void SKFilter::SetFilterMode(SKFilterMode newFilterMode){
@@ -136,6 +136,20 @@ void SKFilter::SetFilterSampleRate(double newSampleRate){
 
 void SKFilter::SetFilterIntegrationMethod(SKIntegrationMethod method){
   integrationMethod = method;
+}
+
+void SKFilter::SetFilterOversamplingFactor(int newOversamplingFactor){
+  oversamplingFactor = newOversamplingFactor;
+  iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
+  iir->SetFilterOrder(decimatorOrder);
+
+  SetFilterIntegrationRate();
+}
+
+void SKFilter::SetFilterDecimatorOrder(int newDecimatorOrder){
+  decimatorOrder = newDecimatorOrder;
+  iir->SetFilterOrder(decimatorOrder);
 }
 
 void SKFilter::SetFilterIntegrationRate(){
@@ -161,6 +175,10 @@ double SKFilter::GetFilterResonance(){
 
 int SKFilter::GetFilterOversamplingFactor(){
   return oversamplingFactor;
+}
+
+int SKFilter::GetFilterDecimatorOrder(){
+  return decimatorOrder;
 }
 
 double SKFilter::GetFilterOutput(){

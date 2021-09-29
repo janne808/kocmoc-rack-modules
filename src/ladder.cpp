@@ -1,22 +1,22 @@
 /*
- *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
- *  This file is part of Ladder Filter VCV Rack plugin.
+ *  This file is part of Kocmoc VCV Rack plugin.
  *
- *  Ladder Filter VCV Rack plugin is free software: you can redistribute it and/or modify
+ *  Kocmoc VCV Rack plugin is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Ladder Filter VCV Rack plugin is distributed in the hope that it will be useful,
+ *  Kocmoc VCV Rack plugin is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Ladder Filter VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <cstdlib>
@@ -33,14 +33,16 @@
 
 // constructor
 Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
-	       LadderFilterMode newFilterMode, double newSampleRate, LadderIntegrationMethod newIntegrationMethod){
+	       LadderFilterMode newFilterMode, double newSampleRate,
+	       LadderIntegrationMethod newIntegrationMethod, int newDecimatorOrder){
   // initialize filter parameters
   cutoffFrequency = newCutoff;
   Resonance = newResonance;
-  oversamplingFactor = newOversamplingFactor;
   filterMode = newFilterMode;
   sampleRate = newSampleRate;
-
+  oversamplingFactor = newOversamplingFactor;
+  decimatorOrder = newDecimatorOrder;
+  
   SetFilterIntegrationRate();
 
   // initialize filter state
@@ -49,7 +51,7 @@ Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
   integrationMethod = newIntegrationMethod;
   
   // instantiate downsampling filter
-  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, IIR_DOWNSAMPLE_ORDER);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, decimatorOrder);
 }
 
 // default constructor
@@ -57,10 +59,11 @@ Ladder::Ladder(){
   // initialize filter parameters
   cutoffFrequency = 0.25;
   Resonance = 0.5;
-  oversamplingFactor = 2;
   filterMode = LADDER_LOWPASS_MODE;
   sampleRate = 44100.0;
-
+  oversamplingFactor = 2;
+  decimatorOrder = IIR_DOWNSAMPLE_ORDER;
+  
   SetFilterIntegrationRate();
   
   // initialize filter state
@@ -69,7 +72,7 @@ Ladder::Ladder(){
   integrationMethod = LADDER_PREDICTOR_CORRECTOR_FULL_TANH;
   
   // instantiate downsampling filter
-  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, IIR_DOWNSAMPLE_ORDER);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, decimatorOrder);
 }
 
 // default destructor
@@ -90,6 +93,7 @@ void Ladder::ResetFilterState(){
   // set oversampling
   iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
   iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
+  iir->SetFilterOrder(decimatorOrder);  
 }
 
 void Ladder::SetFilterCutoff(double newCutoff){
@@ -102,14 +106,6 @@ void Ladder::SetFilterResonance(double newResonance){
   Resonance = newResonance;
 }
 
-void Ladder::SetFilterOversamplingFactor(int newOversamplingFactor){
-  oversamplingFactor = newOversamplingFactor;
-  iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
-  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
-
-  SetFilterIntegrationRate();
-}
-
 void Ladder::SetFilterMode(LadderFilterMode newFilterMode){
   filterMode = newFilterMode;
 }
@@ -118,12 +114,27 @@ void Ladder::SetFilterSampleRate(double newSampleRate){
   sampleRate = newSampleRate;
   iir->SetFilterSamplerate(sampleRate * (double)(oversamplingFactor));
   iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
+  iir->SetFilterOrder(decimatorOrder);
 
   SetFilterIntegrationRate();
 }
 
 void Ladder::SetFilterIntegrationMethod(LadderIntegrationMethod method){
   integrationMethod = method;
+}
+
+void Ladder::SetFilterOversamplingFactor(int newOversamplingFactor){
+  oversamplingFactor = newOversamplingFactor;
+  iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
+  iir->SetFilterOrder(decimatorOrder);
+
+  SetFilterIntegrationRate();
+}
+
+void Ladder::SetFilterDecimatorOrder(int newDecimatorOrder){
+  decimatorOrder = newDecimatorOrder;
+  iir->SetFilterOrder(decimatorOrder);
 }
 
 void Ladder::SetFilterIntegrationRate(){
@@ -149,6 +160,10 @@ double Ladder::GetFilterResonance(){
 
 int Ladder::GetFilterOversamplingFactor(){
   return oversamplingFactor;
+}
+
+int Ladder::GetFilterDecimatorOrder(){
+  return decimatorOrder;
 }
 
 double Ladder::GetFilterOutput(){

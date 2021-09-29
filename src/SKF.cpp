@@ -1,22 +1,22 @@
 /*
- *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
- *  This file is part of Sallen-Key Filter VCV Rack plugin.
+ *  This file is part of Kocmoc VCV Rack plugin.
  *
- *  Sallen-Key Filter VCV Rack plugin is free software: you can redistribute it and/or modify
+ *  Kocmoc VCV Rack plugin is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Sallen-Key Filter VCV Rack plugin is distributed in the hope that it will be useful,
+ *  Kocmoc VCV Rack plugin is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Sallen-Key Filter VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "plugin.hpp"
@@ -47,6 +47,8 @@ struct SKF : Module {
   };
 
   int _oversampling = 2;
+  int _decimatorOrder = 16;
+  
   SKIntegrationMethod _integrationMethod = SK_TRAPEZOIDAL;
   
   // create sallen-key filter class instances
@@ -145,9 +147,13 @@ struct SKF : Module {
     
     for(int ii = 0; ii < 16; ii++){    
       skf[ii].ResetFilterState();
-      skf[ii].SetFilterOversamplingFactor(_oversampling);
       skf[ii].SetFilterSampleRate(sr);
+      skf[ii].SetFilterCutoff((double)(0.25));
+      skf[ii].SetFilterResonance((double)(0.0));
+      skf[ii].SetFilterMode(SK_LOWPASS_MODE);
       skf[ii].SetFilterIntegrationMethod(_integrationMethod);
+      skf[ii].SetFilterOversamplingFactor(_oversampling);
+      skf[ii].SetFilterDecimatorOrder(_decimatorOrder);
     }
   }
 
@@ -155,16 +161,24 @@ struct SKF : Module {
     float sr = APP->engine->getSampleRate();
     
     for(int ii = 0; ii < 16; ii++){    
-      skf[ii].SetFilterOversamplingFactor(_oversampling);
+      skf[ii].ResetFilterState();
       skf[ii].SetFilterSampleRate(sr);
+      skf[ii].SetFilterCutoff((double)(0.25));
+      skf[ii].SetFilterResonance((double)(0.0));
+      skf[ii].SetFilterMode(SK_LOWPASS_MODE);
       skf[ii].SetFilterIntegrationMethod(_integrationMethod);
+      skf[ii].SetFilterOversamplingFactor(_oversampling);
+      skf[ii].SetFilterDecimatorOrder(_decimatorOrder);
     }
   }
   
   json_t* dataToJson() override {
     json_t* rootJ = json_object();
-    json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));
+    
     json_object_set_new(rootJ, "integrationMethod", json_integer((int)(_integrationMethod)));
+    json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));
+    json_object_set_new(rootJ, "decimatorOrder", json_integer(_decimatorOrder));
+    
     return rootJ;
   }
 
@@ -172,9 +186,14 @@ struct SKF : Module {
     json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
     if (oversamplingJ)
       _oversampling = json_integer_value(oversamplingJ);
+    
     json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
     if (integrationMethodJ)
       _integrationMethod = (SKIntegrationMethod)(json_integer_value(integrationMethodJ));
+
+    json_t* decimatorOrderJ = json_object_get(rootJ, "decimatorOrder");
+    if (decimatorOrderJ)
+      _decimatorOrder = json_integer_value(decimatorOrderJ);
   }
 };
 
@@ -229,6 +248,30 @@ struct SKFWidget : ModuleWidget {
     }
   };
   
+  struct DecimatorOrderMenuItem : MenuItem {
+    SKF* _module;
+    const int _decimatorOrder;
+
+    DecimatorOrderMenuItem(SKF* module, const char* label, int decimatorOrder)
+      : _module(module)
+      , _decimatorOrder(decimatorOrder)
+    {
+      this->text = label;
+    }
+
+    void onAction(const event::Action& e) override {
+      _module->_decimatorOrder = _decimatorOrder;
+      for(int ii = 0; ii < 16; ii++){    
+	_module->skf[ii].SetFilterDecimatorOrder(_module->_decimatorOrder);
+      }
+    }
+
+    void step() override {
+      MenuItem::step();
+      rightText = _module->_decimatorOrder == _decimatorOrder ? "✔" : "";
+    }
+  };
+
   struct IntegrationMenuItem : MenuItem {
     SKF* _module;
     const SKIntegrationMethod _integrationMethod;
@@ -264,6 +307,12 @@ struct SKFWidget : ModuleWidget {
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x4", 4));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x8", 8));
 
+    menu->addChild(new MenuEntry());
+    menu->addChild(createMenuLabel("Decimator order"));
+    menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 8", 8));
+    menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 16", 16));
+    menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 32", 32));
+    
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
     menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SK_TRAPEZOIDAL));

@@ -1,22 +1,22 @@
 /*
- *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
- *  This file is part of State Variable Filter VCV Rack plugin.
+ *  This file is part of Kocmoc VCV Rack plugin.
  *
- *  State Variable Filter VCV Rack plugin is free software: you can redistribute it and/or modify
+ *  Kocmoc VCV Rack plugin is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  State Variable Filter VCV Rack plugin is distributed in the hope that it will be useful,
+ *  Kocmoc VCV Rack plugin is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with State Variable Filter VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "plugin.hpp"
@@ -47,6 +47,8 @@ struct SVF_1 : Module {
   };
 
   int _oversampling = 2;
+  int _decimatorOrder = 16;
+  
   SVFIntegrationMethod _integrationMethod = SVF_INV_TRAPEZOIDAL;
   
   // create svf class instances
@@ -143,12 +145,13 @@ struct SVF_1 : Module {
     
     for(int ii = 0; ii < 16; ii++){    
       svf[ii].ResetFilterState();
-      svf[ii].SetFilterOversamplingFactor(_oversampling);
       svf[ii].SetFilterSampleRate(sr);
       svf[ii].SetFilterCutoff((double)(0.25));
       svf[ii].SetFilterResonance((double)(0.0));
       svf[ii].SetFilterMode(SVF_LOWPASS_MODE);
       svf[ii].SetFilterIntegrationMethod(_integrationMethod);
+      svf[ii].SetFilterOversamplingFactor(_oversampling);
+      svf[ii].SetFilterDecimatorOrder(_decimatorOrder);
     }
   }
 
@@ -157,29 +160,38 @@ struct SVF_1 : Module {
     
     for(int ii = 0; ii < 16; ii++){    
       svf[ii].ResetFilterState();
-      svf[ii].SetFilterOversamplingFactor(_oversampling);
       svf[ii].SetFilterSampleRate(sr);
       svf[ii].SetFilterCutoff((double)(0.25));
       svf[ii].SetFilterResonance((double)(0.0));
       svf[ii].SetFilterMode(SVF_LOWPASS_MODE);
       svf[ii].SetFilterIntegrationMethod(_integrationMethod);
+      svf[ii].SetFilterOversamplingFactor(_oversampling);
+      svf[ii].SetFilterDecimatorOrder(_decimatorOrder);
     }
   }
   
   json_t* dataToJson() override {
     json_t* rootJ = json_object();
-    json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));
+    
     json_object_set_new(rootJ, "integrationMethod", json_integer((int)(_integrationMethod)));
+    json_object_set_new(rootJ, "oversampling", json_integer(_oversampling));
+    json_object_set_new(rootJ, "decimatorOrder", json_integer(_decimatorOrder));
+    
     return rootJ;
   }
 
   void dataFromJson(json_t* rootJ) override {
-    json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
-    if (oversamplingJ)
-      _oversampling = json_integer_value(oversamplingJ);
     json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
     if (integrationMethodJ)
       _integrationMethod = (SVFIntegrationMethod)(json_integer_value(integrationMethodJ));
+
+    json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
+    if (oversamplingJ)
+      _oversampling = json_integer_value(oversamplingJ);
+    
+    json_t* decimatorOrderJ = json_object_get(rootJ, "decimatorOrder");
+    if (decimatorOrderJ)
+      _decimatorOrder = json_integer_value(decimatorOrderJ);
   }
 };
 
@@ -233,6 +245,30 @@ struct SVFWidget : ModuleWidget {
     }
   };
   
+  struct DecimatorOrderMenuItem : MenuItem {
+    SVF_1* _module;
+    const int _decimatorOrder;
+
+    DecimatorOrderMenuItem(SVF_1* module, const char* label, int decimatorOrder)
+      : _module(module)
+      , _decimatorOrder(decimatorOrder)
+    {
+      this->text = label;
+    }
+
+    void onAction(const event::Action& e) override {
+      _module->_decimatorOrder = _decimatorOrder;
+      for(int ii = 0; ii < 16; ii++){    
+	_module->svf[ii].SetFilterDecimatorOrder(_module->_decimatorOrder);
+      }
+    }
+
+    void step() override {
+      MenuItem::step();
+      rightText = _module->_decimatorOrder == _decimatorOrder ? "✔" : "";
+    }
+  };
+
   struct IntegrationMenuItem : MenuItem {
     SVF_1* _module;
     const SVFIntegrationMethod _integrationMethod;
@@ -246,7 +282,7 @@ struct SVFWidget : ModuleWidget {
 
     void onAction(const event::Action& e) override {
       _module->_integrationMethod = _integrationMethod;
-      for(int ii = 0; ii < 16; ii++){    
+      for(int ii = 0; ii < 16; ii++){
 	_module->svf[ii].SetFilterIntegrationMethod(_module->_integrationMethod);
       }
     }
@@ -268,6 +304,12 @@ struct SVFWidget : ModuleWidget {
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x4", 4));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x8", 8));
 
+    menu->addChild(new MenuEntry());
+    menu->addChild(createMenuLabel("Decimator order"));
+    menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 8", 8));
+    menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 16", 16));
+    menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 32", 32));
+    
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
     menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SVF_TRAPEZOIDAL));

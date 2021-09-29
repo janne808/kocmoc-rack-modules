@@ -1,26 +1,28 @@
 /*
- *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
- *  This file is part of Infinite Impulse Response Filter VCV Rack plugin.
+ *  This file is part of Kocmoc VCV Rack plugin.
  *
- *  Infinite Impulse Response Filter VCV Rack plugin is free software: you can redistribute it and/or modify
+ *  Kocmoc VCV Rack plugin is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Infinite Impulse Response Filter VCV Rack plugin is distributed in the hope that it will be useful,
+ *  Kocmoc VCV Rack plugin is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Infinite Impulse Response Filter VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <cmath>
 #include "iir.h"
+
+#define IIR_MAX_ORDER 32
 
 // constructor
 IIRLowpass::IIRLowpass(double newSamplerate, double newCutoff, int newOrder)
@@ -31,16 +33,16 @@ IIRLowpass::IIRLowpass(double newSamplerate, double newCutoff, int newOrder)
   order = newOrder;
 
   // allocate dsp vectors
-  a1 = new double[order/2];
-  a2 = new double[order/2];
-  K = new double[order/2];
-  pa_real = new double[order/2];
-  pa_imag = new double[order/2];
-  p_real = new double[order/2];
-  p_imag = new double[order/2];
+  a1 = new double[IIR_MAX_ORDER/2];
+  a2 = new double[IIR_MAX_ORDER/2];
+  K = new double[IIR_MAX_ORDER/2];
+  pa_real = new double[IIR_MAX_ORDER/2];
+  pa_imag = new double[IIR_MAX_ORDER/2];
+  p_real = new double[IIR_MAX_ORDER/2];
+  p_imag = new double[IIR_MAX_ORDER/2];
 
   // allocate cascaded biquad buffer
-  z = new double[order];
+  z = new double[IIR_MAX_ORDER];
   
   // initialize cascade delayline
   InitializeBiquadCascade();
@@ -55,19 +57,19 @@ IIRLowpass::IIRLowpass()
   // set default design parameters
   samplerate=(double)(44100.0);
   cutoff=(double)(440.0);
-  order=32;
+  order=IIR_MAX_ORDER;
   
   // allocate dsp vectors
-  a1 = new double[order/2];
-  a2 = new double[order/2];
-  K = new double[order/2];
-  pa_real = new double[order/2];
-  pa_imag = new double[order/2];
-  p_real = new double[order/2];
-  p_imag = new double[order/2];
+  a1 = new double[IIR_MAX_ORDER/2];
+  a2 = new double[IIR_MAX_ORDER/2];
+  K = new double[IIR_MAX_ORDER/2];
+  pa_real = new double[IIR_MAX_ORDER/2];
+  pa_imag = new double[IIR_MAX_ORDER/2];
+  p_real = new double[IIR_MAX_ORDER/2];
+  p_imag = new double[IIR_MAX_ORDER/2];
 
   // allocate cascaded biquad buffer
-  z = new double[order];
+  z = new double[IIR_MAX_ORDER];
   
   // initialize cascade delayline
   InitializeBiquadCascade();
@@ -92,32 +94,13 @@ IIRLowpass::~IIRLowpass(){
 }
 
 void IIRLowpass::SetFilterOrder(int newOrder){
-  order = newOrder;
-
-  // free dsp vectors
-  delete[] a1;
-  delete[] a2;
-  delete[] K;
-  delete[] pa_real;
-  delete[] pa_imag;
-  delete[] p_real;
-  delete[] p_imag;
-    
-  // free cascaded biquad buffer
-  delete[] z;
-
-  // allocate dsp vectors
-  a1 = new double[order/2];
-  a2 = new double[order/2];
-  K = new double[order/2];
-  pa_real = new double[order/2];
-  pa_imag = new double[order/2];
-  p_real = new double[order/2];
-  p_imag = new double[order/2];
-
-  // allocate cascaded biquad buffer
-  z = new double[order];
-
+  if(newOrder > IIR_MAX_ORDER){
+    order = IIR_MAX_ORDER;
+  }
+  else{
+    order = newOrder;
+  }
+  
   // initialize cascade delayline
   InitializeBiquadCascade();
   

@@ -1,22 +1,22 @@
 /*
- *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
- *  This file is part of State Variable Filter VCV Rack plugin.
+ *  This file is part of Kocmoc VCV Rack plugin.
  *
- *  State Variable Filter VCV Rack plugin is free software: you can redistribute it and/or modify
+ *  Kocmoc VCV Rack plugin is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  State Variable Filter VCV Rack plugin is distributed in the hope that it will be useful,
+ *  Kocmoc VCV Rack plugin is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with State Variable Filter VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __dspsvfh__
@@ -43,25 +43,28 @@ class SVFilter{
 public:
   // constructor/destructor
   SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
-	   SVFFilterMode newFilterMode, double newSampleRate, SVFIntegrationMethod newIntegrationMethod);
+	   SVFFilterMode newFilterMode, double newSampleRate,
+	   SVFIntegrationMethod newIntegrationMethod, int newDecimatorOrder);
   SVFilter();
   ~SVFilter();
 
   // set filter parameters
   void SetFilterCutoff(double newCutoff);
   void SetFilterResonance(double newResonance);
-  void SetFilterOversamplingFactor(int newOversamplingFactor);
   void SetFilterMode(SVFFilterMode newFilterMode);
   void SetFilterSampleRate(double newSampleRate);
   void SetFilterIntegrationMethod(SVFIntegrationMethod method);
-  
+  void SetFilterOversamplingFactor(int newOversamplingFactor);
+  void SetFilterDecimatorOrder(int decimatorOrder);
+    
   // get filter parameters
   double GetFilterCutoff();
   double GetFilterResonance();
-  int GetFilterOversamplingFactor();  
   SVFFilterMode GetFilterMode();  
   double GetFilterSampleRate();
   SVFIntegrationMethod GetFilterIntegrationMethod();
+  int GetFilterOversamplingFactor();  
+  int GetFilterDecimatorOrder();
   
   // tick filter state
   void filter(double input);
@@ -85,11 +88,12 @@ private:
   // filter parameters
   double cutoffFrequency;
   double Resonance;
-  int oversamplingFactor;
   SVFFilterMode filterMode;
-  double sampleRate;
-  double dt;
   SVFIntegrationMethod integrationMethod;
+  double dt;
+  double sampleRate;
+  int oversamplingFactor;
+  int decimatorOrder;
   
   // filter state
   double lp;

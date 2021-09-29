@@ -1,22 +1,22 @@
 /*
- *  (C) 2020 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
- *  This file is part of Sallen-Key Filter VCV Rack plugin.
+ *  This file is part of Kocmoc VCV Rack plugin.
  *
- *  Sallen-Key Filter VCV Rack plugin is free software: you can redistribute it and/or modify
+ *  Kocmoc VCV Rack plugin is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Sallen-Key Filter VCV Rack plugin is distributed in the hope that it will be useful,
+ *  Kocmoc VCV Rack plugin is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Sallen-Key Filter VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __dspskfh__
@@ -42,25 +42,28 @@ class SKFilter{
 public:
   // constructor/destructor
   SKFilter(double newCutoff, double newResonance, int newOversamplingFactor,
-	   SKFilterMode newFilterMode, double newSampleRate, SKIntegrationMethod newIntegrationMethod);
+	   SKFilterMode newFilterMode, double newSampleRate,
+	   SKIntegrationMethod newIntegrationMethod, int newDecimatorOrder);
   SKFilter();
   ~SKFilter();
 
   // set filter parameters
   void SetFilterCutoff(double newCutoff);
   void SetFilterResonance(double newResonance);
-  void SetFilterOversamplingFactor(int newOversamplingFactor);
   void SetFilterMode(SKFilterMode newFilterMode);
   void SetFilterSampleRate(double newSampleRate);
   void SetFilterIntegrationMethod(SKIntegrationMethod method);
+  void SetFilterOversamplingFactor(int newOversamplingFactor);
+  void SetFilterDecimatorOrder(int decimatorOrder);
   
   // get filter parameters
   double GetFilterCutoff();
   double GetFilterResonance();
-  int GetFilterOversamplingFactor();  
   SKFilterMode GetFilterMode();  
   double GetFilterSampleRate();
   SKIntegrationMethod GetFilterIntegrationMethod();
+  int GetFilterOversamplingFactor();  
+  int GetFilterDecimatorOrder();
   
   // tick filter state
   void filter(double input);
@@ -83,11 +86,12 @@ private:
   // filter parameters
   double cutoffFrequency;
   double Resonance;
-  int oversamplingFactor;
   SKFilterMode filterMode;
   double sampleRate;
   double dt;
   SKIntegrationMethod integrationMethod;
+  int oversamplingFactor;
+  int decimatorOrder;
   
   // filter state
   double p0;
