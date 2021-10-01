@@ -58,6 +58,7 @@ struct TRG : Module {
     configInput(CLK_INPUT, "Clock");
     configInput(RST_INPUT, "Reset");
     configOutput(GATE_OUTPUT, "Gate");
+    configBypass(CLK_INPUT, GATE_OUTPUT);
     
     // reset current step
     step = 0;
