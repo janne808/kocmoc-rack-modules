@@ -212,7 +212,7 @@ struct SKFWidget : ModuleWidget {
     addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(11.24, 33.86)), module, SKF::RESO_PARAM));
     addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, SKF::GAIN_PARAM));
     
-    addParam(createParam<Trimpot>(mm2px(Vec(5.66, 51.52)), module, SKF::LINCV_ATTEN_PARAM));
+    addParam(createParam<Trimpot>(mm2px(Vec(5.86, 51.52)), module, SKF::LINCV_ATTEN_PARAM));
     addParam(createParam<Trimpot>(mm2px(Vec(18.621, 51.52)), module, SKF::EXPCV_ATTEN_PARAM));
     
     addParam(createParam<CKSS>(Vec(57.0, 252.3), module, SKF::MODE_PARAM));

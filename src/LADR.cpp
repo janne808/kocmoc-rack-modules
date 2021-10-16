@@ -207,7 +207,7 @@ struct LADRWidget : ModuleWidget {
     addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(11.24, 33.86)), module, LADR::RESO_PARAM));
     addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, LADR::GAIN_PARAM));
     
-    addParam(createParam<Trimpot>(mm2px(Vec(5.66, 51.52)), module, LADR::LINCV_ATTEN_PARAM));
+    addParam(createParam<Trimpot>(mm2px(Vec(5.86, 51.52)), module, LADR::LINCV_ATTEN_PARAM));
     addParam(createParam<Trimpot>(mm2px(Vec(18.621, 51.52)), module, LADR::EXPCV_ATTEN_PARAM));
         
     addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, LADR::MODE_PARAM));
