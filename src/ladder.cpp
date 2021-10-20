@@ -31,6 +31,12 @@
 // downsampling passthrough bandwidth
 #define IIR_DOWNSAMPLING_BANDWIDTH 0.9
 
+// maximum newton-raphson iteration steps
+#define LADDER_MAX_NEWTON_STEPS 8
+
+// check for newton-raphson breaking limit
+#define LADDER_NEWTON_BREAKING_LIMIT 1
+
 // constructor
 Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
 	       LadderFilterMode newFilterMode, double newSampleRate,
@@ -271,7 +277,7 @@ void Ladder::LadderFilter(double input){
 	C_t = TanhPade32(input - fb*D_t);
 
 	// newton-raphson 
-	for(int ii=0; ii < 16; ii++) {
+	for(int ii=0; ii < LADDER_MAX_NEWTON_STEPS; ii++) {
 	  double tanh_g_xk, tanh_g_xk2;
 	  
 	  tanh_g_xk = TanhPade32(g*x_k);
@@ -280,12 +286,13 @@ void Ladder::LadderFilter(double input){
 	  x_k2 = x_k - (x_k + x_k*tanh_g_xk*C_t - tanh_g_xk - C_t) /
 	                 (1.0 + C_t*(tanh_g_xk + x_k*tanh_g_xk2) - tanh_g_xk2);
 	  
+#ifdef LADDER_NEWTON_BREAKING_LIMIT
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-9) {
 	    x_k = x_k2;
 	    break;
 	  }
-	  
+#endif	  
 	  x_k = x_k2;
 	}
 	

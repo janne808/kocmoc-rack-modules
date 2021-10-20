@@ -31,6 +31,12 @@
 // downsampling passthrough bandwidth
 #define IIR_DOWNSAMPLING_BANDWIDTH 0.9
 
+// maximum newton-raphson iteration steps
+#define SKF_MAX_NEWTON_STEPS 8
+
+// check for newton-raphson breaking limit
+#define SKF_NEWTON_BREAKING_LIMIT 1
+
 // constructor
 SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFactor,
 		   SKFilterMode newFilterMode, double newSampleRate,
@@ -280,15 +286,16 @@ void SKFilter::filter(double input){
 	x_k = p1;
 	
 	// newton-raphson
-	for(int ii=0; ii < 16; ii++) {
+	for(int ii=0; ii < SKF_MAX_NEWTON_STEPS; ii++) {
 	  x_k2 = x_k - (c*x_k + alpha*1.0/4.0*SinhPade54(4.0*x_k) - D_n)/(c + alpha*CoshPade54(4.0*x_k));
 	  
+#ifdef SKF_NEWTON_BREAKING_LIMIT
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-9) {
 	    x_k = x_k2;
 	    break;
 	  }
-	  
+#endif	  
 	  x_k = x_k2;
 	}
 	

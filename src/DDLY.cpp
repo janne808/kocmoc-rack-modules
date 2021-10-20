@@ -22,8 +22,6 @@
 #include <cmath>
 #include "plugin.hpp"
 
-#include "fastmath.h"
-
 #define DDLY_MAX_DELAY_TIME 3
 #define DDLY_TIME_THRESHOLD 0.006
 #define DDLY_FADE_RATE 0.02
@@ -74,7 +72,9 @@ struct DDLY : Module {
   int clk_counter;
   int clk_period;
   int clk_n;
-  int divmul;
+
+  // dc blocking highpass filter variables
+  float hp, hp2;
   
   DDLY() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -113,7 +113,9 @@ struct DDLY : Module {
     clk_period = 0;
     clk_counter = 0;
     clk_n = 0;
-    divmul = 0;
+
+    // init highpass filter
+    hp = hp2 = 0.f;
   }
 
   void process(const ProcessArgs& args) override {
@@ -133,6 +135,11 @@ struct DDLY : Module {
     float input = inputs[INPUT_INPUT].getVoltage();
     float delay;
 
+    // dc blocking filter for input
+    float hp_input = input;
+    hp += 0.0005f*(hp_input - hp);
+    input = hp - hp_input;
+    
     // sum in time modulation control voltage
     time += time_cv_atten*(time_cv/5.f);
 
@@ -159,24 +166,52 @@ struct DDLY : Module {
       // detect rising clock edge
       if(last_clk <= 0.0f && clk > 0.0f){
 	clk_period = clk_counter;
+	
 	clk_n++;
 	if(clk_n > 7){
 	  clk_n = 2;
 	}
+	
 	clk_counter = 0;
       }
 
       clk_counter++;
       
-      if(clk_period && clk_n > 1){
-	divmul = (int)(12.0f*(2.0f*time));
-	time = ((float)(divmul)/12.f)*(float)(clk_period)/(float)(sampleRate)/(float)(DDLY_MAX_DELAY_TIME);
+      if(clk_period > 0 && clk_n > 1){
+	const float div_table[16] = { 0.125f,
+	                              0.25f,
+				      0.375f,
+				      0.5f,
+				      0.625f,
+				      0.75f,
+				      0.875f,
+				      1.f,
+				      1.125f,
+				      1.25f,
+				      1.375f,
+				      1.5f,
+				      1.625f,
+				      1.75f,
+				      1.875,
+				      2.f
+	                            };
+	
+	float clk_time;
+	float ratio;
+
+	if(time < 0.5f){
+	  ratio = div_table[static_cast <int> (15.f*time)];
+	  ratio *= ratio;
+	}
+	else{
+	  ratio = div_table[static_cast <int> (15.f*time)];
+	}
+	
+	clk_time = (static_cast <float> (clk_period))/(static_cast <float> (sampleRate));
+	time = ratio*clk_time/(static_cast <float> (DDLY_MAX_DELAY_TIME));
 	
 	// clip time value
-	if(time < 0.00125f){
-	  time = 0.00125f;
-	}
-	else if(time > 0.9985f){
+	if(time > 0.9985f){
 	  time = 0.9985f;
 	}
     
@@ -237,9 +272,6 @@ struct DDLY : Module {
       }
     }
 
-    // save last clk value for edge detection
-    last_clk = clk;
-
     // update crossfade
     if(fade_state){
       fade_value += DDLY_FADE_RATE;
@@ -258,7 +290,9 @@ struct DDLY : Module {
     delay = (1.f - fade_value)*readDelay(fade0_time) + fade_value*readDelay(fade1_time);
 
     // update buffer
+    // with dc blocking highpass filter
     if(inputs[RETURN_INPUT].isConnected()){
+      float hp_input = ret;
       writeDelay(ret);    
     }
     else{
@@ -267,9 +301,17 @@ struct DDLY : Module {
     
     // set send output
     outputs[SEND_OUTPUT].setVoltage(input + feedback*delay);
+
+    // dc blocking filter for output
+    float hp_output = (1.f - drywet)*input + drywet*delay;
+    hp2 += 0.0005f*(hp_output - hp2);
     
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((1.f - drywet)*input + drywet*delay);
+    outputs[OUTPUT_OUTPUT].setVoltage(hp2 - hp_output);
+    
+    // save last clk value for edge detection
+    last_clk = clk;
+
   }
 
   float readDelay(float time){
@@ -321,6 +363,9 @@ struct DDLY : Module {
 
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
+
+    // init highpass filter
+    hp = hp2 = 0.f;
   }
   
   void onReset() override {
@@ -342,6 +387,9 @@ struct DDLY : Module {
 
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
+
+    // init highpass filter
+    hp = hp2 = 0.f;
   }
   
   void onSampleRateChange() override {
@@ -363,6 +411,9 @@ struct DDLY : Module {
 
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
+
+    // init highpass filter
+    hp = 0.f;
   }
 };
 
@@ -385,8 +436,8 @@ struct DDLYWidget : ModuleWidget {
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.45 , 28.32)), module, DDLY::TIME_CV_INPUT));
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.45, 53.5)), module, DDLY::FB_CV_INPUT));
 
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.96, 69.3)), module, DDLY::SEND_OUTPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 69.3)), module, DDLY::RETURN_INPUT));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.96, 68.7)), module, DDLY::SEND_OUTPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 68.7)), module, DDLY::RETURN_INPUT));
     
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 86.3)), module, DDLY::CLK_INPUT));
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, DDLY::INPUT_INPUT));

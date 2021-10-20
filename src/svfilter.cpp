@@ -31,6 +31,12 @@
 // downsampling passthrough bandwidth
 #define IIR_DOWNSAMPLING_BANDWIDTH 0.9
 
+// maximum newton-raphson iteration steps
+#define SVF_MAX_NEWTON_STEPS 8
+
+// check for newton-raphson breaking limit
+#define SVF_NEWTON_BREAKING_LIMIT 1
+
 // constructor
 SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
 		   SVFFilterMode newFilterMode, double newSampleRate,
@@ -247,16 +253,17 @@ void SVFilter::filter(double input){
 	x_k = bp;
 	
 	// newton-raphson
-	for(int ii=0; ii < 16; ii++) {
+	for(int ii=0; ii < SVF_MAX_NEWTON_STEPS; ii++) {
 	  x_k2 = x_k - (x_k + alpha*SinhPade54(x_k) + alpha2*x_k - D_t)/
 	                  (1.0 + alpha*CoshPade54(x_k) + alpha2);
-	  
+
+#ifdef SVF_NEWTON_BREAKING_LIMIT
 	  // breaking limit
 	  if(abs(x_k2 - x_k) < 1.0e-9) {
 	    x_k = x_k2;
 	    break;
 	  }
-	  
+#endif
 	  x_k = x_k2;
 	}
 
@@ -280,15 +287,17 @@ void SVFilter::filter(double input){
 	y_k = sinh(bp);
 	
 	// newton-raphson
-	for(int ii=0; ii < 16; ii++) {
+	for(int ii=0; ii < SVF_MAX_NEWTON_STEPS; ii++) {
 	  y_k2 = y_k - (alpha*y_k + ASinhPade54(y_k)*(1.0 + alpha2) - D_t)/
 	                  (alpha + (1.0 + alpha2)*dASinhPade54(y_k));
-	  
+
+#ifdef SVF_NEWTON_BREAKING_LIMIT
 	  // breaking limit
 	  if(abs(y_k2 - y_k) < 1.0e-9) {
 	    y_k = y_k2;
 	    break;
 	  }
+#endif
 	  
 	  y_k = y_k2;
 	}
