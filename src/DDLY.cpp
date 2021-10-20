@@ -24,6 +24,7 @@
 
 #define DDLY_MAX_DELAY_TIME 3
 #define DDLY_TIME_THRESHOLD 0.006
+#define DDLY_CLK_TIME_THRESHOLD 0.00002
 #define DDLY_FADE_RATE 0.02
 
 struct DDLY : Module {
@@ -201,7 +202,7 @@ struct DDLY : Module {
 
 	if(time < 0.5f){
 	  ratio = div_table[static_cast <int> (15.f*time)];
-	  ratio *= ratio;
+	  ratio = ratio*ratio;
 	}
 	else{
 	  ratio = div_table[static_cast <int> (15.f*time)];
@@ -217,7 +218,7 @@ struct DDLY : Module {
     
 	// add hysteresis threshold to time parameter value
 	// for noisy real world cv input
-	if(abs(time-time2) > DDLY_TIME_THRESHOLD){
+	if(abs(time-time2) > DDLY_CLK_TIME_THRESHOLD){
 	  time2 = time;
 
 	  // trigger crossfade
@@ -310,7 +311,6 @@ struct DDLY : Module {
     
     // save last clk value for edge detection
     last_clk = clk;
-
   }
 
   float readDelay(float time){
