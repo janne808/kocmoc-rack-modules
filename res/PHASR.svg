@@ -2,20 +2,20 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="20.32mm"
    height="128.5mm"
    viewBox="0 0 20.32 128.5"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.4 5da689c313, 2019-01-14"
-   sodipodi:docname="PHASR.svg">
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   sodipodi:docname="PHASR.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -26,21 +26,22 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.6029288"
-     inkscape:cx="62.9442"
-     inkscape:cy="288.55287"
+     inkscape:cx="63.32159"
+     inkscape:cy="288.84627"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:snap-global="false"
-     inkscape:window-width="681"
-     inkscape:window-height="748"
+     inkscape:window-width="1364"
+     inkscape:window-height="373"
      inkscape:window-x="0"
      inkscape:window-y="18"
      inkscape:window-maximized="0"
      inkscape:snap-object-midpoints="true"
      inkscape:snap-others="true"
      inkscape:snap-bbox="true"
-     inkscape:snap-bbox-midpoints="true">
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:pagecheckerboard="0">
     <inkscape:grid
        type="xygrid"
        id="grid10"
@@ -79,37 +80,22 @@
        y="168.50589" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:1.25;font-family:'alarm clock';-inkscape-font-specification:'alarm clock';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;line-height:1.25;font-family:'alarm clock';-inkscape-font-specification:'alarm clock';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="-66.469711"
        y="158.17523"
-       id="text3721"><tspan
-         sodipodi:role="line"
-         id="tspan3719"
-         x="-66.469711"
-         y="163.27023"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'alarm clock';-inkscape-font-specification:'alarm clock';stroke-width:0.26458332" /></text>
+       id="text3721" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:1.25;font-family:'alarm clock';-inkscape-font-specification:'alarm clock';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;line-height:1.25;font-family:'alarm clock';-inkscape-font-specification:'alarm clock';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="-90.703468"
        y="188.98671"
-       id="text3725"><tspan
-         sodipodi:role="line"
-         id="tspan3723"
-         x="-90.703468"
-         y="194.08171"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'alarm clock';-inkscape-font-specification:'alarm clock';stroke-width:0.26458332" /></text>
+       id="text3725" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:1.25;font-family:LCD2;-inkscape-font-specification:LCD2;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444px;line-height:1.25;font-family:LCD2;-inkscape-font-specification:LCD2;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="-90.357269"
        y="179.29321"
-       id="text3729"><tspan
-         sodipodi:role="line"
-         id="tspan3727"
-         x="-90.357269"
-         y="184.5546"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:LCD2;-inkscape-font-specification:LCD2;stroke-width:0.26458332" /></text>
+       id="text3729" />
     <g
        aria-label="kocmoc"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.64444447px;line-height:1.25;font-family:LCD2;-inkscape-font-specification:LCD2;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -193,37 +179,22 @@
     </g>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="43.652069"
        y="238.87505"
-       id="text70"><tspan
-         sodipodi:role="line"
-         id="tspan68"
-         x="43.652069"
-         y="241.50574"
-         style="stroke-width:0.26458332;-inkscape-font-specification:Ubuntu;font-family:Ubuntu;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;" /></text>
+       id="text70" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="38.2831"
        y="206.42778"
-       id="text74"><tspan
-         sodipodi:role="line"
-         id="tspan72"
-         x="38.2831"
-         y="209.05847"
-         style="stroke-width:0.26458332;-inkscape-font-specification:Ubuntu;font-family:Ubuntu;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;" /></text>
+       id="text74" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="44.118938"
        y="237.00758"
-       id="text78"><tspan
-         sodipodi:role="line"
-         id="tspan76"
-         x="44.118938"
-         y="239.63828"
-         style="stroke-width:0.26458332;-inkscape-font-specification:Ubuntu;font-family:Ubuntu;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;" /></text>
+       id="text78" />
     <g
        aria-label="V/OCT"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -256,10 +227,9 @@
          inkscape:connector-curvature="0" />
     </g>
     <path
-       style="display:inline;fill:none;stroke:#000000;stroke-width:0.27528062px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 10.170965,237.47445 V 226.10336"
-       id="path106"
-       inkscape:connector-curvature="0" />
+       style="color:#000000;fill:#000000;stroke-dasharray:0.275281, 0.550561;-inkscape-stroke:none"
+       d="m 10.033203,226.46289 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82617 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82617 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82618 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82421 v 0.2754 h 0.275391 v -0.2754 z m 0,0.82618 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82617 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82617 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82617 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82617 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82422 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82617 v 0.2754 h 0.275391 v -0.2754 z m 0,0.82618 v 0.27539 h 0.275391 v -0.27539 z m 0,0.82617 v 0.27539 h 0.275391 v -0.27539 z"
+       id="path106" />
     <g
        aria-label="-"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -392,26 +362,16 @@
        style="fill:#ff0000;fill-rule:evenodd;stroke-width:0.26458332" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="42.238216"
        y="63.166004"
-       id="text3842"><tspan
-         sodipodi:role="line"
-         id="tspan3840"
-         x="42.238216"
-         y="65.797707"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Ubuntu;-inkscape-font-specification:Ubuntu;stroke-width:0.26458332" /></text>
+       id="text3842" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:LCD2;-inkscape-font-specification:LCD2;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:LCD2;-inkscape-font-specification:LCD2;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="58.467678"
        y="54.843204"
-       id="text3846"><tspan
-         sodipodi:role="line"
-         id="tspan3844"
-         x="58.467678"
-         y="57.4739"
-         style="stroke-width:0.26458332" /></text>
+       id="text3846" />
     <circle
        style="fill:#00ff00;fill-opacity:1;stroke-width:0.26458332"
        id="circle3861"

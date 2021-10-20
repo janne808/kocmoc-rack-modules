@@ -292,7 +292,6 @@ struct DDLY : Module {
     // update buffer
     // with dc blocking highpass filter
     if(inputs[RETURN_INPUT].isConnected()){
-      float hp_input = ret;
       writeDelay(ret);    
     }
     else{
