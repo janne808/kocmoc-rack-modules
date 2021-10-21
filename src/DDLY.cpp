@@ -204,9 +204,10 @@ struct DDLY : Module {
 	time = ratio*clk_time/(static_cast <float> (DDLY_MAX_DELAY_TIME));
 	
 	// clip time value
-	if(time < 0.1f){
-	  time = 0.1f;
-	}
+	// minimum delay time
+	if(time < 0.00025f){
+	  time = 0.00025f;
+	}	
 	else if(time > 0.9985f){
 	  time = 0.9985f;
 	}
@@ -215,7 +216,7 @@ struct DDLY : Module {
 	// for noisy real world cv input
 	if(abs(time-time2) > DDLY_CLK_TIME_THRESHOLD){
 	  time2 = time;
-
+	  
 	  // trigger crossfade
 	  if(fade_state){
 	    fade_state = 0;
@@ -228,10 +229,8 @@ struct DDLY : Module {
 	}
       }
       else{
-	// minimum delay time
-	if(time < 0.1f){
-	  time = 0.1f;
-	}
+	// this branch is reached if clock signal input is connected
+	// but edge detection hasn't received two clock pulses yet
 	
 	// add hysteresis threshold to time parameter value
 	// for noisy real world cv input
@@ -242,24 +241,27 @@ struct DDLY : Module {
 	  if(fade_state){
 	    fade_state = 0;
 	    fade0_time = time2*time2*time2*time2;
+	    if(fade0_time < 0.00025f){
+	      fade0_time = 0.00025f;
+	    }
 	  }
 	  else{
 	    fade_state = 1;
 	    fade1_time = time2*time2*time2*time2;	
+	    if(fade1_time < 0.00025f){
+	      fade1_time = 0.00025f;
+	    }
 	  }
 	}
       }
     }
     else{
+      // clock signal is not connected
+      
       // disable clock counter
       clk_counter = 0;
       clk_period = 0;
       clk_n = 0;
-      
-      // minimum delay time
-      if(time < 0.1f){
-	time = 0.1f;
-      }
 	
       // add hysteresis threshold to time parameter value
       // for noisy real world cv input
@@ -270,10 +272,16 @@ struct DDLY : Module {
 	if(fade_state){
 	  fade_state = 0;
 	  fade0_time = time2*time2*time2*time2;
+	  if(fade0_time < 0.00025f){
+	    fade0_time = 0.00025f;
+	  }
 	}
 	else{
 	  fade_state = 1;
 	  fade1_time = time2*time2*time2*time2;	
+	  if(fade1_time < 0.00025f){
+	    fade1_time = 0.00025f;
+	  }
 	}
       }
     }
