@@ -205,8 +205,8 @@ struct DDLY : Module {
 	
 	// clip time value
 	// minimum delay time
-	if(time < 0.00025f){
-	  time = 0.00025f;
+	if(time < 0.0005f){
+	  time = 0.0005f;
 	}	
 	else if(time > 0.9985f){
 	  time = 0.9985f;
@@ -240,16 +240,16 @@ struct DDLY : Module {
 	  // trigger crossfade
 	  if(fade_state){
 	    fade_state = 0;
-	    fade0_time = time2*time2*time2*time2;
-	    if(fade0_time < 0.00025f){
-	      fade0_time = 0.00025f;
+	    fade0_time = time2*time2*time2;
+	    if(fade0_time < 0.0004f){
+	      fade0_time = 0.0004f;
 	    }
 	  }
 	  else{
 	    fade_state = 1;
-	    fade1_time = time2*time2*time2*time2;	
-	    if(fade1_time < 0.00025f){
-	      fade1_time = 0.00025f;
+	    fade1_time = time2*time2*time2;	
+	    if(fade1_time < 0.0004f){
+	      fade1_time = 0.0004f;
 	    }
 	  }
 	}
@@ -271,16 +271,16 @@ struct DDLY : Module {
 	// trigger crossfade
 	if(fade_state){
 	  fade_state = 0;
-	  fade0_time = time2*time2*time2*time2;
-	  if(fade0_time < 0.00025f){
-	    fade0_time = 0.00025f;
+	  fade0_time = time2*time2*time2;
+	  if(fade0_time < 0.0004f){
+	    fade0_time = 0.0004f;
 	  }
 	}
 	else{
 	  fade_state = 1;
-	  fade1_time = time2*time2*time2*time2;	
-	  if(fade1_time < 0.00025f){
-	    fade1_time = 0.00025f;
+	  fade1_time = time2*time2*time2;	
+	  if(fade1_time < 0.0004f){
+	    fade1_time = 0.0004f;
 	  }
 	}
       }
