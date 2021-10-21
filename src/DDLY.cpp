@@ -204,7 +204,10 @@ struct DDLY : Module {
 	time = ratio*clk_time/(static_cast <float> (DDLY_MAX_DELAY_TIME));
 	
 	// clip time value
-	if(time > 0.9985f){
+	if(time < 0.1f){
+	  time = 0.1f;
+	}
+	else if(time > 0.9985f){
 	  time = 0.9985f;
 	}
     
