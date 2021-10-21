@@ -91,6 +91,7 @@ struct DDLY : Module {
     configInput(RETURN_INPUT, "Return");
     configInput(INPUT_INPUT, "Input");
     configOutput(OUTPUT_OUTPUT, "Delay");
+    configBypass(INPUT_INPUT, OUTPUT_OUTPUT);
 
     // get samplerate
     sampleRate = APP->engine->getSampleRate();
@@ -142,13 +143,11 @@ struct DDLY : Module {
     input = hp - hp_input;
     
     // sum in time modulation control voltage
+    // note that time is a float normalized to buffer length
     time += time_cv_atten*(time_cv/5.f);
 
     // clip time value
-    if(time < 0.00125f){
-      time = 0.00125f;
-    }
-    else if(time > 0.9985f){
+    if(time > 0.9985f){
       time = 0.9985f;
     }
     
@@ -163,6 +162,7 @@ struct DDLY : Module {
       feedback = 1.f;
     }
 
+    // check for clock signal input
     if(inputs[CLK_INPUT].isConnected()){
       // detect rising clock edge
       if(last_clk <= 0.0f && clk > 0.0f){
@@ -176,30 +176,22 @@ struct DDLY : Module {
 	clk_counter = 0;
       }
 
+      // count for clock period in samples
       clk_counter++;
-      
+
+      // only engage in clock sync after two detected edges
       if(clk_period > 0 && clk_n > 1){
-	const float div_table[16] = { 0.125f,
-	                              0.25f,
-				      0.375f,
-				      0.5f,
-				      0.625f,
-				      0.75f,
-				      0.875f,
-				      1.f,
-				      1.125f,
-				      1.25f,
-				      1.375f,
-				      1.5f,
-				      1.625f,
-				      1.75f,
-				      1.875,
-				      2.f
+	// clock rate division and multiplier table
+	const float div_table[16] = { 0.125f, 0.25f, 0.375f, 0.5f,
+	                              0.625f, 0.75f, 0.875f, 1.f,
+				      1.125f, 1.25f, 1.375f, 1.5f,
+				      1.625f, 1.75f, 1.875f, 2.f
 	                            };
 	
 	float clk_time;
 	float ratio;
 
+	// tighten clock divisions
 	if(time < 0.5f){
 	  ratio = div_table[static_cast <int> (15.f*time)];
 	  ratio = ratio*ratio;
@@ -233,11 +225,16 @@ struct DDLY : Module {
 	}
       }
       else{
+	// minimum delay time
+	if(time < 0.1f){
+	  time = 0.1f;
+	}
+	
 	// add hysteresis threshold to time parameter value
 	// for noisy real world cv input
 	if(abs(time-time2) > DDLY_TIME_THRESHOLD){
 	  time2 = time;
-
+	
 	  // trigger crossfade
 	  if(fade_state){
 	    fade_state = 0;
@@ -256,6 +253,11 @@ struct DDLY : Module {
       clk_period = 0;
       clk_n = 0;
       
+      // minimum delay time
+      if(time < 0.1f){
+	time = 0.1f;
+      }
+	
       // add hysteresis threshold to time parameter value
       // for noisy real world cv input
       if(abs(time-time2) > DDLY_TIME_THRESHOLD){
@@ -360,6 +362,7 @@ struct DDLY : Module {
       ringBuffer[ii] = 0.f;
     }
 
+    // init crossfade state
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
 
@@ -384,6 +387,7 @@ struct DDLY : Module {
       ringBuffer[ii] = 0.f;
     }
 
+    // init crossfade state
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
 
@@ -408,6 +412,7 @@ struct DDLY : Module {
       ringBuffer[ii] = 0.f;
     }
 
+    // init crossfade state
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
 
