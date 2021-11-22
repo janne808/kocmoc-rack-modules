@@ -150,6 +150,9 @@ struct DDLY : Module {
     if(time > 0.9985f){
       time = 0.9985f;
     }
+    else if(time < 0.f){
+      time = 0.f;
+    }
     
     // sum in feedback modulation control voltage
     feedback += fb_cv_atten*(fb_cv/5.f);
@@ -204,11 +207,7 @@ struct DDLY : Module {
 	time = ratio*clk_time/(static_cast <float> (DDLY_MAX_DELAY_TIME));
 	
 	// clip time value
-	// minimum delay time
-	if(time < 0.0005f){
-	  time = 0.0005f;
-	}	
-	else if(time > 0.9985f){
+	if(time > 0.9985f){
 	  time = 0.9985f;
 	}
     
@@ -221,10 +220,16 @@ struct DDLY : Module {
 	  if(fade_state){
 	    fade_state = 0;
 	    fade0_time = time2;
+	    if(fade0_time < 0.0004f){
+	      fade0_time = 0.0004f;
+	    }
 	  }
 	  else{
 	    fade_state = 1;
 	    fade1_time = time2;	
+	    if(fade1_time < 0.0004f){
+	      fade1_time = 0.0004f;
+	    }
 	  }
 	}
       }
