@@ -402,13 +402,6 @@ struct DDLY : Module {
     for(int ii=0; ii<bufferLength; ii++){
       ringBuffer[ii] = 0.f;
     }
-
-    // init crossfade state
-    fade_state = 0;
-    fade0_time = fade1_time = 0.f;
-
-    // init highpass filter
-    hp = hp2 = 0.f;
   }
   
   void onSampleRateChange() override {
@@ -427,13 +420,6 @@ struct DDLY : Module {
     for(int ii=0; ii<bufferLength; ii++){
       ringBuffer[ii] = 0.f;
     }
-
-    // init crossfade state
-    fade_state = 0;
-    fade0_time = fade1_time = 0.f;
-
-    // init highpass filter
-    hp = 0.f;
   }
 };
 
