@@ -355,6 +355,18 @@ struct TRGDisplay : Widget {
       nvgFill(args.vg);
     }      
   }
+
+  void drawLayer(const DrawArgs &args, int layer) override {
+    if(!module)
+      return;
+    
+    if(layer == 1) {
+      // draw sequence grid
+      drawSequenceGrid(args, module->step, module->page, module->seq_length, module->steps);
+    }
+    
+    Widget::drawLayer(args, layer);
+  }
   
   void draw(const DrawArgs &args) override {
     // background
@@ -363,9 +375,6 @@ struct TRGDisplay : Widget {
     nvgRect(args.vg, 0, 0, box.size.x, box.size.y);
     nvgFill(args.vg);
 
-    // support rack brightness
-    nvgGlobalAlpha(args.vg, 1.0);
-    
     // draw default grid if on module browser
     if(module == NULL){
       int moduleStep = 0;
@@ -375,12 +384,7 @@ struct TRGDisplay : Widget {
 
       // draw default sequence grid
       drawSequenceGrid(args, moduleStep, modulePage, moduleSeqLength, moduleSteps);
-      
-      return;
-    };
-    
-    // draw sequence grid
-    drawSequenceGrid(args, module->step, module->page, module->seq_length, module->steps);
+    }
   }
 };
 
