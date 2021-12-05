@@ -236,6 +236,7 @@ struct TRGDisplay : Widget {
   float initX = 0;
   float initY = 0;
   int currentStep = 0;
+  int currentClickState = 0;
   TRG *module = NULL;
   TRGDisplay(){}
 
@@ -259,6 +260,7 @@ struct TRGDisplay : Widget {
 	nn += module->page * (MAX_STEPS / 2);
   	module->steps[nn] = !module->steps[nn];
 	currentStep = nn;
+	currentClickState = module->steps[currentStep]; 
       }
       // is click on page select button
       else if(module->isClickOnPageSelect(e.pos.x, e.pos.y)){
@@ -271,7 +273,7 @@ struct TRGDisplay : Widget {
 
   void onDragStart(const event::DragStart &e) override {
     dragX = APP->scene->rack->getMousePos().x;
-    dragY = APP->scene->rack->getMousePos().y;
+    dragY = APP->scene->rack->getMousePos().y;    
   }
 
   void onDragMove(const event::DragMove &e) override {
@@ -283,18 +285,18 @@ struct TRGDisplay : Widget {
     // is drag on a step button
     if(module->isClickOnStep(currentX, currentY)){
       // compute step number
-	// compute step number
-	int nn = (int)((currentY - GRID_Y_OFFSET) / (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN));
-	if(currentX > GRID_X_OFFSET + GRID_STEP_WIDTH + GRID_STEP_X_MARGIN &&
-	   currentX < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN ){
-	  nn += 8;
-	}
+      int nn = (int)((currentY - GRID_Y_OFFSET) / (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN));
+      if(currentX > GRID_X_OFFSET + GRID_STEP_WIDTH + GRID_STEP_X_MARGIN &&
+	 currentX < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN ){
+	nn += 8;
+      }
+      
       // add in page
       nn += module->page * (MAX_STEPS / 2);
 
       // switch state just once
-      if( nn != currentStep) {
-	module->steps[nn] = !module->steps[nn];
+      if(nn != currentStep) {
+	module->steps[nn] = currentClickState;
 	currentStep = nn;
       }
     }
