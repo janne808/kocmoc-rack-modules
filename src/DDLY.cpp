@@ -134,7 +134,7 @@ struct DDLY : Module {
     float ret = inputs[RETURN_INPUT].getVoltage();
     float clk = inputs[CLK_INPUT].getVoltage();
     
-    float input = inputs[INPUT_INPUT].getVoltage();
+    float input = inputs[INPUT_INPUT].getVoltageSum();
     float delay;
 
     // dc blocking filter for input
