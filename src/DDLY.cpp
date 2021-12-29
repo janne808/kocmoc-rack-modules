@@ -74,13 +74,13 @@ struct DDLY : Module {
   int clk_period;
   int clk_n;
 
-  // dc blocking highpass filter variables
-  float hp, hp2;
+  // dc blocking highpass filter variable
+  float hp;
   
   DDLY() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(TIME_PARAM, 0.f, 1.f, 0.5f, "Delay time");
-    configParam(FB_PARAM, 0.f, 1.f, 0.f, "Feedback");
+    configParam(FB_PARAM, -1.f, 1.f, 0.f, "Feedback");
     configParam(TIME_CV_ATTEN_PARAM, -1.f, 1.f, 0.f, "CV Amount");
     configParam(FB_CV_ATTEN_PARAM, -1.f, 1.f, 0.f, "CV Amount");
     configParam(DRY_WET_PARAM, 0.f, 1.f, 0.5f, "Dry/Wet");
@@ -107,6 +107,7 @@ struct DDLY : Module {
 
     time2 = 0.f;
 
+    // init crossfade state
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
 
@@ -117,7 +118,7 @@ struct DDLY : Module {
     clk_n = 0;
 
     // init highpass filter
-    hp = hp2 = 0.f;
+    hp = 0.f;
   }
 
   void process(const ProcessArgs& args) override {
@@ -137,11 +138,6 @@ struct DDLY : Module {
     float input = inputs[INPUT_INPUT].getVoltageSum();
     float delay;
 
-    // dc blocking filter for input
-    float hp_input = input;
-    hp += 0.0005f*(hp_input - hp);
-    input = hp - hp_input;
-    
     // sum in time modulation control voltage
     // note that time is a float normalized to buffer length
     time += time_cv_atten*(time_cv/5.f);
@@ -158,8 +154,8 @@ struct DDLY : Module {
     feedback += fb_cv_atten*(fb_cv/5.f);
 
     // clip feedback value
-    if(feedback < 0.f){
-      feedback = 0.f;
+    if(feedback < -1.f){
+      feedback = -1.f;
     }
     else if(feedback > 1.f){
       feedback = 1.f;
@@ -320,12 +316,8 @@ struct DDLY : Module {
     // set send output
     outputs[SEND_OUTPUT].setVoltage(input + feedback*delay);
 
-    // dc blocking filter for output
-    float hp_output = (1.f - drywet)*input + drywet*delay;
-    hp2 += 0.0005f*(hp_output - hp2);
-    
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage(hp2 - hp_output);
+    outputs[OUTPUT_OUTPUT].setVoltage((1.f - drywet)*input + drywet*delay);
     
     // save last clk value for edge detection
     last_clk = clk;
@@ -358,6 +350,11 @@ struct DDLY : Module {
 	writePointer -= bufferLength;
       }
 
+      // dc blocking filter for write head
+      float hp_input = input;
+      hp += 0.00005f*(hp_input - hp);
+      input = hp - hp_input;
+      
       ringBuffer[writePointer] = input;
   }
   
@@ -378,12 +375,8 @@ struct DDLY : Module {
       ringBuffer[ii] = 0.f;
     }
 
-    // init crossfade state
-    fade_state = 0;
-    fade0_time = fade1_time = 0.f;
-
     // init highpass filter
-    hp = hp2 = 0.f;
+    hp = 0.f;
   }
   
   void onReset() override {
@@ -402,6 +395,13 @@ struct DDLY : Module {
     for(int ii=0; ii<bufferLength; ii++){
       ringBuffer[ii] = 0.f;
     }
+    
+    // init crossfade state
+    fade_state = 0;
+    fade0_time = fade1_time = 0.f;
+
+    // init highpass filters
+    hp = 0.f;
   }
   
   void onSampleRateChange() override {
@@ -420,6 +420,38 @@ struct DDLY : Module {
     for(int ii=0; ii<bufferLength; ii++){
       ringBuffer[ii] = 0.f;
     }
+
+    // init highpass filters
+    hp = 0.f;    
+  }
+  
+  json_t* dataToJson() override {
+    json_t* rootJ = json_object();
+    
+    json_object_set_new(rootJ, "fade_state", json_integer((int)(fade_state)));
+    json_object_set_new(rootJ, "fade0_time", json_real(fade0_time));
+    json_object_set_new(rootJ, "fade1_time", json_real(fade1_time));
+    json_object_set_new(rootJ, "time2", json_real(time2));
+    
+    return rootJ;
+  }
+
+  void dataFromJson(json_t* rootJ) override {
+    json_t* fade_stateJ = json_object_get(rootJ, "fade_state");
+    if (fade_stateJ)
+      fade_state = json_integer_value(fade_stateJ);
+
+    json_t* fade0_timeJ = json_object_get(rootJ, "fade0_time");
+    if (fade0_timeJ)
+      fade0_time = json_real_value(fade0_timeJ);
+
+    json_t* fade1_timeJ = json_object_get(rootJ, "fade1_time");
+    if (fade1_timeJ)
+      fade1_time = json_real_value(fade1_timeJ);
+
+    json_t* time2J = json_object_get(rootJ, "time2");
+    if (time2J)
+      time2 = json_real_value(time2J);
   }
 };
 
