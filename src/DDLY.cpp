@@ -121,6 +121,12 @@ struct DDLY : Module {
     hp = 0.f;
   }
 
+  ~DDLY() override {
+    if(ringBuffer){
+      delete[] ringBuffer;
+    }
+  }
+
   void process(const ProcessArgs& args) override {
     float time = params[TIME_PARAM].getValue();
     float feedback = params[FB_PARAM].getValue();
