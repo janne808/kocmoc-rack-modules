@@ -121,6 +121,12 @@ struct DDLY : Module {
     hp = 0.f;
   }
 
+  ~DDLY() override {
+    if(ringBuffer){
+      delete[] ringBuffer;
+    }
+  }
+
   void process(const ProcessArgs& args) override {
     float time = params[TIME_PARAM].getValue();
     float feedback = params[FB_PARAM].getValue();
@@ -361,7 +367,7 @@ struct DDLY : Module {
   void onAdd() override {
     // reallocate ringbuffer
     if(ringBuffer){
-      delete ringBuffer;
+      delete[] ringBuffer;
     }
 
     sampleRate = APP->engine->getSampleRate();
@@ -382,7 +388,7 @@ struct DDLY : Module {
   void onReset() override {
     // reallocate ringbuffer
     if(ringBuffer){
-      delete ringBuffer;
+      delete[] ringBuffer;
     }
 
     sampleRate = APP->engine->getSampleRate();
@@ -407,7 +413,7 @@ struct DDLY : Module {
   void onSampleRateChange() override {
     // reallocate ringbuffer
     if(ringBuffer){
-      delete ringBuffer;
+      delete[] ringBuffer;
     }
 
     sampleRate = APP->engine->getSampleRate();
