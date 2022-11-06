@@ -4,7 +4,7 @@ Copyright (c) 2022 Janne Heikkarainen (janne808@radiofreerobotron.net)
 
 All rights reserved.
 
-### Kocmoc Free Open Source Software for VCV Rack
+### Kocmoc Free Open Source Software Modules for VCV Rack
 
 * SVF
 
