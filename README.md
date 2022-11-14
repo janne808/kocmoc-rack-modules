@@ -36,7 +36,7 @@ All rights reserved.
 
 * PHASR
 
-  Complimentary phasor oscillator module for OP.
+  Complementary phasor oscillator module for OP.
 
 # License
 
