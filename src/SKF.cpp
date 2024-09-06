@@ -183,17 +183,32 @@ struct SKF : Module {
   }
 
   void dataFromJson(json_t* rootJ) override {
-    json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
-    if (oversamplingJ)
-      _oversampling = json_integer_value(oversamplingJ);
-    
     json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
-    if (integrationMethodJ)
+    if (integrationMethodJ && (_integrationMethod != (SKIntegrationMethod)(json_integer_value(integrationMethodJ)))) {
       _integrationMethod = (SKIntegrationMethod)(json_integer_value(integrationMethodJ));
+      
+      // set new integration method
+      for(int ii = 0; ii < 16; ii++)
+	skf[ii].SetFilterIntegrationMethod(_integrationMethod);
+    }
+    
+    json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
+    if (oversamplingJ && (_oversampling != json_integer_value(oversamplingJ))) {
+      _oversampling = json_integer_value(oversamplingJ);
 
+      // set new oversampling factor
+      for(int ii = 0; ii < 16; ii++)
+	skf[ii].SetFilterOversamplingFactor(_oversampling);
+    }
+    
     json_t* decimatorOrderJ = json_object_get(rootJ, "decimatorOrder");
-    if (decimatorOrderJ)
+    if (decimatorOrderJ && (_decimatorOrder != json_integer_value(decimatorOrderJ))) {
       _decimatorOrder = json_integer_value(decimatorOrderJ);
+
+      // set new decimator order
+      for(int ii = 0; ii < 16; ii++)
+	skf[ii].SetFilterDecimatorOrder(_decimatorOrder);
+    }
   }
 };
 

@@ -82,6 +82,7 @@ struct LADR : Module {
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
     float gain = params[GAIN_PARAM].getValue();
+    float gainComp = params[GAIN_PARAM].getValue() - 0.5;
     float lincv_atten = params[LINCV_ATTEN_PARAM].getValue();
     float expcv_atten = params[EXPCV_ATTEN_PARAM].getValue();
     LadderFilterMode filterMode;
@@ -92,6 +93,12 @@ struct LADR : Module {
     lincv_atten *= lincv_atten*lincv_atten;
     expcv_atten *= expcv_atten*expcv_atten;
 
+    // compute gain compensation to normalize output on high drive levels
+    if(gainComp < 0.0) {
+      gainComp = 0.0;
+    }
+    gainComp = 2.0 * (1.0 - 2.0 * std::log(1.0 + gainComp));
+    
     // filter mode
     filterMode = (LadderFilterMode)(params[MODE_PARAM].getValue());
     
@@ -123,7 +130,7 @@ struct LADR : Module {
       ladder[ii].LadderFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
     
       // set output
-      outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 5.0), ii);
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 5.0 * gainComp), ii);
     }
     
     // set output to be polyphonic
@@ -179,17 +186,32 @@ struct LADR : Module {
   }
 
   void dataFromJson(json_t* rootJ) override {
+    json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
+    if (integrationMethodJ && (_integrationMethod != (LadderIntegrationMethod)(json_integer_value(integrationMethodJ)))) {
+      _integrationMethod = (LadderIntegrationMethod)(json_integer_value(integrationMethodJ));
+      
+      // set new integration method
+      for(int ii = 0; ii < 16; ii++)
+	ladder[ii].SetFilterIntegrationMethod(_integrationMethod);
+    }
+    
     json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
-    if (oversamplingJ)
+    if (oversamplingJ && (_oversampling != json_integer_value(oversamplingJ))) {
       _oversampling = json_integer_value(oversamplingJ);
+
+      // set new oversampling factor
+      for(int ii = 0; ii < 16; ii++)
+	ladder[ii].SetFilterOversamplingFactor(_oversampling);
+    }
     
     json_t* decimatorOrderJ = json_object_get(rootJ, "decimatorOrder");
-    if (decimatorOrderJ)
+    if (decimatorOrderJ && (_decimatorOrder != json_integer_value(decimatorOrderJ))) {
       _decimatorOrder = json_integer_value(decimatorOrderJ);
-    
-    json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
-    if (integrationMethodJ)
-      _integrationMethod = (LadderIntegrationMethod)(json_integer_value(integrationMethodJ));
+
+      // set new decimator order
+      for(int ii = 0; ii < 16; ii++)
+	ladder[ii].SetFilterDecimatorOrder(_decimatorOrder);
+    }
   }
 };
 

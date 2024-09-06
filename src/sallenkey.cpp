@@ -291,7 +291,7 @@ void SKFilter::filter(double input){
 	  
 #ifdef SKF_NEWTON_BREAKING_LIMIT
 	  // breaking limit
-	  if(abs(x_k2 - x_k) < 1.0e-9) {
+	  if(fabs(x_k2 - x_k) < 1.0e-9) {
 	    x_k = x_k2;
 	    break;
 	  }

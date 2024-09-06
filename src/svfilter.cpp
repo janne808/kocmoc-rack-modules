@@ -259,7 +259,7 @@ void SVFilter::filter(double input){
 
 #ifdef SVF_NEWTON_BREAKING_LIMIT
 	  // breaking limit
-	  if(abs(x_k2 - x_k) < 1.0e-9) {
+	  if(fabs(x_k2 - x_k) < 1.0e-9) {
 	    x_k = x_k2;
 	    break;
 	  }
@@ -293,7 +293,7 @@ void SVFilter::filter(double input){
 
 #ifdef SVF_NEWTON_BREAKING_LIMIT
 	  // breaking limit
-	  if(abs(y_k2 - y_k) < 1.0e-9) {
+	  if(fabs(y_k2 - y_k) < 1.0e-9) {
 	    y_k = y_k2;
 	    break;
 	  }
