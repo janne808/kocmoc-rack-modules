@@ -82,7 +82,6 @@ struct LADR : Module {
     float cutoff = params[FREQ_PARAM].getValue();
     float reso = params[RESO_PARAM].getValue();
     float gain = params[GAIN_PARAM].getValue();
-    float gainComp = params[GAIN_PARAM].getValue() - 0.5;
     float lincv_atten = params[LINCV_ATTEN_PARAM].getValue();
     float expcv_atten = params[EXPCV_ATTEN_PARAM].getValue();
     LadderFilterMode filterMode;
@@ -92,12 +91,6 @@ struct LADR : Module {
     gain = 32.f*(gain * gain * gain * gain)/10.f;    
     lincv_atten *= lincv_atten*lincv_atten;
     expcv_atten *= expcv_atten*expcv_atten;
-
-    // compute gain compensation to normalize output on high drive levels
-    if(gainComp < 0.0) {
-      gainComp = 0.0;
-    }
-    gainComp = 2.0 * (1.0 - 2.0 * std::log(1.0 + gainComp));
     
     // filter mode
     filterMode = (LadderFilterMode)(params[MODE_PARAM].getValue());
@@ -130,7 +123,7 @@ struct LADR : Module {
       ladder[ii].LadderFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
     
       // set output
-      outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 5.0 * gainComp), ii);
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 3.0), ii);
     }
     
     // set output to be polyphonic
