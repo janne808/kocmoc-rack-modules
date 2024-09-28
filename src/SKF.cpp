@@ -1,5 +1,5 @@
 /*
- *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2024 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -124,8 +124,12 @@ struct SKF : Module {
       skf[ii].SetFilterMode((SKFilterMode)(params[MODE_PARAM].getValue()));
     
       // tick filter state
+#ifdef FLOATDSP
+      skf[ii].filter((float)(inputs[INPUT_INPUT].getVoltage(ii) * gain * 2.0));
+#else
       skf[ii].filter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain * 2.0));
-
+#endif
+      
       // set output
       outputs[OUTPUT_OUTPUT].setVoltage((float)(skf[ii].GetFilterOutput() * 5.0 * gainComp), ii);
     }

@@ -19,15 +19,15 @@
  *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __dspiirh__
-#define __dspiirh__
+#ifndef __dspiir32h__
+#define __dspiir32h__
 
-class IIRLowpass{
+class IIRLowpass32{
 public:
   // constructor/destructor
-  IIRLowpass(double newSamplerate, double newCutoff, int newOrder);
-  IIRLowpass();
-  ~IIRLowpass();
+  IIRLowpass32(double newSamplerate, double newCutoff, int newOrder);
+  IIRLowpass32();
+  ~IIRLowpass32();
 
   // set filter parameters
   void SetFilterOrder(int newOrder);
@@ -38,12 +38,12 @@ public:
   void InitializeBiquadCascade();
   
   // IIR filter signal 
-  double IIRfilter(double input);
+  float IIRfilter32(float input);
 
   // get filter coefficients
-  double* GetFilterCoeffA1();
-  double* GetFilterCoeffA2();
-  double* GetFilterCoeffK();
+  float* GetFilterCoeffA1();
+  float* GetFilterCoeffA2();
+  float* GetFilterCoeffK();
   
 private:
   // compute biquad cascade coefficients
@@ -55,16 +55,16 @@ private:
   int order;
   
   // dsp variables
-  double *a1;
-  double *a2;
-  double *K;
+  float *a1;
+  float *a2;
+  float *K;
   double *pa_real;
   double *pa_imag;
   double *p_real;
   double *p_imag;
   
   // cascaded biquad buffers
-  double *z;
+  float *z;
 };
 
 #endif

@@ -20,12 +20,12 @@
  */
 
 #include <cmath>
-#include "iir.h"
+#include "iir32.h"
 
 #define IIR_MAX_ORDER 32
 
 // constructor
-IIRLowpass::IIRLowpass(double newSamplerate, double newCutoff, int newOrder)
+IIRLowpass32::IIRLowpass32(double newSamplerate, double newCutoff, int newOrder)
 {
   // initialize filter design parameters
   samplerate = newSamplerate;
@@ -33,16 +33,16 @@ IIRLowpass::IIRLowpass(double newSamplerate, double newCutoff, int newOrder)
   order = newOrder;
 
   // allocate dsp vectors
-  a1 = new double[IIR_MAX_ORDER/2];
-  a2 = new double[IIR_MAX_ORDER/2];
-  K = new double[IIR_MAX_ORDER/2];
+  a1 = new float[IIR_MAX_ORDER/2];
+  a2 = new float[IIR_MAX_ORDER/2];
+  K = new float[IIR_MAX_ORDER/2];
   pa_real = new double[IIR_MAX_ORDER/2];
   pa_imag = new double[IIR_MAX_ORDER/2];
   p_real = new double[IIR_MAX_ORDER/2];
   p_imag = new double[IIR_MAX_ORDER/2];
 
   // allocate cascaded biquad buffer
-  z = new double[IIR_MAX_ORDER];
+  z = new float[IIR_MAX_ORDER];
   
   // initialize cascade delayline
   InitializeBiquadCascade();
@@ -52,7 +52,7 @@ IIRLowpass::IIRLowpass(double newSamplerate, double newCutoff, int newOrder)
 }
 
 // default constructor
-IIRLowpass::IIRLowpass()
+IIRLowpass32::IIRLowpass32()
 {
   // set default design parameters
   samplerate=(double)(44100.0);
@@ -60,16 +60,16 @@ IIRLowpass::IIRLowpass()
   order=IIR_MAX_ORDER;
   
   // allocate dsp vectors
-  a1 = new double[IIR_MAX_ORDER/2];
-  a2 = new double[IIR_MAX_ORDER/2];
-  K = new double[IIR_MAX_ORDER/2];
+  a1 = new float[IIR_MAX_ORDER/2];
+  a2 = new float[IIR_MAX_ORDER/2];
+  K = new float[IIR_MAX_ORDER/2];
   pa_real = new double[IIR_MAX_ORDER/2];
   pa_imag = new double[IIR_MAX_ORDER/2];
   p_real = new double[IIR_MAX_ORDER/2];
   p_imag = new double[IIR_MAX_ORDER/2];
 
   // allocate cascaded biquad buffer
-  z = new double[IIR_MAX_ORDER];
+  z = new float[IIR_MAX_ORDER];
   
   // initialize cascade delayline
   InitializeBiquadCascade();
@@ -79,7 +79,7 @@ IIRLowpass::IIRLowpass()
 }
 
 // destructor
-IIRLowpass::~IIRLowpass(){
+IIRLowpass32::~IIRLowpass32(){
   // free dsp vectors
   delete[] a1;
   delete[] a2;
@@ -93,7 +93,7 @@ IIRLowpass::~IIRLowpass(){
   delete[] z;
 }
 
-void IIRLowpass::SetFilterOrder(int newOrder){
+void IIRLowpass32::SetFilterOrder(int newOrder){
   if(newOrder > IIR_MAX_ORDER){
     order = IIR_MAX_ORDER;
   }
@@ -108,7 +108,7 @@ void IIRLowpass::SetFilterOrder(int newOrder){
   ComputeCoefficients();
 }
 
-void IIRLowpass::SetFilterSamplerate(double newSamplerate){
+void IIRLowpass32::SetFilterSamplerate(double newSamplerate){
   samplerate = newSamplerate;
 
   // initialize cascade delayline
@@ -118,7 +118,7 @@ void IIRLowpass::SetFilterSamplerate(double newSamplerate){
   ComputeCoefficients();
 }
 
-void IIRLowpass::SetFilterCutoff(double newCutoff){
+void IIRLowpass32::SetFilterCutoff(double newCutoff){
   cutoff = newCutoff;
 
   // initialize cascade delayline
@@ -128,16 +128,16 @@ void IIRLowpass::SetFilterCutoff(double newCutoff){
   ComputeCoefficients();
 }
 
-void IIRLowpass::InitializeBiquadCascade(){
+void IIRLowpass32::InitializeBiquadCascade(){
   for(int ii=0; ii<order/2; ii++){
-    z[ii*2+1] = 0.0;
-    z[ii*2] = 0.0;
+    z[ii*2+1] = 0.0f;
+    z[ii*2] = 0.0f;
   }
 }
 
-double IIRLowpass::IIRfilter(double input){
-  double out=input;
-  double in;
+float IIRLowpass32::IIRfilter32(float input){
+  float out=input;
+  float in;
 
   // process biquad cascade
   for(int ii=0; ii<order/2; ii++) {
@@ -145,7 +145,7 @@ double IIRLowpass::IIRfilter(double input){
     in = K[ii]*out - a1[ii]*z[ii*2] - a2[ii]*z[ii*2+1];
       
     // compute biquad output
-    out = in + 2.0*z[ii*2] + z[ii*2+1];
+    out = in + 2.0f*z[ii*2] + z[ii*2+1];
     
     // update delays
     z[ii*2+1] = z[ii*2];
@@ -155,19 +155,19 @@ double IIRLowpass::IIRfilter(double input){
   return out;
 }
 
-double* IIRLowpass::GetFilterCoeffA1(){
+float* IIRLowpass32::GetFilterCoeffA1(){
   return a1;
 }
 
-double* IIRLowpass::GetFilterCoeffA2(){
+float* IIRLowpass32::GetFilterCoeffA2(){
   return a2;
 }
 
-double* IIRLowpass::GetFilterCoeffK(){
+float* IIRLowpass32::GetFilterCoeffK(){
   return K;
 }
 
-void IIRLowpass::ComputeCoefficients(){
+void IIRLowpass32::ComputeCoefficients(){
   // place butterworth style analog filter poles
   double theta;
 
@@ -202,9 +202,9 @@ void IIRLowpass::ComputeCoefficients(){
   
   // compute cascade coefficients
   for(int ii = 0; ii<order/2; ii++) {
-    a1[ii] = -2.0*p_real[ii];
-    a2[ii] = p_real[ii]*p_real[ii] + p_imag[ii]*p_imag[ii];
-    K[ii] = (1.0 + a1[ii] + a2[ii])/4.0;
+    a1[ii] = (float)(-2.0*p_real[ii]);
+    a2[ii] = (float)(p_real[ii]*p_real[ii] + p_imag[ii]*p_imag[ii]);
+    K[ii] = (float)((1.0 + a1[ii] + a2[ii])/4.0);
   }
 }
 

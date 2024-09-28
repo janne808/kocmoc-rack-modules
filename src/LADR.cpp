@@ -1,5 +1,5 @@
 /*
- *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2024 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -120,8 +120,12 @@ struct LADR : Module {
       ladder[ii].SetFilterMode(filterMode);
     
       // tick filter state
+#ifdef FLOATDSP
       ladder[ii].LadderFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
-    
+#else
+      ladder[ii].LadderFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
+#endif
+      
       // set output
       outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 3.0), ii);
     }

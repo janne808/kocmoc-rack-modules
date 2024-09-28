@@ -1,5 +1,5 @@
 /*
- *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2024 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -22,7 +22,11 @@
 #ifndef __dspskfh__
 #define __dspskfh__
 
+#ifdef FLOATDSP
+#include "iir32.h"
+#else
 #include "iir.h"
+#endif
 
 // filter modes
 enum SKFilterMode {
@@ -66,16 +70,24 @@ public:
   int GetFilterDecimatorOrder();
   
   // tick filter state
+#ifdef FLOATDSP
+  void filter(float input);
+#else
   void filter(double input);
-
+#endif
+  
   // set filter inputs
   void SetFilterLowpassInput(double input);
   void SetFilterBandpassInput(double input);
   void SetFilterHighpassInput(double input);
 
   // get filter output
+#ifdef FLOATDSP
+  float GetFilterOutput();
+#else
   double GetFilterOutput();
-
+#endif
+  
   // reset state
   void ResetFilterState();
   
@@ -94,22 +106,44 @@ private:
   int decimatorOrder;
   
   // filter state
+#ifdef FLOATDSP
+  float p0;
+  float p1;
+#else
   double p0;
   double p1;
-
+#endif
+  
   // filter input
+#ifdef FLOATDSP
+  float input_lp;
+  float input_bp;
+  float input_hp;
+  float input_lp_t1;
+  float input_bp_t1;
+  float input_hp_t1;
+#else
   double input_lp;
   double input_bp;
   double input_hp;
   double input_lp_t1;
   double input_bp_t1;
   double input_hp_t1;
+#endif
   
   // filter output
+#ifdef FLOATDSP
+  float out;
+#else
   double out;
-
+#endif
+  
   // IIR downsampling filter
+#ifdef FLOATDSP
+  IIRLowpass32 *iir;
+#else
   IIRLowpass *iir;
+#endif
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
- *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2024 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -22,7 +22,11 @@
 #ifndef __dspsvfh__
 #define __dspsvfh__
 
+#ifdef FLOATDSP
+#include "iir32.h"
+#else
 #include "iir.h"
+#endif
 
 // filter modes
 enum SVFFilterMode {
@@ -67,16 +71,24 @@ public:
   int GetFilterDecimatorOrder();
   
   // tick filter state
+#ifdef FLOATDSP
+  void filter(float input);
+#else
   void filter(double input);
-
+#endif
+  
   // get filter responses
   double GetFilterLowpass();
   double GetFilterBandpass();
   double GetFilterHighpass();
 
   // get filter output
+#ifdef FLOATDSP
+  float GetFilterOutput();
+#else
   double GetFilterOutput();
-
+#endif
+  
   // reset state
   void ResetFilterState();
   
@@ -96,16 +108,31 @@ private:
   int decimatorOrder;
   
   // filter state
+#ifdef FLOATDSP
+  float lp;
+  float bp;
+  float hp;
+  float u_t1;
+#else
   double lp;
   double bp;
   double hp;
   double u_t1;
+#endif
   
   // filter output
+#ifdef FLOATDSP
+  float out;
+#else
   double out;
-
+#endif
+  
   // IIR downsampling filter
+#ifdef FLOATDSP
+  IIRLowpass32 *iir;
+#else
   IIRLowpass *iir;
+#endif
 };
 
 #endif

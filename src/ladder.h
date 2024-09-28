@@ -1,5 +1,5 @@
 /*
- *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2024 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -22,7 +22,11 @@
 #ifndef __dspladderh__
 #define __dspladderh__
 
+#ifdef FLOATDSP
+#include "iir32.h"
+#else
 #include "iir.h"
+#endif
 
 // filter modes
 enum LadderFilterMode {
@@ -67,16 +71,24 @@ public:
   int GetFilterDecimatorOrder();
   
   // tick filter state
+#ifdef FLOATDSP
+  void LadderFilter(float input);
+#else
   void LadderFilter(double input);
-
+#endif
+  
   // get filter responses
   double GetFilterLowpass();
   double GetFilterBandpass();
   double GetFilterHighpass();
 
   // get filter output
+#ifdef FLOATDSP
+  float GetFilterOutput();
+#else
   double GetFilterOutput();
-
+#endif
+  
   // reset state
   void ResetFilterState();
 
@@ -95,14 +107,27 @@ private:
   int decimatorOrder;
   
   // filter state
+#ifdef FLOATDSP
+  float p0, p1, p2, p3;
+  float ut_1;
+#else
   double p0, p1, p2, p3;
   double ut_1;
+#endif
   
   // filter output
+#ifdef FLOATDSP
+  float out;
+#else
   double out;
-
+#endif
+  
   // IIR downsampling filter
+#ifdef FLOATDSP
+  IIRLowpass32 *iir;
+#else
   IIRLowpass *iir;
+#endif
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
- *  (C) 2021 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2024 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -123,8 +123,12 @@ struct SVF_1 : Module {
       svf[ii].SetFilterMode((SVFFilterMode)(params[MODE_PARAM].getValue()));
     
       // tick filter state
+#ifdef FLOATDSP
+      svf[ii].filter((float)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
+#else
       svf[ii].filter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
-
+#endif
+      
       // set output
       outputs[OUTPUT_OUTPUT].setVoltage((float)(svf[ii].GetFilterOutput() * gainComp), ii);
     }
