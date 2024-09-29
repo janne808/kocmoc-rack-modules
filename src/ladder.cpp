@@ -214,7 +214,7 @@ void Ladder::LadderFilter(float input){
   float noise;
 
   // feedback amount
-  float fb = 8.0 * Resonance;
+  float fb = 8.0f * Resonance;
 
   // integration rate
   float dt2 = dt;

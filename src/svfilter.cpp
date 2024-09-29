@@ -306,8 +306,8 @@ void SVFilter::filter(float input){
 	float alpha = dt2 / 2.0f;
 	float beta = 1.0f - (0.0075f / oversamplingFactor);
 	float alpha2 = dt2 * dt2 / 4.0f + fb * alpha;
-	float D_t = (1.0 - dt2 * dt2 / 4.0) * bp +
-	              alpha * (u_t1 + input - 2.0 * lp - fb * bp - sinh(bp));
+	float D_t = (1.0f - dt2 * dt2 / 4.0f) * bp +
+	              alpha * (u_t1 + input - 2.0f * lp - fb * bp - sinh(bp));
 	float y_k, y_k2;
 
 	// starting point is last output
@@ -315,8 +315,8 @@ void SVFilter::filter(float input){
 	
 	// newton-raphson
 	for(int ii=0; ii < SVF_MAX_NEWTON_STEPS; ii++) {
-	  y_k2 = y_k - (alpha * y_k + FloatASinhPade54(y_k) * (1.0 + alpha2) - D_t)/
-	                  (alpha + (1.0 + alpha2) * FloatdASinhPade54(y_k));
+	  y_k2 = y_k - (alpha * y_k + FloatASinhPade54(y_k) * (1.0f + alpha2) - D_t)/
+	                  (alpha + (1.0f + alpha2) * FloatdASinhPade54(y_k));
 
 #ifdef SVF_NEWTON_BREAKING_LIMIT
 	  // breaking limit
