@@ -234,10 +234,10 @@ void Ladder::LadderFilter(float input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + dt2 * (FloatTanhPade23(input - fb * p3) - FloatTanhPade23(p0));
-	p1 = p1 + dt2 * (FloatTanhPade23(p0) - FloatTanhPade23(p1));
-	p2 = p2 + dt2 * (FloatTanhPade23(p1) - FloatTanhPade23(p2));
-	p3 = p3 + dt2 * (FloatTanhPade23(p2) - FloatTanhPade23(p3));
+	p0 = p0 + dt2 * (FloatTanhPade45(input - fb * p3) - FloatTanhPade45(p0));
+	p1 = p1 + dt2 * (FloatTanhPade45(p0) - FloatTanhPade45(p1));
+	p2 = p2 + dt2 * (FloatTanhPade45(p1) - FloatTanhPade45(p2));
+	p3 = p3 + dt2 * (FloatTanhPade45(p2) - FloatTanhPade45(p3));
       }
       break;
       
@@ -248,17 +248,17 @@ void Ladder::LadderFilter(float input){
 	float p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt2 * (FloatTanhPade23(ut_1 - fb * p3) - FloatTanhPade23(p0));
-	p1_prime = p1 + dt2 * (FloatTanhPade23(p0) - FloatTanhPade23(p1));
-	p2_prime = p2 + dt2 * (FloatTanhPade23(p1) - FloatTanhPade23(p2));
-	p3_prime = p3 + dt2 * (FloatTanhPade23(p2) - FloatTanhPade23(p3));
+	p0_prime = p0 + dt2 * (FloatTanhPade45(ut_1 - fb * p3) - FloatTanhPade45(p0));
+	p1_prime = p1 + dt2 * (FloatTanhPade45(p0) - FloatTanhPade45(p1));
+	p2_prime = p2 + dt2 * (FloatTanhPade45(p1) - FloatTanhPade45(p2));
+	p3_prime = p3 + dt2 * (FloatTanhPade45(p2) - FloatTanhPade45(p3));
 
 	// corrector
 	p3t_1 = p3;
-	p3 = p3 + 0.5f * dt2 * ((FloatTanhPade23(p2) - FloatTanhPade23(p3)) + (FloatTanhPade23(p2_prime) - FloatTanhPade23(p3_prime)));
-	p2 = p2 + 0.5f * dt2 * ((FloatTanhPade23(p1) - FloatTanhPade23(p2)) + (FloatTanhPade23(p1_prime) - FloatTanhPade23(p2_prime)));
-	p1 = p1 + 0.5f * dt2 * ((FloatTanhPade23(p0) - FloatTanhPade23(p1)) + (FloatTanhPade23(p0_prime) - FloatTanhPade23(p1_prime)));
-	p0 = p0 + 0.5f * dt2 * ((FloatTanhPade23(ut_1 - fb * p3t_1) - FloatTanhPade23(p0)) + (FloatTanhPade23(input - fb * p3) - FloatTanhPade23(p0_prime)));
+	p3 = p3 + 0.5f * dt2 * ((FloatTanhPade45(p2) - FloatTanhPade45(p3)) + (FloatTanhPade45(p2_prime) - FloatTanhPade45(p3_prime)));
+	p2 = p2 + 0.5f * dt2 * ((FloatTanhPade45(p1) - FloatTanhPade45(p2)) + (FloatTanhPade45(p1_prime) - FloatTanhPade45(p2_prime)));
+	p1 = p1 + 0.5f * dt2 * ((FloatTanhPade45(p0) - FloatTanhPade45(p1)) + (FloatTanhPade45(p0_prime) - FloatTanhPade45(p1_prime)));
+	p0 = p0 + 0.5f * dt2 * ((FloatTanhPade45(ut_1 - fb * p3t_1) - FloatTanhPade45(p0)) + (FloatTanhPade45(input - fb * p3) - FloatTanhPade45(p0_prime)));
       }
       break;
       
@@ -269,7 +269,7 @@ void Ladder::LadderFilter(float input){
 	float p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt2 * (FloatTanhPade23(ut_1 - fb * p3) - p0);
+	p0_prime = p0 + dt2 * (FloatTanhPade45(ut_1 - fb * p3) - p0);
 	p1_prime = p1 + dt2 * (p0 - p1);
 	p2_prime = p2 + dt2 * (p1 - p2);
 	p3_prime = p3 + dt2 * (p2 - p3);
@@ -279,8 +279,8 @@ void Ladder::LadderFilter(float input){
 	p3 = p3 + 0.5f * dt2 * ((p2 - p3) + (p2_prime - p3_prime));
 	p2 = p2 + 0.5f * dt2 * ((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5f * dt2 * ((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5f * dt2 * ((FloatTanhPade23(ut_1 - fb * p3t_1) - p0) +
-			          (FloatTanhPade23(input - fb * p3) - p0_prime));
+	p0 = p0 + 0.5f * dt2 * ((FloatTanhPade45(ut_1 - fb * p3t_1) - p0) +
+			          (FloatTanhPade45(input - fb * p3) - p0_prime));
       }
       break;
       
