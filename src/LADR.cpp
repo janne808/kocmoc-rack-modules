@@ -121,7 +121,7 @@ struct LADR : Module {
     
       // tick filter state
 #ifdef FLOATDSP
-      ladder[ii].LadderFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
+      ladder[ii].LadderFilter((float)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
 #else
       ladder[ii].LadderFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
 #endif
