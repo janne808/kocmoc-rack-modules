@@ -44,7 +44,7 @@ inline double SinhPade34(double x) {
 // pade 5/4 approximant for sinh
 inline float FloatSinhPade54(float x) {
   // return approximant
-  return (x * (x * x * (551.0f * x * x + 22260.0f) + 166320.0f)) / (15.0f * (x * x *(5.0f * x *x - 364.0f) + 11088.0f));
+  return (x * (x * x * (551.0f * x * x + 22260.0f) + 166320.0f)) / (15.0f * (x * x * (5.0f * x * x - 364.0f) + 11088.0f));
 }
 
 // pade 5/4 approximant for sinh
@@ -74,7 +74,7 @@ inline double CoshPade34(double x) {
 // pade 5/4 approximant for cosh
 inline float FloatCoshPade54(float x) {
   // return approximant
-  return (x * x* (313.0f * x * x + 6900.0f) + 15120.0f) /
+  return (x * x * (313.0f * x * x + 6900.0f) + 15120.0f) /
            (x * x * (13.0f * x * x - 660.0f) + 15120.0f);
 }
 
