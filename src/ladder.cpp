@@ -64,9 +64,9 @@ Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
   
   // instantiate downsampling filter
 #ifdef FLOATDSP
-  iir = new IIRLowpass32(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, decimatorOrder);
+  iir = new IIRLowpass32(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0, decimatorOrder);
 #else
-  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, decimatorOrder);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0, decimatorOrder);
 #endif
 }
 
@@ -89,9 +89,9 @@ Ladder::Ladder(){
   
   // instantiate downsampling filter
 #ifdef FLOATDSP
-  iir = new IIRLowpass32(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, decimatorOrder);
+  iir = new IIRLowpass32(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0, decimatorOrder);
 #else
-  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0, decimatorOrder);
+  iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0, decimatorOrder);
 #endif
 }
 
@@ -112,7 +112,7 @@ void Ladder::ResetFilterState(){
   
   // set oversampling
   iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
-  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0);
   iir->SetFilterOrder(decimatorOrder);  
 }
 
@@ -133,7 +133,7 @@ void Ladder::SetFilterMode(LadderFilterMode newFilterMode){
 void Ladder::SetFilterSampleRate(double newSampleRate){
   sampleRate = newSampleRate;
   iir->SetFilterSamplerate(sampleRate * (double)(oversamplingFactor));
-  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate / 2.0);
   iir->SetFilterOrder(decimatorOrder);
 
   SetFilterIntegrationRate();
@@ -146,7 +146,7 @@ void Ladder::SetFilterIntegrationMethod(LadderIntegrationMethod method){
 void Ladder::SetFilterOversamplingFactor(int newOversamplingFactor){
   oversamplingFactor = newOversamplingFactor;
   iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
-  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH*sampleRate/2.0);
+  iir->SetFilterCutoff(IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0);
   iir->SetFilterOrder(decimatorOrder);
 
   SetFilterIntegrationRate();
@@ -368,7 +368,7 @@ void Ladder::LadderFilter(double input){
   double noise;
 
   // feedback amount
-  double fb = 8.0*Resonance;
+  double fb = 8.0 * Resonance;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
