@@ -29,6 +29,7 @@ void init(Plugin* p) {
 	// Add modules here
 	// p->addModel(modelMyModule);
 	p->addModel(modelSVF_1);
+	p->addModel(modeluSVF);
 	p->addModel(modelTRG);
 	p->addModel(modelLADR);
 	p->addModel(modelOP);

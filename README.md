@@ -10,6 +10,10 @@ All rights reserved.
 
   Classic "Chamberlin" state variable filter with dynamic diode anti-saturation and implicit (zero-delay) state integration. Features user selectable oversampling factor and IIR/FIR antialiasing filter.
 
+* $\mu$SVF
+
+  Fast optimized version of the SVF module featuring explicit state integration and tanh-style soft saturation.
+
 * LADR
 
   Classic transistor ladder filter module with user selectable state integration. Features user selectable oversampling factor and IIR/FIR antialiasing filter.
