@@ -56,6 +56,9 @@ struct uSVF : Module {
 
   // filter state
   float hp[16], bp[16], lp[16];
+
+  // system samplerate
+  float sampleRate;
   
   uSVF() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -70,6 +73,14 @@ struct uSVF : Module {
     configInput(INPUT_INPUT, "Audio");
     configOutput(OUTPUT_OUTPUT, "Filter");
     configBypass(INPUT_INPUT, OUTPUT_OUTPUT);
+
+    // get system samplerate
+    sampleRate = APP->engine->getSampleRate();    
+    
+    // reset filter state
+    for(int ii=0; ii < 16; ii++) {
+      hp[ii] = bp[ii] = lp[ii] = 0.f;
+    }
   }
 
   void process(const ProcessArgs& args) override {
@@ -134,12 +145,14 @@ struct uSVF : Module {
       // with semi-implicit euler integration
       input = 0.5f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
       
-      dt = 44100.f / (APP->engine->getSampleRate() * 2.f) * channelCutoff;
+      dt = 44100.f / (sampleRate * 2.f) * channelCutoff;
 
       // clamp integration rate
       if(dt > 1.25f)
-	dt=1.25f;
-
+	dt = 1.25f;
+      else if(dt < 0.f)
+	dt = 0.f;
+      
       // integrate with pseudo oversampling
       for(int jj=0; jj < 2; jj++) {
 	hp[ii] = input - lp[ii] - fb * bp[ii];
@@ -170,13 +183,31 @@ struct uSVF : Module {
     outputs[OUTPUT_OUTPUT].setChannels(channels);    
   }
 
+  void onSampleRateChange() override {
+    // new system samplerate
+    sampleRate = APP->engine->getSampleRate();
+    
+    // reset filter state
+    for(int ii = 0; ii < 16; ii++){    
+      hp[ii] = bp[ii] = lp[ii] = 0.f;
+    }
+  }
+
   void onReset() override {
+    // get system samplerate
+    sampleRate = APP->engine->getSampleRate();
+    
+    // reset filter state
     for(int ii=0; ii < 16; ii++) {
       hp[ii] = bp[ii] = lp[ii] = 0.f;
     }
   }
 
   void onAdd() override {
+    // get system samplerate
+    sampleRate = APP->engine->getSampleRate();
+    
+    // reset filter state
     for(int ii=0; ii < 16; ii++) {
       hp[ii] = bp[ii] = lp[ii] = 0.f;
     }
