@@ -110,6 +110,7 @@ struct DDLY : Module {
     // init crossfade state
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
+    fade_value = 0;
 
     // init clock detector
     last_clk = 0.f;
