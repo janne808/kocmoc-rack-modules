@@ -12,7 +12,7 @@ All rights reserved.
 
 * $\mu$SVF
 
-  Fast optimized version of the SVF module featuring explicit state integration and tanh-style soft saturation.
+  Fast optimized version of the SVF module featuring explicit state integration and Tanh function saturation.
 
 * LADR
 
