@@ -110,7 +110,7 @@ struct DDLY : Module {
     // init crossfade state
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
-    fade_value = 0;
+    fade_value = 0.f;
 
     // init clock detector
     last_clk = 0.f;
@@ -147,7 +147,7 @@ struct DDLY : Module {
 
     // sum in time modulation control voltage
     // note that time is a float normalized to buffer length
-    time += time_cv_atten*(time_cv/5.f);
+    time += time_cv_atten * (time_cv / 5.f);
 
     // clip time value
     if(time > 0.9985f){
@@ -158,7 +158,7 @@ struct DDLY : Module {
     }
     
     // sum in feedback modulation control voltage
-    feedback += fb_cv_atten*(fb_cv/5.f);
+    feedback += fb_cv_atten * (fb_cv / 5.f);
 
     // clip feedback value
     if(feedback < -1.f){
@@ -199,15 +199,15 @@ struct DDLY : Module {
 
 	// tighten clock divisions
 	if(time < 0.5f){
-	  ratio = div_table[static_cast <int> (15.f*time)];
-	  ratio = ratio*ratio;
+	  ratio = div_table[static_cast <int> (15.f * time)];
+	  ratio = ratio * ratio;
 	}
 	else{
-	  ratio = div_table[static_cast <int> (15.f*time)];
+	  ratio = div_table[static_cast <int> (15.f * time)];
 	}
 	
-	clk_time = (static_cast <float> (clk_period))/(static_cast <float> (sampleRate));
-	time = ratio*clk_time/(static_cast <float> (DDLY_MAX_DELAY_TIME));
+	clk_time = (static_cast <float> (clk_period)) / (static_cast <float> (sampleRate));
+	time = ratio * clk_time / (static_cast <float> (DDLY_MAX_DELAY_TIME));
 	
 	// clip time value
 	if(time > 0.9985f){
@@ -216,7 +216,7 @@ struct DDLY : Module {
     
 	// add hysteresis threshold to time parameter value
 	// for noisy real world cv input
-	if(abs(time-time2) > DDLY_CLK_TIME_THRESHOLD){
+	if(abs(time - time2) > DDLY_CLK_TIME_THRESHOLD){
 	  time2 = time;
 	  
 	  // trigger crossfade
@@ -242,20 +242,20 @@ struct DDLY : Module {
 	
 	// add hysteresis threshold to time parameter value
 	// for noisy real world cv input
-	if(abs(time-time2) > DDLY_TIME_THRESHOLD){
+	if(abs(time - time2) > DDLY_TIME_THRESHOLD){
 	  time2 = time;
 	
 	  // trigger crossfade
 	  if(fade_state){
 	    fade_state = 0;
-	    fade0_time = time2*time2*time2;
+	    fade0_time = time2 * time2 * time2;
 	    if(fade0_time < 0.0004f){
 	      fade0_time = 0.0004f;
 	    }
 	  }
 	  else{
 	    fade_state = 1;
-	    fade1_time = time2*time2*time2;	
+	    fade1_time = time2 * time2 * time2;	
 	    if(fade1_time < 0.0004f){
 	      fade1_time = 0.0004f;
 	    }
@@ -273,20 +273,20 @@ struct DDLY : Module {
 	
       // add hysteresis threshold to time parameter value
       // for noisy real world cv input
-      if(abs(time-time2) > DDLY_TIME_THRESHOLD){
+      if(abs(time - time2) > DDLY_TIME_THRESHOLD){
 	time2 = time;
 
 	// trigger crossfade
 	if(fade_state){
 	  fade_state = 0;
-	  fade0_time = time2*time2*time2;
+	  fade0_time = time2 * time2 * time2;
 	  if(fade0_time < 0.0004f){
 	    fade0_time = 0.0004f;
 	  }
 	}
 	else{
 	  fade_state = 1;
-	  fade1_time = time2*time2*time2;	
+	  fade1_time = time2 * time2 * time2;	
 	  if(fade1_time < 0.0004f){
 	    fade1_time = 0.0004f;
 	  }
@@ -309,7 +309,7 @@ struct DDLY : Module {
     }
       
     // read delayed signal
-    delay = (1.f - fade_value)*readDelay(fade0_time) + fade_value*readDelay(fade1_time);
+    delay = (1.f - fade_value) * readDelay(fade0_time) + fade_value * readDelay(fade1_time);
 
     // update buffer
     // with dc blocking highpass filter
@@ -317,14 +317,14 @@ struct DDLY : Module {
       writeDelay(ret);    
     }
     else{
-      writeDelay(input + feedback*delay);    
+      writeDelay(input + feedback * delay);    
     }
     
     // set send output
-    outputs[SEND_OUTPUT].setVoltage(input + feedback*delay);
+    outputs[SEND_OUTPUT].setVoltage(input + feedback * delay);
 
     // set output
-    outputs[OUTPUT_OUTPUT].setVoltage((1.f - drywet)*input + drywet*delay);
+    outputs[OUTPUT_OUTPUT].setVoltage((1.f - drywet) * input + drywet * delay);
     
     // save last clk value for edge detection
     last_clk = clk;
@@ -334,7 +334,7 @@ struct DDLY : Module {
     int readPointer, readPointer2;
     float frac;
     
-    readPointer = writePointer - (int)(time*bufferLength);
+    readPointer = writePointer - (int)(time * bufferLength);
     
     if(readPointer < 0){
       readPointer += bufferLength;
@@ -347,8 +347,8 @@ struct DDLY : Module {
     }
 
     // simple fractional linear interpolation
-    frac = (float)(time*bufferLength) - (float)((int)(time*bufferLength));
-    return (1.f - frac)*ringBuffer[readPointer] + (frac)*ringBuffer[readPointer2];
+    frac = (float)(time * bufferLength) - (float)((int)(time * bufferLength));
+    return (1.f - frac) * ringBuffer[readPointer] + (frac) * ringBuffer[readPointer2];
   }
 
   void writeDelay(float input){
@@ -359,7 +359,7 @@ struct DDLY : Module {
 
       // dc blocking filter for write head
       float hp_input = input;
-      hp += 0.00005f*(hp_input - hp);
+      hp += 0.00005f * (hp_input - hp);
       input = hp - hp_input;
       
       ringBuffer[writePointer] = input;
@@ -374,7 +374,7 @@ struct DDLY : Module {
     sampleRate = APP->engine->getSampleRate();
     
     // init ringbuffer
-    bufferLength = DDLY_MAX_DELAY_TIME*sampleRate;
+    bufferLength = DDLY_MAX_DELAY_TIME * sampleRate;
     writePointer = 0;
     ringBuffer = new float[bufferLength];
 
@@ -395,7 +395,7 @@ struct DDLY : Module {
     sampleRate = APP->engine->getSampleRate();
     
     // init ringbuffer
-    bufferLength = DDLY_MAX_DELAY_TIME*sampleRate;
+    bufferLength = DDLY_MAX_DELAY_TIME * sampleRate;
     writePointer = 0;
     ringBuffer = new float[bufferLength];
 
@@ -406,7 +406,8 @@ struct DDLY : Module {
     // init crossfade state
     fade_state = 0;
     fade0_time = fade1_time = 0.f;
-
+    fade_value = 0.f;
+    
     // init highpass filters
     hp = 0.f;
   }
@@ -420,7 +421,7 @@ struct DDLY : Module {
     sampleRate = APP->engine->getSampleRate();
     
     // init ringbuffer
-    bufferLength = DDLY_MAX_DELAY_TIME*sampleRate;
+    bufferLength = DDLY_MAX_DELAY_TIME * sampleRate;
     writePointer = 0;
     ringBuffer = new float[bufferLength];
 
