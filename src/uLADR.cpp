@@ -133,16 +133,16 @@ struct uLADR : Module {
       // with semi-implicit euler integration
       input = 0.5f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
       
-      dt = 44100.f / (sampleRate * 4.f) * channelCutoff;
+      dt = 44100.f / (sampleRate * 5.f) * channelCutoff;
 
       // clamp integration rate
-      if(dt > 0.65f)
-	dt = 0.65f;
+      if(dt > 0.35f)
+	dt = 0.35f;
       else if(dt < 0.f)
 	dt = 0.f;
       
       // integrate with pseudo oversampling
-      for(int jj=0; jj < 4; jj++) {
+      for(int jj=0; jj < 5; jj++) {
 	p0[ii] += dt * (FloatTanhPade23(input - fb * p3[ii]) - p0[ii]);
 	p1[ii] += dt * (p0[ii] - p1[ii]);
 	p2[ii] += dt * (p1[ii] - p2[ii]);
