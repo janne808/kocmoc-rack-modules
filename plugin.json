@@ -49,6 +49,15 @@
       ]
     },
     {
+      "slug": "uLADR",
+      "name": "uLADR",
+      "description": "4-pole Ladder Filter",
+      "tags": [
+        "Filter",
+	"Polyphonic"
+      ]
+    },
+    {
       "slug": "OP",
       "name": "OP",
       "description": "Phase-modulation operator",

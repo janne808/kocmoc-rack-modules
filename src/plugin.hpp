@@ -33,6 +33,7 @@ extern Model* modelSVF_1;
 extern Model* modeluSVF;
 extern Model* modelTRG;
 extern Model* modelLADR;
+extern Model* modeluLADR;
 extern Model* modelOP;
 extern Model* modelPHASR;
 extern Model* modelMUL;
