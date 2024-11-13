@@ -18,6 +18,10 @@ All rights reserved.
 
   Classic transistor ladder filter module with user selectable state integration. Features user selectable oversampling factor and IIR/FIR antialiasing filter.
 
+* μLADR
+
+  Fast optimized version of the LADR module.
+
 * SKF
 
   Classic Sallen-Key filter with dynamic diode anti-saturation and implicit (zero-delay) state integration. Features user selectable oversampling factor and IIR/FIR antialiasing filter.
