@@ -131,7 +131,7 @@ struct uLADR : Module {
       
       // tick filter state
       // with semi-implicit euler integration
-      input = 0.5f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
+      input = 0.8f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
       
       dt = 44100.f / (sampleRate * 5.f) * channelCutoff;
 
