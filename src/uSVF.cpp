@@ -143,7 +143,7 @@ struct uSVF : Module {
       
       // tick filter state
       // with semi-implicit euler integration
-      input = 0.5f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
+      input = 0.85f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
       
       dt = 44100.f / (sampleRate * 2.f) * channelCutoff;
 
