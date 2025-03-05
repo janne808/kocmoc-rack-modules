@@ -1,6 +1,6 @@
 # Kocmoc Rack Modules
 
-Copyright (c) 2024 Janne Heikkarainen (janne808@radiofreerobotron.net)
+Copyright (c) 2025 Janne Heikkarainen (janne808@radiofreerobotron.net)
 
 All rights reserved.
 
