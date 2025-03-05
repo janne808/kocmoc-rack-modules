@@ -1,5 +1,5 @@
 /*
- *  (C) 2024 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2025 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -33,6 +33,7 @@ void init(Plugin* p) {
 	p->addModel(modelTRG);
  	p->addModel(modelLADR);
  	p->addModel(modeluLADR);
+ 	p->addModel(modelDIOD);
 	p->addModel(modelOP);
 	p->addModel(modelPHASR);
 	p->addModel(modelMUL);

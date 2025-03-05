@@ -20,9 +20,9 @@
  */
 
 #include "plugin.hpp"
-#include "ladder.h"
+#include "diode.h"
 
-struct LADR : Module {
+struct DIOD : Module {
   enum ParamIds {
      FREQ_PARAM,
      RESO_PARAM,
@@ -49,17 +49,17 @@ struct LADR : Module {
   int _oversampling = 2;
   int _decimatorOrder = 16;
   
-  LadderIntegrationMethod _integrationMethod = LADDER_PREDICTOR_CORRECTOR_FULL_TANH;
+  DiodeIntegrationMethod _integrationMethod = DIODE_PREDICTOR_CORRECTOR_FULL_TANH;
   
   // create ladder class instances
-  Ladder ladder[16];
+  Diode diode[16];
   
-  LADR() {
+  DIOD() {
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(FREQ_PARAM, 0.f, 1.f, 0.5f, "Cutoff frequency");
     configParam(RESO_PARAM, 0.f, 1.f, 0.f, "Resonance");
     configParam(GAIN_PARAM, 0.f, 1.f, 0.5f, "Gain");
-    configSwitch(MODE_PARAM, 0.f, 2.f, 0.f, "Mode", {"Lowpass", "Bandpass", "Highpass"});
+    configSwitch(MODE_PARAM, 0.f, 1.f, 0.f, "Mode", {"Lowpass4", "Lowpass2"});
     configParam(LINCV_ATTEN_PARAM, -1.f, 1.f, 0.f, "CV Amount");
     configParam(EXPCV_ATTEN_PARAM, -1.f, 1.f, 0.f, "CV Amount");
     configInput(LINCV_INPUT, "Linear CV");
@@ -84,7 +84,7 @@ struct LADR : Module {
     float gain = params[GAIN_PARAM].getValue();
     float lincv_atten = params[LINCV_ATTEN_PARAM].getValue();
     float expcv_atten = params[EXPCV_ATTEN_PARAM].getValue();
-    LadderFilterMode filterMode;
+    DiodeFilterMode filterMode;
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
@@ -93,7 +93,7 @@ struct LADR : Module {
     expcv_atten *= expcv_atten*expcv_atten;
     
     // filter mode
-    filterMode = (LadderFilterMode)(params[MODE_PARAM].getValue());
+    filterMode = (DiodeFilterMode)(params[MODE_PARAM].getValue());
     
     for(int ii = 0; ii < channels; ii++){    
       float channelCutoff = cutoff;
@@ -115,19 +115,19 @@ struct LADR : Module {
       }
       
       // set filter parameters
-      ladder[ii].SetFilterCutoff((double)(channelCutoff));
-      ladder[ii].SetFilterResonance((double)(reso));
-      ladder[ii].SetFilterMode(filterMode);
+      diode[ii].SetFilterCutoff((double)(channelCutoff));
+      diode[ii].SetFilterResonance((double)(reso));
+      diode[ii].SetFilterMode(filterMode);
     
       // tick filter state
 #ifdef FLOATDSP
-      ladder[ii].LadderFilter((float)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
+      diode[ii].DiodeFilter((float)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
 #else
-      ladder[ii].LadderFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
+      diode[ii].DiodeFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
 #endif
       
       // set output
-      outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 3.0), ii);
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(diode[ii].GetFilterOutput() * 8.0), ii);
     }
     
     // set output to be polyphonic
@@ -138,7 +138,7 @@ struct LADR : Module {
     float sr = APP->engine->getSampleRate();
     
     for(int ii = 0; ii < 16; ii++){    
-      ladder[ii].SetFilterSampleRate(sr);
+      diode[ii].SetFilterSampleRate(sr);
     }
   }
 
@@ -146,14 +146,14 @@ struct LADR : Module {
     float sr = APP->engine->getSampleRate();
     
     for(int ii = 0; ii < 16; ii++){    
-      ladder[ii].ResetFilterState();
-      ladder[ii].SetFilterCutoff((double)(0.25));
-      ladder[ii].SetFilterResonance((double)(0.0));
-      ladder[ii].SetFilterMode(LADDER_LOWPASS_MODE);
-      ladder[ii].SetFilterSampleRate(sr);
-      ladder[ii].SetFilterIntegrationMethod(_integrationMethod);
-      ladder[ii].SetFilterOversamplingFactor(_oversampling);
-      ladder[ii].SetFilterDecimatorOrder(_decimatorOrder);
+      diode[ii].ResetFilterState();
+      diode[ii].SetFilterCutoff((double)(0.25));
+      diode[ii].SetFilterResonance((double)(0.0));
+      diode[ii].SetFilterMode(DIODE_LOWPASS4_MODE);
+      diode[ii].SetFilterSampleRate(sr);
+      diode[ii].SetFilterIntegrationMethod(_integrationMethod);
+      diode[ii].SetFilterOversamplingFactor(_oversampling);
+      diode[ii].SetFilterDecimatorOrder(_decimatorOrder);
     }
   }
 
@@ -161,14 +161,14 @@ struct LADR : Module {
     float sr = APP->engine->getSampleRate();
     
     for(int ii = 0; ii < 16; ii++){
-      ladder[ii].ResetFilterState();
-      ladder[ii].SetFilterCutoff((double)(0.25));
-      ladder[ii].SetFilterResonance((double)(0.0));
-      ladder[ii].SetFilterMode(LADDER_LOWPASS_MODE);
-      ladder[ii].SetFilterSampleRate(sr);
-      ladder[ii].SetFilterIntegrationMethod(_integrationMethod);
-      ladder[ii].SetFilterOversamplingFactor(_oversampling);
-      ladder[ii].SetFilterDecimatorOrder(_decimatorOrder);
+      diode[ii].ResetFilterState();
+      diode[ii].SetFilterCutoff((double)(0.25));
+      diode[ii].SetFilterResonance((double)(0.0));
+      diode[ii].SetFilterMode(DIODE_LOWPASS4_MODE);
+      diode[ii].SetFilterSampleRate(sr);
+      diode[ii].SetFilterIntegrationMethod(_integrationMethod);
+      diode[ii].SetFilterOversamplingFactor(_oversampling);
+      diode[ii].SetFilterDecimatorOrder(_decimatorOrder);
     }
   }
 
@@ -184,12 +184,12 @@ struct LADR : Module {
 
   void dataFromJson(json_t* rootJ) override {
     json_t* integrationMethodJ = json_object_get(rootJ, "integrationMethod");
-    if (integrationMethodJ && (_integrationMethod != (LadderIntegrationMethod)(json_integer_value(integrationMethodJ)))) {
-      _integrationMethod = (LadderIntegrationMethod)(json_integer_value(integrationMethodJ));
+    if (integrationMethodJ && (_integrationMethod != (DiodeIntegrationMethod)(json_integer_value(integrationMethodJ)))) {
+      _integrationMethod = (DiodeIntegrationMethod)(json_integer_value(integrationMethodJ));
       
       // set new integration method
       for(int ii = 0; ii < 16; ii++)
-	ladder[ii].SetFilterIntegrationMethod(_integrationMethod);
+	diode[ii].SetFilterIntegrationMethod(_integrationMethod);
     }
     
     json_t* oversamplingJ = json_object_get(rootJ, "oversampling");
@@ -198,7 +198,7 @@ struct LADR : Module {
 
       // set new oversampling factor
       for(int ii = 0; ii < 16; ii++)
-	ladder[ii].SetFilterOversamplingFactor(_oversampling);
+	diode[ii].SetFilterOversamplingFactor(_oversampling);
     }
     
     json_t* decimatorOrderJ = json_object_get(rootJ, "decimatorOrder");
@@ -207,42 +207,42 @@ struct LADR : Module {
 
       // set new decimator order
       for(int ii = 0; ii < 16; ii++)
-	ladder[ii].SetFilterDecimatorOrder(_decimatorOrder);
+	diode[ii].SetFilterDecimatorOrder(_decimatorOrder);
     }
   }
 };
 
-struct LADRWidget : ModuleWidget {
-  LADRWidget(LADR* module) {
+struct DIODWidget : ModuleWidget {
+  DIODWidget(DIOD* module) {
     setModule(module);
-    setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/LADR.svg")));
+    setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/DIOD.svg")));
 
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     
-    addParam(createParam<RoundLargeBlackKnob>(mm2px(Vec(8.84, 13.64)), module, LADR::FREQ_PARAM));
-    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(11.24, 33.86)), module, LADR::RESO_PARAM));
-    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, LADR::GAIN_PARAM));
+    addParam(createParam<RoundLargeBlackKnob>(mm2px(Vec(8.84, 13.64)), module, DIOD::FREQ_PARAM));
+    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(11.24, 33.86)), module, DIOD::RESO_PARAM));
+    addParam(createParam<RoundSmallBlackKnob>(mm2px(Vec(4.93, 84.38)), module, DIOD::GAIN_PARAM));
     
-    addParam(createParam<Trimpot>(mm2px(Vec(5.86, 51.52)), module, LADR::LINCV_ATTEN_PARAM));
-    addParam(createParam<Trimpot>(mm2px(Vec(18.621, 51.52)), module, LADR::EXPCV_ATTEN_PARAM));
+    addParam(createParam<Trimpot>(mm2px(Vec(5.86, 51.52)), module, DIOD::LINCV_ATTEN_PARAM));
+    addParam(createParam<Trimpot>(mm2px(Vec(18.621, 51.52)), module, DIOD::EXPCV_ATTEN_PARAM));
         
-    addParam(createParam<CKSSThree>(Vec(58.48, 248.3), module, LADR::MODE_PARAM));
+    addParam(createParam<CKSS>(Vec(57.0, 252.3), module, DIOD::MODE_PARAM));
     
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 65.52)), module, LADR::LINCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 65.52)), module, LADR::EXPCV_INPUT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, LADR::INPUT_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 65.52)), module, DIOD::LINCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.681, 65.52)), module, DIOD::EXPCV_INPUT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 104.7)), module, DIOD::INPUT_INPUT));
     
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(21.681, 104.7)), module, LADR::OUTPUT_OUTPUT));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(21.681, 104.7)), module, DIOD::OUTPUT_OUTPUT));
   }
 
   struct OversamplingMenuItem : MenuItem {
-    LADR* _module;
+    DIOD* _module;
     const int _oversampling;
 
-    OversamplingMenuItem(LADR* module, const char* label, int oversampling)
+    OversamplingMenuItem(DIOD* module, const char* label, int oversampling)
       : _module(module)
       , _oversampling(oversampling)
     {
@@ -252,7 +252,7 @@ struct LADRWidget : ModuleWidget {
     void onAction(const event::Action& e) override {
       _module->_oversampling = _oversampling;
       for(int ii = 0; ii < 16; ii++){    
-	_module->ladder[ii].SetFilterOversamplingFactor(_module->_oversampling);
+	_module->diode[ii].SetFilterOversamplingFactor(_module->_oversampling);
       }
     }
 
@@ -263,10 +263,10 @@ struct LADRWidget : ModuleWidget {
   };
   
   struct DecimatorOrderMenuItem : MenuItem {
-    LADR* _module;
+    DIOD* _module;
     const int _decimatorOrder;
 
-    DecimatorOrderMenuItem(LADR* module, const char* label, int decimatorOrder)
+    DecimatorOrderMenuItem(DIOD* module, const char* label, int decimatorOrder)
       : _module(module)
       , _decimatorOrder(decimatorOrder)
     {
@@ -276,7 +276,7 @@ struct LADRWidget : ModuleWidget {
     void onAction(const event::Action& e) override {
       _module->_decimatorOrder = _decimatorOrder;
       for(int ii = 0; ii < 16; ii++){    
-	_module->ladder[ii].SetFilterDecimatorOrder(_module->_decimatorOrder);
+	_module->diode[ii].SetFilterDecimatorOrder(_module->_decimatorOrder);
       }
     }
 
@@ -287,10 +287,10 @@ struct LADRWidget : ModuleWidget {
   };
 
   struct IntegrationMenuItem : MenuItem {
-    LADR* _module;
+    DIOD* _module;
     const int _integrationMethod;
 
-    IntegrationMenuItem(LADR* module, const char* label, LadderIntegrationMethod integrationMethod)
+    IntegrationMenuItem(DIOD* module, const char* label, DiodeIntegrationMethod integrationMethod)
       : _module(module)
       , _integrationMethod(integrationMethod)
     {
@@ -298,9 +298,9 @@ struct LADRWidget : ModuleWidget {
     }
 
     void onAction(const event::Action& e) override {
-      _module->_integrationMethod = (LadderIntegrationMethod)(_integrationMethod);
+      _module->_integrationMethod = (DiodeIntegrationMethod)(_integrationMethod);
       for(int ii = 0; ii < 16; ii++){    
-	_module->ladder[ii].SetFilterIntegrationMethod(_module->_integrationMethod);
+	_module->diode[ii].SetFilterIntegrationMethod(_module->_integrationMethod);
       }
     }
 
@@ -311,7 +311,7 @@ struct LADRWidget : ModuleWidget {
   };
   
   void appendContextMenu(Menu* menu) override {
-    LADR* a = dynamic_cast<LADR*>(module);
+    DIOD* a = dynamic_cast<DIOD*>(module);
     assert(a);
     
     menu->addChild(new MenuEntry());
@@ -329,11 +329,9 @@ struct LADRWidget : ModuleWidget {
     
     menu->addChild(new MenuEntry());
     menu->addChild(createMenuLabel("Integration Method"));
-    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler w/ Full Tanh", LADDER_EULER_FULL_TANH));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Full Tanh", LADDER_PREDICTOR_CORRECTOR_FULL_TANH));
-    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Tanh Feedback", LADDER_PREDICTOR_CORRECTOR_FEEDBACK_TANH));
-    menu->addChild(new IntegrationMenuItem(a, "Trapezoidal w/ Tanh Feedback", LADDER_TRAPEZOIDAL_FEEDBACK_TANH));
+    menu->addChild(new IntegrationMenuItem(a, "Semi-implicit Euler w/ Full Tanh", DIODE_EULER_FULL_TANH));
+    menu->addChild(new IntegrationMenuItem(a, "Predictor-Corrector w/ Full Tanh", DIODE_PREDICTOR_CORRECTOR_FULL_TANH));
   }
 };
 
-Model* modelLADR = createModel<LADR, LADRWidget>("LADR");
+Model* modelDIOD = createModel<DIOD, DIODWidget>("DIOD");

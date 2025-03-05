@@ -19,8 +19,8 @@
  *  along with Kocmoc VCV Rack plugin.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __dspsvfh__
-#define __dspsvfh__
+#ifndef __dspdiodeh__
+#define __dspdiodeh__
 
 #ifdef FLOATDSP
 #include "iir32.h"
@@ -29,52 +29,49 @@
 #endif
 
 // filter modes
-enum SVFFilterMode {
-   SVF_LOWPASS_MODE,
-   SVF_BANDPASS_MODE,
-   SVF_HIGHPASS_MODE
+enum DiodeFilterMode {
+   DIODE_LOWPASS4_MODE,
+   DIODE_LOWPASS2_MODE,
 };
 
 // integration methods
-enum SVFIntegrationMethod {
-   SVF_SEMI_IMPLICIT_EULER,
-   SVF_PREDICTOR_CORRECTOR,
-   SVF_TRAPEZOIDAL,
-   SVF_INV_TRAPEZOIDAL
+enum DiodeIntegrationMethod {
+   DIODE_EULER_FULL_TANH,
+   DIODE_PREDICTOR_CORRECTOR_FULL_TANH,
 };
 
-class SVFilter{
+class Diode{
 public:
   // constructor/destructor
-  SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
-	   SVFFilterMode newFilterMode, double newSampleRate,
-	   SVFIntegrationMethod newIntegrationMethod, int newDecimatorOrder);
-  SVFilter();
-  ~SVFilter();
+  Diode(double newCutoff, double newResonance, int newOversamplingFactor,
+	 DiodeFilterMode newFilterMode, double newSampleRate,
+	 DiodeIntegrationMethod newIntegrationMethod, int newDecimatorOrder);
+  Diode();
+  ~Diode();
 
   // set filter parameters
   void SetFilterCutoff(double newCutoff);
   void SetFilterResonance(double newResonance);
-  void SetFilterMode(SVFFilterMode newFilterMode);
+  void SetFilterMode(DiodeFilterMode newFilterMode);
   void SetFilterSampleRate(double newSampleRate);
-  void SetFilterIntegrationMethod(SVFIntegrationMethod method);
+  void SetFilterIntegrationMethod(DiodeIntegrationMethod method);
   void SetFilterOversamplingFactor(int newOversamplingFactor);
   void SetFilterDecimatorOrder(int decimatorOrder);
-    
+  
   // get filter parameters
   double GetFilterCutoff();
   double GetFilterResonance();
-  SVFFilterMode GetFilterMode();  
+  DiodeFilterMode GetFilterMode();  
   double GetFilterSampleRate();
-  SVFIntegrationMethod GetFilterIntegrationMethod();
+  DiodeIntegrationMethod GetFilterIntegrationMethod();
   int GetFilterOversamplingFactor();  
   int GetFilterDecimatorOrder();
   
   // tick filter state
 #ifdef FLOATDSP
-  void filter(float input);
+  void DiodeFilter(float input);
 #else
-  void filter(double input);
+  void DiodeFilter(double input);
 #endif
   
   // get filter responses
@@ -91,33 +88,28 @@ public:
   
   // reset state
   void ResetFilterState();
-  
+
 private:
   // set integration rate
   void SetFilterIntegrationRate();
 
-  // pade approximant functions for hyperbolic functions
   // filter parameters
   double cutoffFrequency;
   double Resonance;
-  SVFFilterMode filterMode;
-  SVFIntegrationMethod integrationMethod;
-  double dt;
+  DiodeFilterMode filterMode;
   double sampleRate;
+  double dt;
+  DiodeIntegrationMethod integrationMethod;
   int oversamplingFactor;
   int decimatorOrder;
   
   // filter state
 #ifdef FLOATDSP
-  float lp;
-  float bp;
-  float hp;
-  float u_t1;
+  float p0, p1, p2, p3;
+  float ut_1;
 #else
-  double lp;
-  double bp;
-  double hp;
-  double u_t1;
+  double p0, p1, p2, p3;
+  double ut_1;
 #endif
   
   // filter output

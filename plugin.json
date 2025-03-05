@@ -49,6 +49,15 @@
       ]
     },
     {
+      "slug": "DIOD",
+      "name": "DIOD",
+      "description": "4-pole Diode Ladder Filter",
+      "tags": [
+        "Filter",
+	"Polyphonic"
+      ]
+    },
+    {
       "slug": "uLADR",
       "name": "uLADR",
       "description": "4-pole Ladder Filter",

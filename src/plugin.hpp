@@ -1,5 +1,5 @@
 /*
- *  (C) 2024 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2025 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -34,6 +34,7 @@ extern Model* modeluSVF;
 extern Model* modelTRG;
 extern Model* modelLADR;
 extern Model* modeluLADR;
+extern Model* modelDIOD;
 extern Model* modelOP;
 extern Model* modelPHASR;
 extern Model* modelMUL;
