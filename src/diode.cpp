@@ -159,14 +159,14 @@ void Diode::SetFilterDecimatorOrder(int newDecimatorOrder){
 
 void Diode::SetFilterIntegrationRate(){
   // normalize cutoff freq to samplerate
-  dt = 44100.0f / (sampleRate * oversamplingFactor) * cutoffFrequency;
+  dt = 44100.0 / (sampleRate * oversamplingFactor) * cutoffFrequency;
 
   // clamp integration rate
-  if(dt < 0.0f){
-    dt = 0.0f;
+  if(dt < 0.0){
+    dt = 0.0;
   }
-  else if(dt > 0.75f){
-    dt = 0.75f;
+  else if(dt > 0.98){
+    dt = 0.98;
   }
 }
 
@@ -214,11 +214,11 @@ void Diode::DiodeFilter(float input){
   float noise;
 
   // feedback amount
-  float fb = 32.f * Resonance;
+  float fb = 16.f * Resonance;
 
   // update noise terms
   noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-  noise = 1.0e-6 * 2.0 * (noise - 0.5);
+  noise = 1.0e-6f * 2.f * (noise - 0.5f);
 
   input += noise;
   
@@ -232,9 +232,9 @@ void Diode::DiodeFilter(float input){
       // with full tanh stages
       {
 	p0 = p0 + dt * (FloatTanhPade32(input - fb * p3) - FloatTanhPade32(p0 - p1));
-	p1 = p1 + 0.5 * dt * (FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2));
-	p2 = p2 + 0.5 * dt * (FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3));
-	p3 = p3 + 0.5 * dt * (FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3));
+	p1 = p1 + 0.5f * dt * (FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2));
+	p2 = p2 + 0.5f * dt * (FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3));
+	p3 = p3 + 0.5f * dt * (FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3));
       }
       break;
       
@@ -242,20 +242,26 @@ void Diode::DiodeFilter(float input){
       // predictor-corrector integration
       // with full tanh stages
       {
-	float p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
+	float p0_prime, p1_prime, p2_prime, p3_prime;
+	float p0t_1, p1t_1, p2t_1, p3t_1; 
 
 	// predictor
 	p0_prime = p0 + dt * (FloatTanhPade32(ut_1 - fb * p3) - FloatTanhPade32(p0 - p1));
-	p1_prime = p1 + 0.5 * dt * (FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2));
-	p2_prime = p2 + 0.5 * dt * (FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3));
-	p3_prime = p3 + 0.5 * dt * (FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3));
+	p1_prime = p1 + 0.5f * dt * (FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2));
+	p2_prime = p2 + 0.5f * dt * (FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3));
+	p3_prime = p3 + 0.5f * dt * (FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3));
 
 	// corrector
-	p3t_1 = p3;
-	p3 = p3 + 0.5 * dt * ((FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3)) + (FloatTanhPade32(p2_prime - p3_prime) - FloatTanhPade32(p3_prime)));
-	p2 = p2 + 0.5 * 0.5 * dt * ((FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3)) + (FloatTanhPade32(p1_prime - p2_prime) - FloatTanhPade32(p2_prime - p3_prime)));
-	p1 = p1 + 0.5 * 0.5 * dt * ((FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2)) + (FloatTanhPade32(p0_prime - p1_prime) - FloatTanhPade32(p1_prime - p2_prime)));
-	p0 = p0 + 0.5 * 0.5 * dt * ((FloatTanhPade32(ut_1 - fb * p3t_1) - FloatTanhPade32(p0 - p1)) + (FloatTanhPade32(input - fb * p3) - FloatTanhPade32(p0_prime - p1_prime)));
+	p0t_1 = p0 + 0.5f * dt * ((FloatTanhPade32(ut_1 - fb * p3) - FloatTanhPade32(p0 - p1)) + (FloatTanhPade32(input - fb * p3) - FloatTanhPade32(p0_prime - p1_prime)));
+	p1t_1 = p1 + 0.5f * 0.5f * dt * ((FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2)) + (FloatTanhPade32(p0_prime - p1_prime) - FloatTanhPade32(p1_prime - p2_prime)));
+	p2t_1 = p2 + 0.5f * 0.5f * dt * ((FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3)) + (FloatTanhPade32(p1_prime - p2_prime) - FloatTanhPade32(p2_prime - p3_prime)));
+	p3t_1 = p3 + 0.5f * 0.5f * dt * ((FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3)) + (FloatTanhPade32(p2_prime - p3_prime) - FloatTanhPade32(p3_prime)));
+
+	// new filter state
+	p0 = p0t_1;
+	p1 = p1t_1;
+	p2 = p2t_1;
+	p3 = p3t_1;
       }
       break;
       
@@ -275,12 +281,12 @@ void Diode::DiodeFilter(float input){
       out = 0.5f * p1;
       break;
     default:
-      out = 0.0;
+      out = 0.0f;
     }
 
     // downsampling filter
     if(oversamplingFactor > 1){
-      out = iir->IIRfilter(out);
+      out = iir->IIRfilter32(out);
     }
   }
 }
@@ -290,7 +296,7 @@ void Diode::DiodeFilter(double input){
   double noise;
 
   // feedback amount
-  double fb = 32.0 * Resonance;
+  double fb = 16.0 * Resonance;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -318,7 +324,8 @@ void Diode::DiodeFilter(double input){
       // predictor-corrector integration
       // with full tanh stages
       {
-	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
+	double p0_prime, p1_prime, p2_prime, p3_prime;
+	double p0t_1, p1t_1, p2t_1, p3t_1; 
 
 	// predictor
 	p0_prime = p0 + dt * (TanhPade32(ut_1 - fb * p3) - TanhPade32(p0 - p1));
@@ -327,11 +334,16 @@ void Diode::DiodeFilter(double input){
 	p3_prime = p3 + 0.5 * dt * (TanhPade32(p2 - p3) - TanhPade32(p3));
 
 	// corrector
-	p3t_1 = p3;
-	p3 = p3 + 0.5 * dt * ((TanhPade32(p2 - p3) - TanhPade32(p3)) + (TanhPade32(p2_prime - p3_prime) - TanhPade32(p3_prime)));
-	p2 = p2 + 0.5 * 0.5 * dt * ((TanhPade32(p1 - p2) - TanhPade32(p2 - p3)) + (TanhPade32(p1_prime - p2_prime) - TanhPade32(p2_prime - p3_prime)));
-	p1 = p1 + 0.5 * 0.5 * dt * ((TanhPade32(p0 - p1) - TanhPade32(p1 - p2)) + (TanhPade32(p0_prime - p1_prime) - TanhPade32(p1_prime - p2_prime)));
-	p0 = p0 + 0.5 * 0.5 * dt * ((TanhPade32(ut_1 - fb * p3t_1) - TanhPade32(p0 - p1)) + (TanhPade32(input - fb * p3) - TanhPade32(p0_prime - p1_prime)));
+	p0t_1 = p0 + 0.5 * dt * ((TanhPade32(ut_1 - fb * p3) - TanhPade32(p0 - p1)) + (TanhPade32(input - fb * p3) - TanhPade32(p0_prime - p1_prime)));
+	p1t_1 = p1 + 0.5 * 0.5 * dt * ((TanhPade32(p0 - p1) - TanhPade32(p1 - p2)) + (TanhPade32(p0_prime - p1_prime) - TanhPade32(p1_prime - p2_prime)));
+	p2t_1 = p2 + 0.5 * 0.5 * dt * ((TanhPade32(p1 - p2) - TanhPade32(p2 - p3)) + (TanhPade32(p1_prime - p2_prime) - TanhPade32(p2_prime - p3_prime)));
+	p3t_1 = p3 + 0.5 * 0.5 * dt * ((TanhPade32(p2 - p3) - TanhPade32(p3)) + (TanhPade32(p2_prime - p3_prime) - TanhPade32(p3_prime)));
+
+	// new filter state
+	p0 = p0t_1;
+	p1 = p1t_1;
+	p2 = p2t_1;
+	p3 = p3t_1;
       }
       break;
       
