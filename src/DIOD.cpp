@@ -87,7 +87,7 @@ struct DIOD : Module {
     DiodeFilterMode filterMode;
 
     // gain normalization
-    float gainNormalization = 1.f + 2.f * reso;
+    float gainNormalization = 1.f + 12.f * std::log(1.f + 0.75f * reso);
 
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
@@ -130,7 +130,7 @@ struct DIOD : Module {
 #endif
 
       // set output
-      outputs[OUTPUT_OUTPUT].setVoltage((float)(diode[ii].GetFilterOutput() * 8.0 * gainNormalization), ii);
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(diode[ii].GetFilterOutput() * 6.f * gainNormalization), ii);
     }
     
     // set output to be polyphonic
