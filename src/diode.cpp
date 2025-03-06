@@ -165,8 +165,8 @@ void Diode::SetFilterIntegrationRate(){
   if(dt < 0.0f){
     dt = 0.0f;
   }
-  else if(dt > 0.865f){
-    dt = 0.865f;
+  else if(dt > 0.75f){
+    dt = 0.75f;
   }
 }
 
