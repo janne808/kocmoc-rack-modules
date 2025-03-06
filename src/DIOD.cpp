@@ -85,7 +85,10 @@ struct DIOD : Module {
     float lincv_atten = params[LINCV_ATTEN_PARAM].getValue();
     float expcv_atten = params[EXPCV_ATTEN_PARAM].getValue();
     DiodeFilterMode filterMode;
-    
+
+    // gain normalization
+    float gainNormalization = 1.f + 2.f * reso;
+
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
     gain = 32.f*(gain * gain * gain * gain)/10.f;    
@@ -100,10 +103,10 @@ struct DIOD : Module {
       
       // sum in linear cv
       if(inputs[LINCV_INPUT].getChannels() == 1){
-	channelCutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
+	channelCutoff += 2.0f*lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
       }
       else{
-	channelCutoff += lincv_atten*inputs[LINCV_INPUT].getVoltage(ii)/10.f;
+	channelCutoff += 2.0f*lincv_atten*inputs[LINCV_INPUT].getVoltage(ii)/10.f;
       }
       
       // apply exponential cv
@@ -125,9 +128,9 @@ struct DIOD : Module {
 #else
       diode[ii].DiodeFilter((double)(inputs[INPUT_INPUT].getVoltage(ii) * gain));
 #endif
-      
+
       // set output
-      outputs[OUTPUT_OUTPUT].setVoltage((float)(diode[ii].GetFilterOutput() * 8.0), ii);
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(diode[ii].GetFilterOutput() * 8.0 * gainNormalization), ii);
     }
     
     // set output to be polyphonic

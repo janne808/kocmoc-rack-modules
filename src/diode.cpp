@@ -165,8 +165,8 @@ void Diode::SetFilterIntegrationRate(){
   if(dt < 0.0f){
     dt = 0.0f;
   }
-  else if(dt > 0.825f){
-    dt = 0.825f;
+  else if(dt > 0.865f){
+    dt = 0.865f;
   }
 }
 
@@ -209,13 +209,88 @@ DiodeIntegrationMethod Diode::GetFilterIntegrationMethod(){
 }
 
 #ifdef FLOATDSP
+void Diode::DiodeFilter(float input){
+  // noise term
+  float noise;
+
+  // feedback amount
+  float fb = 48.0 * Resonance;
+
+  // update noise terms
+  noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+  noise = 1.0e-6 * 2.0 * (noise - 0.5);
+
+  input += noise;
+  
+  // integrate filter state
+  // with oversampling
+  for(int nn = 0; nn < oversamplingFactor; nn++){
+    // switch integration method
+    switch(integrationMethod){
+    case DIODE_EULER_FULL_TANH:
+      // semi-implicit euler integration
+      // with full tanh stages
+      {
+	p0 = p0 + dt * (TanhPade32(input - fb * p3) - TanhPade32(p0 - p1));
+	p1 = p1 + 0.5 * dt * (TanhPade32(p0 - p1) - TanhPade32(p1 - p2));
+	p2 = p2 + 0.5 * dt * (TanhPade32(p1 - p2) - TanhPade32(p2 - p3));
+	p3 = p3 + 0.5 * dt * (TanhPade32(p2 - p3) - TanhPade32(p3));
+      }
+      break;
+      
+    case DIODE_PREDICTOR_CORRECTOR_FULL_TANH:
+      // predictor-corrector integration
+      // with full tanh stages
+      {
+	float p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
+
+	// predictor
+	p0_prime = p0 + dt * (TanhPade32(ut_1 - fb * p3) - TanhPade32(p0 - p1));
+	p1_prime = p1 + 0.5 * dt * (TanhPade32(p0 - p1) - TanhPade32(p1 - p2));
+	p2_prime = p2 + 0.5 * dt * (TanhPade32(p1 - p2) - TanhPade32(p2 - p3));
+	p3_prime = p3 + 0.5 * dt * (TanhPade32(p2 - p3) - TanhPade32(p3));
+
+	// corrector
+	p3t_1 = p3;
+	p3 = p3 + 0.5 * dt * ((TanhPade32(p2 - p3) - TanhPade32(p3)) + (TanhPade32(p2_prime - p3_prime) - TanhPade32(p3_prime)));
+	p2 = p2 + 0.5 * 0.5 * dt * ((TanhPade32(p1 - p2) - TanhPade32(p2 - p3)) + (TanhPade32(p1_prime - p2_prime) - TanhPade32(p2_prime - p3_prime)));
+	p1 = p1 + 0.5 * 0.5 * dt * ((TanhPade32(p0 - p1) - TanhPade32(p1 - p2)) + (TanhPade32(p0_prime - p1_prime) - TanhPade32(p1_prime - p2_prime)));
+	p0 = p0 + 0.5 * 0.5 * dt * ((TanhPade32(ut_1 - fb * p3t_1) - TanhPade32(p0 - p1)) + (TanhPade32(input - fb * p3) - TanhPade32(p0_prime - p1_prime)));
+      }
+      break;
+      
+    default:
+      break;
+    }
+
+    // input at t-1
+    ut_1 = input;
+
+    //switch filter mode
+    switch(filterMode){
+    case DIODE_LOWPASS4_MODE:
+      out = p3;
+      break;
+    case DIODE_LOWPASS2_MODE:
+      out = 0.5f * p1;
+      break;
+    default:
+      out = 0.0;
+    }
+
+    // downsampling filter
+    if(oversamplingFactor > 1){
+      out = iir->IIRfilter(out);
+    }
+  }
+}
 #else
 void Diode::DiodeFilter(double input){
   // noise term
   double noise;
 
   // feedback amount
-  double fb = 32.0 * Resonance;
+  double fb = 48.0 * Resonance;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -273,7 +348,7 @@ void Diode::DiodeFilter(double input){
       out = p3;
       break;
     case DIODE_LOWPASS2_MODE:
-      out = p1;
+      out = 0.5 * p1;
       break;
     default:
       out = 0.0;
