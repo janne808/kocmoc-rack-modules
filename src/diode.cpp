@@ -214,7 +214,7 @@ void Diode::DiodeFilter(float input){
   float noise;
 
   // feedback amount
-  float fb = 48.0 * Resonance;
+  float fb = 32.f * Resonance;
 
   // update noise terms
   noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -290,7 +290,7 @@ void Diode::DiodeFilter(double input){
   double noise;
 
   // feedback amount
-  double fb = 48.0 * Resonance;
+  double fb = 32.0 * Resonance;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
