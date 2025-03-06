@@ -231,10 +231,10 @@ void Diode::DiodeFilter(float input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + dt * (TanhPade32(input - fb * p3) - TanhPade32(p0 - p1));
-	p1 = p1 + 0.5 * dt * (TanhPade32(p0 - p1) - TanhPade32(p1 - p2));
-	p2 = p2 + 0.5 * dt * (TanhPade32(p1 - p2) - TanhPade32(p2 - p3));
-	p3 = p3 + 0.5 * dt * (TanhPade32(p2 - p3) - TanhPade32(p3));
+	p0 = p0 + dt * (FloatTanhPade32(input - fb * p3) - FloatTanhPade32(p0 - p1));
+	p1 = p1 + 0.5 * dt * (FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2));
+	p2 = p2 + 0.5 * dt * (FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3));
+	p3 = p3 + 0.5 * dt * (FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3));
       }
       break;
       
@@ -245,17 +245,17 @@ void Diode::DiodeFilter(float input){
 	float p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt * (TanhPade32(ut_1 - fb * p3) - TanhPade32(p0 - p1));
-	p1_prime = p1 + 0.5 * dt * (TanhPade32(p0 - p1) - TanhPade32(p1 - p2));
-	p2_prime = p2 + 0.5 * dt * (TanhPade32(p1 - p2) - TanhPade32(p2 - p3));
-	p3_prime = p3 + 0.5 * dt * (TanhPade32(p2 - p3) - TanhPade32(p3));
+	p0_prime = p0 + dt * (FloatTanhPade32(ut_1 - fb * p3) - FloatTanhPade32(p0 - p1));
+	p1_prime = p1 + 0.5 * dt * (FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2));
+	p2_prime = p2 + 0.5 * dt * (FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3));
+	p3_prime = p3 + 0.5 * dt * (FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3));
 
 	// corrector
 	p3t_1 = p3;
-	p3 = p3 + 0.5 * dt * ((TanhPade32(p2 - p3) - TanhPade32(p3)) + (TanhPade32(p2_prime - p3_prime) - TanhPade32(p3_prime)));
-	p2 = p2 + 0.5 * 0.5 * dt * ((TanhPade32(p1 - p2) - TanhPade32(p2 - p3)) + (TanhPade32(p1_prime - p2_prime) - TanhPade32(p2_prime - p3_prime)));
-	p1 = p1 + 0.5 * 0.5 * dt * ((TanhPade32(p0 - p1) - TanhPade32(p1 - p2)) + (TanhPade32(p0_prime - p1_prime) - TanhPade32(p1_prime - p2_prime)));
-	p0 = p0 + 0.5 * 0.5 * dt * ((TanhPade32(ut_1 - fb * p3t_1) - TanhPade32(p0 - p1)) + (TanhPade32(input - fb * p3) - TanhPade32(p0_prime - p1_prime)));
+	p3 = p3 + 0.5 * dt * ((FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3)) + (FloatTanhPade32(p2_prime - p3_prime) - FloatTanhPade32(p3_prime)));
+	p2 = p2 + 0.5 * 0.5 * dt * ((FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3)) + (FloatTanhPade32(p1_prime - p2_prime) - FloatTanhPade32(p2_prime - p3_prime)));
+	p1 = p1 + 0.5 * 0.5 * dt * ((FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2)) + (FloatTanhPade32(p0_prime - p1_prime) - FloatTanhPade32(p1_prime - p2_prime)));
+	p0 = p0 + 0.5 * 0.5 * dt * ((FloatTanhPade32(ut_1 - fb * p3t_1) - FloatTanhPade32(p0 - p1)) + (FloatTanhPade32(input - fb * p3) - FloatTanhPade32(p0_prime - p1_prime)));
       }
       break;
       
