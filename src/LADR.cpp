@@ -86,6 +86,9 @@ struct LADR : Module {
     float expcv_atten = params[EXPCV_ATTEN_PARAM].getValue();
     LadderFilterMode filterMode;
     
+    // gain normalization
+    float gainNormalization = 1.f + 2.f * std::log(1.f + 0.45f * reso);
+
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
     gain = 32.f*(gain * gain * gain * gain)/10.f;    
@@ -127,7 +130,7 @@ struct LADR : Module {
 #endif
       
       // set output
-      outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 3.0), ii);
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(ladder[ii].GetFilterOutput() * 3.f * gainNormalization), ii);
     }
     
     // set output to be polyphonic
