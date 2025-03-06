@@ -26,6 +26,10 @@ All rights reserved.
 
   Classic Sallen-Key filter with dynamic diode anti-saturation and implicit (zero-delay) state integration. Features user selectable oversampling factor and IIR/FIR antialiasing filter.
 
+* DIOD
+
+  Classic diode ladder filter with user selectable oversampling factor and IIR/FIR antialiasing filter.
+
 * DDLY
 
   Classic digital delay module with crossfade time modulation.
