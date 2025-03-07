@@ -242,8 +242,6 @@ void Diode::DiodeFilter(float input){
       // predictor-corrector integration
       // with full tanh stages
       {
-	float p0_prime, p1_prime, p2_prime, p3_prime;
-
 	// euler step nonlinearities
 	float tanh_ut1_fb_p3 = FloatTanhPade32(ut_1 - fb * p3);
 	float tanh_p0_p1 = FloatTanhPade32(p0 - p1);
@@ -258,10 +256,10 @@ void Diode::DiodeFilter(float input){
 	float p3_euler = tanh_p2_p3 - tanh_p3;
 	
 	// predictor
-	p0_prime = p0 + dt * p0_euler;
-	p1_prime = p1 + 0.5f * dt * p1_euler;
-	p2_prime = p2 + 0.5f * dt * p2_euler;
-	p3_prime = p3 + 0.5f * dt * p3_euler;
+	float p0_prime = p0 + dt * p0_euler;
+	float p1_prime = p1 + 0.5f * dt * p1_euler;
+	float p2_prime = p2 + 0.5f * dt * p2_euler;
+	float p3_prime = p3 + 0.5f * dt * p3_euler;
 
 	// trapezoidal step nonlinearities
 	float tanh_input_fb_p3_prime = FloatTanhPade32(input - fb * p3_prime);
@@ -343,8 +341,6 @@ void Diode::DiodeFilter(double input){
       // predictor-corrector integration
       // with full tanh stages
       {
-	double p0_prime, p1_prime, p2_prime, p3_prime;
-
 	// euler step nonlinearities
 	double tanh_ut1_fb_p3 = TanhPade32(ut_1 - fb * p3);
 	double tanh_p0_p1 = TanhPade32(p0 - p1);
@@ -359,10 +355,10 @@ void Diode::DiodeFilter(double input){
 	double p3_euler = tanh_p2_p3 - tanh_p3;
 	
 	// predictor
-	p0_prime = p0 + dt * p0_euler;
-	p1_prime = p1 + 0.5 * dt * p1_euler;
-	p2_prime = p2 + 0.5 * dt * p2_euler;
-	p3_prime = p3 + 0.5 * dt * p3_euler;
+	double p0_prime = p0 + dt * p0_euler;
+	double p1_prime = p1 + 0.5 * dt * p1_euler;
+	double p2_prime = p2 + 0.5 * dt * p2_euler;
+	double p3_prime = p3 + 0.5 * dt * p3_euler;
 
 	// trapezoidal step nonlinearities
 	double tanh_input_fb_p3_prime = TanhPade32(input - fb * p3_prime);
