@@ -165,8 +165,8 @@ void Ladder::SetFilterIntegrationRate(){
   if(dt < 0.0f){
     dt = 0.0f;
   }
-  else if(dt > 0.6f){
-    dt = 0.6f;
+  else if(dt > 0.9f){
+    dt = 0.9f;
   }
 }
 
@@ -214,7 +214,7 @@ void Ladder::LadderFilter(float input){
   float noise;
 
   // feedback amount
-  float fb = 8.0f * Resonance;
+  float fb = 6.0f * Resonance;
 
   // integration rate
   float dt2 = dt;
@@ -245,20 +245,45 @@ void Ladder::LadderFilter(float input){
       // predictor-corrector integration
       // with full tanh stages
       {
-	float p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
+	float p0_prime, p1_prime, p2_prime, p3_prime;
 
+	// euler step nonlinearities
+	float tanh_ut1_fb_p3 = FloatTanhPade32(ut_1 - fb * p3);
+	float tanh_p0 = FloatTanhPade32(p0);
+	float tanh_p1 = FloatTanhPade32(p1);
+	float tanh_p2 = FloatTanhPade32(p2);
+	float tanh_p3 = FloatTanhPade32(p3);
+
+	// euler step differences
+	float p0_euler = tanh_ut1_fb_p3 - tanh_p0;
+	float p1_euler = tanh_p0 - tanh_p1;
+	float p2_euler = tanh_p1 - tanh_p2;
+	float p3_euler = tanh_p2 - tanh_p3;
+	
 	// predictor
-	p0_prime = p0 + dt2 * (FloatTanhPade45(ut_1 - fb * p3) - FloatTanhPade45(p0));
-	p1_prime = p1 + dt2 * (FloatTanhPade45(p0) - FloatTanhPade45(p1));
-	p2_prime = p2 + dt2 * (FloatTanhPade45(p1) - FloatTanhPade45(p2));
-	p3_prime = p3 + dt2 * (FloatTanhPade45(p2) - FloatTanhPade45(p3));
+	p0_prime = p0 + dt * p0_euler;
+	p1_prime = p1 + dt * p1_euler;
+	p2_prime = p2 + dt * p2_euler;
+	p3_prime = p3 + dt * p3_euler;
 
+	// trapezoidal step nonlinearities
+	float tanh_input_fb_p3_prime = FloatTanhPade32(input - fb * p3_prime);
+	float tanh_p0_prime = FloatTanhPade32(p0_prime);
+	float tanh_p1_prime = FloatTanhPade32(p1_prime);
+	float tanh_p2_prime = FloatTanhPade32(p2_prime);
+	float tanh_p3_prime = FloatTanhPade32(p3_prime);
+
+	// trapezoidal step differences
+	float p0_trap = tanh_input_fb_p3_prime - tanh_p0_prime;
+	float p1_trap = tanh_p0_prime - tanh_p1_prime;
+	float p2_trap = tanh_p1_prime - tanh_p2_prime;
+	float p3_trap = tanh_p2_prime - tanh_p3_prime;
+	
 	// corrector
-	p3t_1 = p3;
-	p3 = p3 + 0.5f * dt2 * ((FloatTanhPade45(p2) - FloatTanhPade45(p3)) + (FloatTanhPade45(p2_prime) - FloatTanhPade45(p3_prime)));
-	p2 = p2 + 0.5f * dt2 * ((FloatTanhPade45(p1) - FloatTanhPade45(p2)) + (FloatTanhPade45(p1_prime) - FloatTanhPade45(p2_prime)));
-	p1 = p1 + 0.5f * dt2 * ((FloatTanhPade45(p0) - FloatTanhPade45(p1)) + (FloatTanhPade45(p0_prime) - FloatTanhPade45(p1_prime)));
-	p0 = p0 + 0.5f * dt2 * ((FloatTanhPade45(ut_1 - fb * p3t_1) - FloatTanhPade45(p0)) + (FloatTanhPade45(input - fb * p3) - FloatTanhPade45(p0_prime)));
+	p0 = p0 + 0.5 * dt * (p0_euler + p0_trap);
+	p1 = p1 + 0.5 * dt * (p1_euler + p1_trap);
+	p2 = p2 + 0.5 * dt * (p2_euler + p2_trap);
+	p3 = p3 + 0.5 * dt * (p3_euler + p3_trap);
       }
       break;
       
@@ -368,7 +393,7 @@ void Ladder::LadderFilter(double input){
   double noise;
 
   // feedback amount
-  double fb = 8.0 * Resonance;
+  double fb = 6.0 * Resonance;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -396,20 +421,45 @@ void Ladder::LadderFilter(double input){
       // predictor-corrector integration
       // with full tanh stages
       {
-	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
+	double p0_prime, p1_prime, p2_prime, p3_prime;
 
+	// euler step nonlinearities
+	double tanh_ut1_fb_p3 = TanhPade32(ut_1 - fb * p3);
+	double tanh_p0 = TanhPade32(p0);
+	double tanh_p1 = TanhPade32(p1);
+	double tanh_p2 = TanhPade32(p2);
+	double tanh_p3 = TanhPade32(p3);
+
+	// euler step differences
+	double p0_euler = tanh_ut1_fb_p3 - tanh_p0;
+	double p1_euler = tanh_p0 - tanh_p1;
+	double p2_euler = tanh_p1 - tanh_p2;
+	double p3_euler = tanh_p2 - tanh_p3;
+	
 	// predictor
-	p0_prime = p0 + dt * (TanhPade32(ut_1 - fb * p3) - TanhPade32(p0));
-	p1_prime = p1 + dt * (TanhPade32(p0) - TanhPade32(p1));
-	p2_prime = p2 + dt * (TanhPade32(p1) - TanhPade32(p2));
-	p3_prime = p3 + dt * (TanhPade32(p2) - TanhPade32(p3));
+	p0_prime = p0 + dt * p0_euler;
+	p1_prime = p1 + dt * p1_euler;
+	p2_prime = p2 + dt * p2_euler;
+	p3_prime = p3 + dt * p3_euler;
 
+	// trapezoidal step nonlinearities
+	double tanh_input_fb_p3_prime = TanhPade32(input - fb * p3_prime);
+	double tanh_p0_prime = TanhPade32(p0_prime);
+	double tanh_p1_prime = TanhPade32(p1_prime);
+	double tanh_p2_prime = TanhPade32(p2_prime);
+	double tanh_p3_prime = TanhPade32(p3_prime);
+
+	// trapezoidal step differences
+	double p0_trap = tanh_input_fb_p3_prime - tanh_p0_prime;
+	double p1_trap = tanh_p0_prime - tanh_p1_prime;
+	double p2_trap = tanh_p1_prime - tanh_p2_prime;
+	double p3_trap = tanh_p2_prime - tanh_p3_prime;
+	
 	// corrector
-	p3t_1 = p3;
-	p3 = p3 + 0.5 * dt * ((TanhPade32(p2) - TanhPade32(p3)) + (TanhPade32(p2_prime) - TanhPade32(p3_prime)));
-	p2 = p2 + 0.5 * dt * ((TanhPade32(p1) - TanhPade32(p2)) + (TanhPade32(p1_prime) - TanhPade32(p2_prime)));
-	p1 = p1 + 0.5 * dt * ((TanhPade32(p0) - TanhPade32(p1)) + (TanhPade32(p0_prime) - TanhPade32(p1_prime)));
-	p0 = p0 + 0.5 * dt * ((TanhPade32(ut_1 - fb * p3t_1) - TanhPade32(p0)) + (TanhPade32(input - fb * p3) - TanhPade32(p0_prime)));
+	p0 = p0 + 0.5 * dt * (p0_euler + p0_trap);
+	p1 = p1 + 0.5 * dt * (p1_euler + p1_trap);
+	p2 = p2 + 0.5 * dt * (p2_euler + p2_trap);
+	p3 = p3 + 0.5 * dt * (p3_euler + p3_trap);
       }
       break;
       
@@ -431,7 +481,7 @@ void Ladder::LadderFilter(double input){
 	p2 = p2 + 0.5 * dt * ((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5 * dt * ((p0 - p1) + (p0_prime - p1_prime));
 	p0 = p0 + 0.5 * dt * ((TanhPade32(ut_1 - fb * p3t_1) - p0) +
-			       (TanhPade32(input - fb * p3) - p0_prime));
+			       (TanhPade32(input - fb * p3_prime) - p0_prime));
       }
       break;
       
