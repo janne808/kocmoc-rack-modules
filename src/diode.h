@@ -99,6 +99,7 @@ private:
   DiodeFilterMode filterMode;
   double sampleRate;
   double dt;
+  double dt_hp, dt_hp2;
   DiodeIntegrationMethod integrationMethod;
   int oversamplingFactor;
   int decimatorOrder;
@@ -107,9 +108,11 @@ private:
 #ifdef FLOATDSP
   float p0, p1, p2, p3;
   float ut_1;
+  float hp0, hp1, hp2, hp3, hp4, hp5, hp6, hp7;
 #else
   double p0, p1, p2, p3;
   double ut_1;
+  double hp0, hp1, hp2, hp3, hp4, hp5, hp6, hp7;
 #endif
   
   // filter output

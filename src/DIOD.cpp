@@ -87,7 +87,7 @@ struct DIOD : Module {
     DiodeFilterMode filterMode;
 
     // gain normalization
-    float gainNormalization = 1.f + 12.f * std::log(1.f + 0.75f * reso);
+    float gainNormalization = 1.f + 6.f * std::log(1.f + 0.75f * reso);
 
     // shape panel input for a pseudoexponential response
     cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);

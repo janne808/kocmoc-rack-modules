@@ -59,6 +59,8 @@ Diode::Diode(double newCutoff, double newResonance, int newOversamplingFactor,
 
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0f;
+
+  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = hp6 = hp7 = 0.0;
   
   integrationMethod = newIntegrationMethod;
   
@@ -84,6 +86,8 @@ Diode::Diode(){
   
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0f;
+
+  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = hp6 = hp7 = 0.0;
   
   integrationMethod = DIODE_PREDICTOR_CORRECTOR_FULL_TANH;
   
@@ -109,6 +113,8 @@ void Diode::ResetFilterState(){
   
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0f;
+
+  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = hp6 = hp7 = 0.0;
   
   // set oversampling
   iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
@@ -165,9 +171,12 @@ void Diode::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.98){
-    dt = 0.98;
+  else if(dt > 1.0){
+    dt = 1.0;
   }
+
+  dt_hp = 44100.0 / (sampleRate * oversamplingFactor) * 0.004;
+  dt_hp2 = 44100.0 / (sampleRate * oversamplingFactor) * 0.008;
 }
 
 double Diode::GetFilterCutoff(){
@@ -214,7 +223,7 @@ void Diode::DiodeFilter(float input){
   float noise;
 
   // feedback amount
-  float fb = 18.f * Resonance;
+  float fb = 24.f * Resonance;
 
   // update noise terms
   noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -231,10 +240,19 @@ void Diode::DiodeFilter(float input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + dt * (FloatTanhPade32(input - fb * p3) - FloatTanhPade32(p0 - p1));
+	p0 = p0 + dt * (FloatTanhPade32(input - fb * hp3) - FloatTanhPade32(p0 - p1));
 	p1 = p1 + 0.5f * dt * (FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2));
 	p2 = p2 + 0.5f * dt * (FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3));
 	p3 = p3 + 0.5f * dt * (FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3));
+
+	hp0 = hp0 + dt_hp * (p3 - hp0);
+	hp1 = p3 - hp0;
+	
+	hp2 = hp2 + dt_hp * (hp1 - hp2);
+	hp3 = hp1 - hp2;
+
+	hp6 = hp6 + dt_hp2 * (p1 - hp6);
+	hp7 = p1 - hp6;	
       }
       break;
       
@@ -242,43 +260,56 @@ void Diode::DiodeFilter(float input){
       // predictor-corrector integration
       // with full tanh stages
       {
+	float p0_prime, p1_prime, p2_prime, p3_prime;
+	float p0_new, p1_new, p2_new, p3_new;
+	float hp0_prime, hp2_prime, hp3_prime;
+	float hp1_new, hp3_new;
+
 	// euler step nonlinearities
-	float tanh_ut1_fb_p3 = FloatTanhPade32(ut_1 - fb * p3);
+	float tanh_ut1_fb_hp3 = FloatTanhPade32(ut_1 - fb * hp3);
 	float tanh_p0_p1 = FloatTanhPade32(p0 - p1);
 	float tanh_p1_p2 = FloatTanhPade32(p1 - p2);
 	float tanh_p2_p3 = FloatTanhPade32(p2 - p3);
 	float tanh_p3 = FloatTanhPade32(p3);
-
-	// euler step differences
-	float p0_euler = tanh_ut1_fb_p3 - tanh_p0_p1;
-	float p1_euler = tanh_p0_p1 - tanh_p1_p2;
-	float p2_euler = tanh_p1_p2 - tanh_p2_p3;
-	float p3_euler = tanh_p2_p3 - tanh_p3;
 	
 	// predictor
-	float p0_prime = p0 + dt * p0_euler;
-	float p1_prime = p1 + 0.5f * dt * p1_euler;
-	float p2_prime = p2 + 0.5f * dt * p2_euler;
-	float p3_prime = p3 + 0.5f * dt * p3_euler;
+	p0_prime = p0 + dt * (tanh_ut1_fb_hp3 - tanh_p0_p1);
+	p1_prime = p1 + 0.5f * dt * (tanh_p0_p1 - tanh_p1_p2);
+	p2_prime = p2 + 0.5f * dt * (tanh_p1_p2 - tanh_p2_p3);
+	p3_prime = p3 + 0.5f * dt * (tanh_p2_p3 - tanh_p3);
+
+	hp0_prime = hp0 + dt_hp * (p3 - hp0);
+	hp2_prime = hp2 + dt_hp * (hp1 - hp2);
+	hp3_prime = hp1 - hp2;
 
 	// trapezoidal step nonlinearities
-	float tanh_input_fb_p3_prime = FloatTanhPade32(input - fb * p3_prime);
-	float tanh_p0_p1_prime = FloatTanhPade32(p0_prime - p1_prime);
-	float tanh_p1_p2_prime = FloatTanhPade32(p1_prime - p2_prime);
-	float tanh_p2_p3_prime = FloatTanhPade32(p2_prime - p3_prime);
+	float tanh_input_fb_hp3_prime = FloatTanhPade32(input - fb * hp3_prime);
+	float tanh_p0_prime_p1_prime = FloatTanhPade32(p0_prime - p1_prime);
+	float tanh_p1_prime_p2_prime = FloatTanhPade32(p1_prime - p2_prime);
+	float tanh_p2_prime_p3_prime = FloatTanhPade32(p2_prime - p3_prime);
 	float tanh_p3_prime = FloatTanhPade32(p3_prime);
 	
-	// trapezoidal step differences
-	float p0_trap = tanh_input_fb_p3_prime - tanh_p0_p1_prime;
-	float p1_trap = tanh_p0_p1_prime - tanh_p1_p2_prime;
-	float p2_trap = tanh_p1_p2_prime - tanh_p2_p3_prime;
-	float p3_trap = tanh_p2_p3_prime - tanh_p3_prime;	
-	
 	// corrector
-	p0 = p0 + 0.5f * dt * (p0_euler + p0_trap);
-	p1 = p1 + 0.5f * 0.5f * dt * (p1_euler + p1_trap);
-	p2 = p2 + 0.5f * 0.5f * dt * (p2_euler + p2_trap);
-	p3 = p3 + 0.5f * 0.5f * dt * (p3_euler + p3_trap);
+	p0_new = p0 + 0.5f * dt * ((tanh_ut1_fb_hp3 - tanh_p0_p1) + (tanh_input_fb_hp3_prime - tanh_p0_prime_p1_prime));
+	p1_new = p1 + 0.5f * 0.5f * dt * ((tanh_p0_p1 - tanh_p1_p2) + (tanh_p0_prime_p1_prime - tanh_p1_prime_p2_prime));
+	p2_new = p2 + 0.5f * 0.5f * dt * ((tanh_p1_p2 - tanh_p2_p3) + (tanh_p1_prime_p2_prime - tanh_p2_prime_p3_prime));
+	p3_new = p3 + 0.5f * 0.5f * dt * ((tanh_p2_p3 - tanh_p3) + (tanh_p2_prime_p3_prime - tanh_p3_prime));
+
+	hp0 = hp0 + 0.5f * dt_hp * ((p3 - hp0) + (p3_new - hp0_prime));
+	hp1_new = p3_new - hp0;
+	hp2 = hp2 + 0.5f * dt_hp * ((hp1 - hp2) + (hp1_new - hp2_prime));
+	hp3_new = hp1_new - hp2; 
+
+	hp1 = hp1_new;
+	hp3 = hp3_new;
+	
+	p0 = p0_new;
+	p1 = p1_new;
+	p2 = p2_new;
+	p3 = p3_new;
+
+	hp6 = hp6 + dt_hp2 * (p1 - hp6);
+	hp7 = p1 - hp6;
       }
       break;
       
@@ -292,10 +323,10 @@ void Diode::DiodeFilter(float input){
     //switch filter mode
     switch(filterMode){
     case DIODE_LOWPASS4_MODE:
-      out = p3;
+      out = hp3;
       break;
     case DIODE_LOWPASS2_MODE:
-      out = 0.25f * p1;
+      out = 0.25f * hp7;
       break;
     default:
       out = 0.0f;
@@ -313,7 +344,7 @@ void Diode::DiodeFilter(double input){
   double noise;
 
   // feedback amount
-  double fb = 18.0 * Resonance;
+  double fb = 24.0 * Resonance;
 
   // update noise terms
   noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
@@ -330,10 +361,19 @@ void Diode::DiodeFilter(double input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + dt * (TanhPade32(input - fb * p3) - TanhPade32(p0 - p1));
+	p0 = p0 + dt * (TanhPade32(input - fb * hp3) - TanhPade32(p0 - p1));
 	p1 = p1 + 0.5 * dt * (TanhPade32(p0 - p1) - TanhPade32(p1 - p2));
 	p2 = p2 + 0.5 * dt * (TanhPade32(p1 - p2) - TanhPade32(p2 - p3));
 	p3 = p3 + 0.5 * dt * (TanhPade32(p2 - p3) - TanhPade32(p3));
+
+	hp0 = hp0 + dt_hp * (p3 - hp0);
+	hp1 = p3 - hp0;
+	
+	hp2 = hp2 + dt_hp * (hp1 - hp2);
+	hp3 = hp1 - hp2;
+
+	hp6 = hp6 + dt_hp2 * (p1 - hp6);
+	hp7 = p1 - hp6;	
       }
       break;
       
@@ -341,43 +381,56 @@ void Diode::DiodeFilter(double input){
       // predictor-corrector integration
       // with full tanh stages
       {
+	double p0_prime, p1_prime, p2_prime, p3_prime;
+	double p0_new, p1_new, p2_new, p3_new;
+	double hp0_prime, hp2_prime, hp3_prime;
+	double hp1_new, hp3_new;
+
 	// euler step nonlinearities
-	double tanh_ut1_fb_p3 = TanhPade32(ut_1 - fb * p3);
+	double tanh_ut1_fb_hp3 = TanhPade32(ut_1 - fb * hp3);
 	double tanh_p0_p1 = TanhPade32(p0 - p1);
 	double tanh_p1_p2 = TanhPade32(p1 - p2);
 	double tanh_p2_p3 = TanhPade32(p2 - p3);
 	double tanh_p3 = TanhPade32(p3);
-
-	// euler step differences
-	double p0_euler = tanh_ut1_fb_p3 - tanh_p0_p1;
-	double p1_euler = tanh_p0_p1 - tanh_p1_p2;
-	double p2_euler = tanh_p1_p2 - tanh_p2_p3;
-	double p3_euler = tanh_p2_p3 - tanh_p3;
 	
 	// predictor
-	double p0_prime = p0 + dt * p0_euler;
-	double p1_prime = p1 + 0.5 * dt * p1_euler;
-	double p2_prime = p2 + 0.5 * dt * p2_euler;
-	double p3_prime = p3 + 0.5 * dt * p3_euler;
+	p0_prime = p0 + dt * (tanh_ut1_fb_hp3 - tanh_p0_p1);
+	p1_prime = p1 + 0.5 * dt * (tanh_p0_p1 - tanh_p1_p2);
+	p2_prime = p2 + 0.5 * dt * (tanh_p1_p2 - tanh_p2_p3);
+	p3_prime = p3 + 0.5 * dt * (tanh_p2_p3 - tanh_p3);
+
+	hp0_prime = hp0 + dt_hp * (p3 - hp0);
+	hp2_prime = hp2 + dt_hp * (hp1 - hp2);
+	hp3_prime = hp1 - hp2;
 
 	// trapezoidal step nonlinearities
-	double tanh_input_fb_p3_prime = TanhPade32(input - fb * p3_prime);
-	double tanh_p0_p1_prime = TanhPade32(p0_prime - p1_prime);
-	double tanh_p1_p2_prime = TanhPade32(p1_prime - p2_prime);
-	double tanh_p2_p3_prime = TanhPade32(p2_prime - p3_prime);
+	double tanh_input_fb_hp3_prime = TanhPade32(input - fb * hp3_prime);
+	double tanh_p0_prime_p1_prime = TanhPade32(p0_prime - p1_prime);
+	double tanh_p1_prime_p2_prime = TanhPade32(p1_prime - p2_prime);
+	double tanh_p2_prime_p3_prime = TanhPade32(p2_prime - p3_prime);
 	double tanh_p3_prime = TanhPade32(p3_prime);
 	
-	// trapezoidal step differences
-	double p0_trap = tanh_input_fb_p3_prime - tanh_p0_p1_prime;
-	double p1_trap = tanh_p0_p1_prime - tanh_p1_p2_prime;
-	double p2_trap = tanh_p1_p2_prime - tanh_p2_p3_prime;
-	double p3_trap = tanh_p2_p3_prime - tanh_p3_prime;	
-	
 	// corrector
-	p0 = p0 + 0.5 * dt * (p0_euler + p0_trap);
-	p1 = p1 + 0.5 * 0.5 * dt * (p1_euler + p1_trap);
-	p2 = p2 + 0.5 * 0.5 * dt * (p2_euler + p2_trap);
-	p3 = p3 + 0.5 * 0.5 * dt * (p3_euler + p3_trap);
+	p0_new = p0 + 0.5 * dt * ((tanh_ut1_fb_hp3 - tanh_p0_p1) + (tanh_input_fb_hp3_prime - tanh_p0_prime_p1_prime));
+	p1_new = p1 + 0.5 * 0.5 * dt * ((tanh_p0_p1 - tanh_p1_p2) + (tanh_p0_prime_p1_prime - tanh_p1_prime_p2_prime));
+	p2_new = p2 + 0.5 * 0.5 * dt * ((tanh_p1_p2 - tanh_p2_p3) + (tanh_p1_prime_p2_prime - tanh_p2_prime_p3_prime));
+	p3_new = p3 + 0.5 * 0.5 * dt * ((tanh_p2_p3 - tanh_p3) + (tanh_p2_prime_p3_prime - tanh_p3_prime));
+
+	hp0 = hp0 + 0.5 * dt_hp * ((p3 - hp0) + (p3_new - hp0_prime));
+	hp1_new = p3_new - hp0;
+	hp2 = hp2 + 0.5 * dt_hp * ((hp1 - hp2) + (hp1_new - hp2_prime));
+	hp3_new = hp1_new - hp2; 
+
+	hp1 = hp1_new;
+	hp3 = hp3_new;
+	
+	p0 = p0_new;
+	p1 = p1_new;
+	p2 = p2_new;
+	p3 = p3_new;
+
+	hp6 = hp6 + dt_hp2 * (p1 - hp6);
+	hp7 = p1 - hp6;
       }
       break;
       
@@ -391,10 +444,10 @@ void Diode::DiodeFilter(double input){
     //switch filter mode
     switch(filterMode){
     case DIODE_LOWPASS4_MODE:
-      out = p3;
+      out = hp3;
       break;
     case DIODE_LOWPASS2_MODE:
-      out = 0.25 * p1;
+      out = 0.25 * hp7;
       break;
     default:
       out = 0.0;
