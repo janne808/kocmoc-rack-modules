@@ -462,7 +462,7 @@ void Diode::DiodeFilter(double input){
 #endif
 
 double Diode::GetFilterLowpass(){
-  return p3;
+  return hp3;
 }
 
 double Diode::GetFilterBandpass(){
