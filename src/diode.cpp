@@ -240,10 +240,10 @@ void Diode::DiodeFilter(float input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + dt * (FloatTanhPade32(input - fb * hp3) - FloatTanhPade32(p0 - p1));
-	p1 = p1 + 0.5f * dt * (FloatTanhPade32(p0 - p1) - FloatTanhPade32(p1 - p2));
-	p2 = p2 + 0.5f * dt * (FloatTanhPade32(p1 - p2) - FloatTanhPade32(p2 - p3));
-	p3 = p3 + 0.5f * dt * (FloatTanhPade32(p2 - p3) - FloatTanhPade32(p3));
+	p0 = p0 + dt * (FloatTanhPade45(input - fb * hp3) - FloatTanhPade45(p0 - p1));
+	p1 = p1 + 0.5f * dt * (FloatTanhPade45(p0 - p1) - FloatTanhPade45(p1 - p2));
+	p2 = p2 + 0.5f * dt * (FloatTanhPade45(p1 - p2) - FloatTanhPade45(p2 - p3));
+	p3 = p3 + 0.5f * dt * (FloatTanhPade45(p2 - p3) - FloatTanhPade45(p3));
 
 	hp0 = hp0 + dt_hp * (p3 - hp0);
 	hp1 = p3 - hp0;
@@ -266,11 +266,11 @@ void Diode::DiodeFilter(float input){
 	float hp1_new, hp3_new;
 
 	// euler step nonlinearities
-	float tanh_ut1_fb_hp3 = FloatTanhPade32(ut_1 - fb * hp3);
-	float tanh_p0_p1 = FloatTanhPade32(p0 - p1);
-	float tanh_p1_p2 = FloatTanhPade32(p1 - p2);
-	float tanh_p2_p3 = FloatTanhPade32(p2 - p3);
-	float tanh_p3 = FloatTanhPade32(p3);
+	float tanh_ut1_fb_hp3 = FloatTanhPade45(ut_1 - fb * hp3);
+	float tanh_p0_p1 = FloatTanhPade45(p0 - p1);
+	float tanh_p1_p2 = FloatTanhPade45(p1 - p2);
+	float tanh_p2_p3 = FloatTanhPade45(p2 - p3);
+	float tanh_p3 = FloatTanhPade45(p3);
 	
 	// predictor
 	p0_prime = p0 + dt * (tanh_ut1_fb_hp3 - tanh_p0_p1);
@@ -283,11 +283,11 @@ void Diode::DiodeFilter(float input){
 	hp3_prime = hp1 - hp2;
 
 	// trapezoidal step nonlinearities
-	float tanh_input_fb_hp3_prime = FloatTanhPade32(input - fb * hp3_prime);
-	float tanh_p0_prime_p1_prime = FloatTanhPade32(p0_prime - p1_prime);
-	float tanh_p1_prime_p2_prime = FloatTanhPade32(p1_prime - p2_prime);
-	float tanh_p2_prime_p3_prime = FloatTanhPade32(p2_prime - p3_prime);
-	float tanh_p3_prime = FloatTanhPade32(p3_prime);
+	float tanh_input_fb_hp3_prime = FloatTanhPade45(input - fb * hp3_prime);
+	float tanh_p0_prime_p1_prime = FloatTanhPade45(p0_prime - p1_prime);
+	float tanh_p1_prime_p2_prime = FloatTanhPade45(p1_prime - p2_prime);
+	float tanh_p2_prime_p3_prime = FloatTanhPade45(p2_prime - p3_prime);
+	float tanh_p3_prime = FloatTanhPade45(p3_prime);
 	
 	// corrector
 	p0_new = p0 + 0.5f * dt * ((tanh_ut1_fb_hp3 - tanh_p0_p1) + (tanh_input_fb_hp3_prime - tanh_p0_prime_p1_prime));
