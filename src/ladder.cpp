@@ -247,10 +247,10 @@ void Ladder::LadderFilter(float input){
       {
 	// euler step nonlinearities
 	float tanh_ut1_fb_p3 = FloatTanhPade32(ut_1 - fb * p3);
-	float tanh_p0 = FloatTanhPade32(p0);
-	float tanh_p1 = FloatTanhPade32(p1);
-	float tanh_p2 = FloatTanhPade32(p2);
-	float tanh_p3 = FloatTanhPade32(p3);
+	float tanh_p0 = FloatTanhPade45(p0);
+	float tanh_p1 = FloatTanhPade45(p1);
+	float tanh_p2 = FloatTanhPade45(p2);
+	float tanh_p3 = FloatTanhPade45(p3);
 
 	// euler step differences
 	float p0_euler = tanh_ut1_fb_p3 - tanh_p0;
@@ -266,10 +266,10 @@ void Ladder::LadderFilter(float input){
 
 	// trapezoidal step nonlinearities
 	float tanh_input_fb_p3_prime = FloatTanhPade32(input - fb * p3_prime);
-	float tanh_p0_prime = FloatTanhPade32(p0_prime);
-	float tanh_p1_prime = FloatTanhPade32(p1_prime);
-	float tanh_p2_prime = FloatTanhPade32(p2_prime);
-	float tanh_p3_prime = FloatTanhPade32(p3_prime);
+	float tanh_p0_prime = FloatTanhPade45(p0_prime);
+	float tanh_p1_prime = FloatTanhPade45(p1_prime);
+	float tanh_p2_prime = FloatTanhPade45(p2_prime);
+	float tanh_p3_prime = FloatTanhPade45(p3_prime);
 
 	// trapezoidal step differences
 	float p0_trap = tanh_input_fb_p3_prime - tanh_p0_prime;
