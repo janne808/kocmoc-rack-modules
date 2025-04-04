@@ -175,7 +175,7 @@ void Diode::SetFilterIntegrationRate(){
     dt = 1.0;
   }
 
-  dt_hp = 44100.0 / (sampleRate * oversamplingFactor) * 0.003;
+  dt_hp = 44100.0 / (sampleRate * oversamplingFactor) * 0.005;
   dt_hp2 = 44100.0 / (sampleRate * oversamplingFactor) * 0.008;
 }
 
