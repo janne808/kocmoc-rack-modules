@@ -147,13 +147,15 @@ inline double TanhPade45(double x) {
 inline double TanhPade32(double x) {
   // clamp x to -3..3
   if(x > 3.0) {
-    x = 3.0;
+    return 3.0 * (15.0 + 3.0 * 3.0) / (15.0 + 6.0 * 3.0 * 3.0);
   }
   else if(x < -3.0) {
-    x = -3.0;
+    return -3.0 * (15.0 + (-3.0) * (-3.0)) / (15.0 + 6.0 * (-3.0) * (-3.0));
   }
-  // return approximant
-  return x * (15.0 + x * x) / (15.0 + 6.0 * x * x);
+  else {
+    // return approximant
+    return x * (15.0 + x * x) / (15.0 + 6.0 * x * x);
+  }
 }
 
 // pade 5/4 approximant for tanh
