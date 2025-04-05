@@ -1,3 +1,5 @@
+![Build VCV Rack Plugin](https://github.com/janne808/kocmoc-rack-modules/actions/workflows/build-plugin.yml/badge.svg)
+
 # Kocmoc Rack Modules
 
 Copyright (c) 2025 Janne Heikkarainen (janne808@radiofreerobotron.net)
