@@ -44,7 +44,7 @@
 #define DIODE_NEWTON_BREAKING_LIMIT 1
 
 // thermal phase noise amplitude
-#define DIODE_THERMAL_NOISE_AMPLITUDE 1.0e-3
+#define DIODE_THERMAL_NOISE_AMPLITUDE 1.0e-2
 
 // constructor
 Diode::Diode(double newCutoff, double newResonance, int newOversamplingFactor,
