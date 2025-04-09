@@ -43,6 +43,9 @@
 // check for newton-raphson breaking limit
 #define DIODE_NEWTON_BREAKING_LIMIT 1
 
+// thermal phase noise amplitude
+#define DIODE_THERMAL_NOISE_AMPLITUDE 1.0e-3
+
 // constructor
 Diode::Diode(double newCutoff, double newResonance, int newOversamplingFactor,
 	     DiodeFilterMode newFilterMode, double newSampleRate,
@@ -238,10 +241,10 @@ void Diode::DiodeFilter(float input){
   float theta_3 = 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
   
   // inject thermal phase noise to filter stages
-  float alpha_0 = 1.0f + 2.0e-2f * theta_0;
-  float alpha_1 = 1.0f + 2.0e-2f * theta_1;
-  float alpha_2 = 1.0f + 2.0e-2f * theta_2;
-  float alpha_3 = 1.0f + 2.0e-2f * theta_3;
+  float alpha_0 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * theta_0;
+  float alpha_1 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * theta_1;
+  float alpha_2 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * theta_2;
+  float alpha_3 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * theta_3;
   
   // integrate filter state
   // with oversampling
@@ -371,10 +374,10 @@ void Diode::DiodeFilter(double input){
   double theta_3 = 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
   
   // inject thermal phase noise to filter stages
-  double alpha_0 = 1.0 + 2.0e-2 * theta_0;
-  double alpha_1 = 1.0 + 2.0e-2 * theta_1;
-  double alpha_2 = 1.0 + 2.0e-2 * theta_2;
-  double alpha_3 = 1.0 + 2.0e-2 * theta_3;
+  double alpha_0 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * theta_0;
+  double alpha_1 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * theta_1;
+  double alpha_2 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * theta_2;
+  double alpha_3 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * theta_3;
   
   // integrate filter state
   // with oversampling
