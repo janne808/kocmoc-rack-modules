@@ -255,10 +255,10 @@ void Diode::DiodeFilter(float input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + alpha_1 * dt * (FloatTanhPade45(input - fb * hp3) - FloatTanhPade45(p0 - p1));
-	p1 = p1 + alpha_2 * 0.5f * dt * (FloatTanhPade45(p0 - p1) - FloatTanhPade45(p1 - p2));
-	p2 = p2 + alpha_3 * 0.5f * dt * (FloatTanhPade45(p1 - p2) - FloatTanhPade45(p2 - p3));
-	p3 = p3 + alpha_4 * 0.5f * dt * (FloatTanhPade45(p2 - p3) - FloatTanhPade45(p3));
+	p0 = p0 + alpha_0 * dt * (FloatTanhPade45(input - fb * hp3) - FloatTanhPade45(p0 - p1));
+	p1 = p1 + alpha_1 * 0.5f * dt * (FloatTanhPade45(p0 - p1) - FloatTanhPade45(p1 - p2));
+	p2 = p2 + alpha_2 * 0.5f * dt * (FloatTanhPade45(p1 - p2) - FloatTanhPade45(p2 - p3));
+	p3 = p3 + alpha_3 * 0.5f * dt * (FloatTanhPade45(p2 - p3) - FloatTanhPade45(p3));
 
 	hp0 = hp0 + dt_hp * (p3 - hp0);
 	hp1 = p3 - hp0;
@@ -412,7 +412,7 @@ void Diode::DiodeFilter(double input){
 	double p0_new, p1_new, p2_new, p3_new;
 	double hp0_prime, hp2_prime, hp3_prime;
 	double hp1_new, hp3_new;
-
+	
 	// euler step nonlinearities
 	double tanh_ut1_fb_hp3 = TanhPade32(ut_1 - fb * hp3);
 	double tanh_p0_p1 = TanhPade32(p0 - p1);
