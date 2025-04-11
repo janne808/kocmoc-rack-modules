@@ -43,6 +43,9 @@
 // check for newton-raphson breaking limit
 #define SVF_NEWTON_BREAKING_LIMIT 1
 
+// damping factor
+#define SVF_BETA_FACTOR 0.0075
+
 // constructor
 SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
 		   SVFFilterMode newFilterMode, double newSampleRate,
@@ -258,7 +261,7 @@ void SVFilter::filter(float input){
     case SVF_SEMI_IMPLICIT_EULER:
       {
 	// loss factor
-	float beta = 1.0f - (0.0075f / oversamplingFactor);
+	float beta = 1.0f - (SVF_BETA_FACTOR / oversamplingFactor);
 
        	hp = input - lp - fb * bp - FloatSinhPade54(bp);
 	bp += dt2 * hp;
@@ -270,7 +273,7 @@ void SVFilter::filter(float input){
       // trapezoidal integration
       {
 	float alpha = dt2 / 2.0f;
-	float beta = 1.0f - (0.0075f / oversamplingFactor);
+	float beta = 1.0f - (SVF_BETA_FACTOR / oversamplingFactor);
 	float alpha2 = dt2 * dt2 / 4.0f + fb * alpha;
 	float D_t = (1.0f - dt2 * dt2 /4.0f) * bp +
 	              alpha * (u_t1 + input - 2.0f * lp - fb * bp - FloatSinhPade54(bp));
@@ -304,7 +307,7 @@ void SVFilter::filter(float input){
       // inverse trapezoidal integration
       {
 	float alpha = dt2 / 2.0f;
-	float beta = 1.0f - (0.0075f / oversamplingFactor);
+	float beta = 1.0f - (SVF_BETA_FACTOR / oversamplingFactor);
 	float alpha2 = dt2 * dt2 / 4.0f + fb * alpha;
 	float D_t = (1.0f - dt2 * dt2 / 4.0f) * bp +
 	              alpha * (u_t1 + input - 2.0f * lp - fb * bp - sinh(bp));
@@ -406,7 +409,7 @@ void SVFilter::filter(double input){
     case SVF_SEMI_IMPLICIT_EULER:
       {
 	// loss factor
-	double beta = 1.0 - (0.0075 / oversamplingFactor);
+	double beta = 1.0 - (SVF_BETA_FACTOR / oversamplingFactor);
 
        	hp = input - lp - fb*bp - SinhPade54(bp);
 	bp += dt2 * hp;
@@ -418,7 +421,7 @@ void SVFilter::filter(double input){
       // trapezoidal integration
       {
 	double alpha = dt2 / 2.0;
-	double beta = 1.0 - (0.0075 / oversamplingFactor);
+	double beta = 1.0 - (SVF_BETA_FACTOR / oversamplingFactor);
 	double alpha2 = dt2 * dt2 / 4.0 + fb * alpha;
 	double D_t = (1.0 - dt2 * dt2 / 4.0) * bp +
 	              alpha * (u_t1 + input - 2.0 * lp - fb * bp - SinhPade54(bp));
@@ -452,7 +455,7 @@ void SVFilter::filter(double input){
       // inverse trapezoidal integration
       {
 	double alpha = dt2 / 2.0;
-	double beta = 1.0 - (0.0075 / oversamplingFactor);
+	double beta = 1.0 - (SVF_BETA_FACTOR / oversamplingFactor);
 	double alpha2 = dt2 * dt2 / 4.0 + fb * alpha;
 	double D_t = (1.0 - dt2 * dt2 / 4.0) * bp +
 	              alpha * (u_t1 + input - 2.0 * lp - fb * bp - sinh(bp));
