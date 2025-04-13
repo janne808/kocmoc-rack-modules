@@ -44,7 +44,7 @@
 #define SVF_NEWTON_BREAKING_LIMIT 1
 
 // damping factor
-#define SVF_BETA_FACTOR 0.0075
+#define SVF_BETA_FACTOR 0.0055
 
 // constructor
 SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFactor,
