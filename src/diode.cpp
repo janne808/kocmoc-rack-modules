@@ -35,7 +35,7 @@
 #define IIR_DOWNSAMPLE_ORDER 16
 
 // downsampling passthrough bandwidth
-#define IIR_DOWNSAMPLING_BANDWIDTH 0.9
+#define IIR_DOWNSAMPLING_BANDWIDTH 0.725
 
 // maximum newton-raphson iteration steps
 #define DIODE_MAX_NEWTON_STEPS 8
@@ -174,8 +174,8 @@ void Diode::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 1.0){
-    dt = 1.0;
+  else if(dt > 0.9){
+    dt = 0.9;
   }
 
   dt_hp = 44100.0 / (sampleRate * oversamplingFactor) * 0.005;
@@ -277,9 +277,9 @@ void Diode::DiodeFilter(float input){
       {
 	float p0_prime, p1_prime, p2_prime, p3_prime;
 	float p0_new, p1_new, p2_new, p3_new;
-	float hp0_prime, hp2_prime, hp3_prime;
-	float hp1_new, hp3_new;
-
+	float hp0_prime, hp1_prime, hp2_prime, hp3_prime;
+	float hp0_new, hp1_new, hp2_new, hp3_new;
+	
 	// euler step nonlinearities
 	float tanh_ut1_fb_hp3 = FloatTanhPade45(ut_1 - fb * hp3);
 	float tanh_p0_p1 = FloatTanhPade45(p0 - p1);
@@ -294,8 +294,9 @@ void Diode::DiodeFilter(float input){
 	p3_prime = p3 + alpha_3 * 0.5f * dt * (tanh_p2_p3 - tanh_p3);
 
 	hp0_prime = hp0 + dt_hp * (p3 - hp0);
+	hp1_prime = p3_prime - hp0_prime;
 	hp2_prime = hp2 + dt_hp * (hp1 - hp2);
-	hp3_prime = hp1 - hp2;
+	hp3_prime = hp1_prime - hp2_prime;
 
 	// trapezoidal step nonlinearities
 	float tanh_input_fb_hp3_prime = FloatTanhPade45(input - fb * hp3_prime);
@@ -310,12 +311,14 @@ void Diode::DiodeFilter(float input){
 	p2_new = p2 + alpha_2 * 0.5f * 0.5f * dt * ((tanh_p1_p2 - tanh_p2_p3) + (tanh_p1_prime_p2_prime - tanh_p2_prime_p3_prime));
 	p3_new = p3 + alpha_3 * 0.5f * 0.5f * dt * ((tanh_p2_p3 - tanh_p3) + (tanh_p2_prime_p3_prime - tanh_p3_prime));
 
-	hp0 = hp0 + 0.5f * dt_hp * ((p3 - hp0) + (p3_new - hp0_prime));
-	hp1_new = p3_new - hp0;
-	hp2 = hp2 + 0.5f * dt_hp * ((hp1 - hp2) + (hp1_new - hp2_prime));
-	hp3_new = hp1_new - hp2; 
+	hp0_new = hp0 + 0.5f * dt_hp * (hp1_prime + (p3_prime - hp0_prime));
+	hp1_new = p3_new - hp0_new;
+	hp2_new = hp2 + 0.5f * dt_hp * (hp3_prime + (hp1_prime - hp2_prime));
+	hp3_new = hp1_new - hp2_new; 
 
+	hp0 = hp0_new;
 	hp1 = hp1_new;
+	hp2 = hp2_new;
 	hp3 = hp3_new;
 	
 	p0 = p0_new;
@@ -410,8 +413,8 @@ void Diode::DiodeFilter(double input){
       {
 	double p0_prime, p1_prime, p2_prime, p3_prime;
 	double p0_new, p1_new, p2_new, p3_new;
-	double hp0_prime, hp2_prime, hp3_prime;
-	double hp1_new, hp3_new;
+	double hp0_prime, hp1_prime, hp2_prime, hp3_prime;
+	double hp0_new, hp1_new, hp2_new, hp3_new;
 	
 	// euler step nonlinearities
 	double tanh_ut1_fb_hp3 = TanhPade32(ut_1 - fb * hp3);
@@ -427,8 +430,9 @@ void Diode::DiodeFilter(double input){
 	p3_prime = p3 + alpha_3 * 0.5 * dt * (tanh_p2_p3 - tanh_p3);
 
 	hp0_prime = hp0 + dt_hp * (p3 - hp0);
+	hp1_prime = p3_prime - hp0_prime;
 	hp2_prime = hp2 + dt_hp * (hp1 - hp2);
-	hp3_prime = hp1 - hp2;
+	hp3_prime = hp1_prime - hp2_prime;
 
 	// trapezoidal step nonlinearities
 	double tanh_input_fb_hp3_prime = TanhPade32(input - fb * hp3_prime);
@@ -443,12 +447,14 @@ void Diode::DiodeFilter(double input){
 	p2_new = p2 + alpha_2 * 0.5 * 0.5 * dt * ((tanh_p1_p2 - tanh_p2_p3) + (tanh_p1_prime_p2_prime - tanh_p2_prime_p3_prime));
 	p3_new = p3 + alpha_3 * 0.5 * 0.5 * dt * ((tanh_p2_p3 - tanh_p3) + (tanh_p2_prime_p3_prime - tanh_p3_prime));
 
-	hp0 = hp0 + 0.5 * dt_hp * ((p3 - hp0) + (p3_new - hp0_prime));
-	hp1_new = p3_new - hp0;
-	hp2 = hp2 + 0.5 * dt_hp * ((hp1 - hp2) + (hp1_new - hp2_prime));
-	hp3_new = hp1_new - hp2; 
+	hp0_new = hp0 + 0.5 * dt_hp * (hp1_prime + (p3_prime - hp0_prime));
+	hp1_new = p3_new - hp0_new;
+	hp2_new = hp2 + 0.5 * dt_hp * (hp3_prime + (hp1_prime - hp2_prime));
+	hp3_new = hp1_new - hp2_new; 
 
+	hp0 = hp0_new;
 	hp1 = hp1_new;
+	hp2 = hp2_new;
 	hp3 = hp3_new;
 	
 	p0 = p0_new;
