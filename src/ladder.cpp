@@ -35,7 +35,7 @@
 #define IIR_DOWNSAMPLE_ORDER 16
 
 // downsampling passthrough bandwidth
-#define IIR_DOWNSAMPLING_BANDWIDTH 0.9
+#define IIR_DOWNSAMPLING_BANDWIDTH 0.75
 
 // maximum newton-raphson iteration steps
 #define LADDER_MAX_NEWTON_STEPS 8
@@ -165,8 +165,8 @@ void Ladder::SetFilterIntegrationRate(){
   if(dt < 0.0f){
     dt = 0.0f;
   }
-  else if(dt > 0.9f){
-    dt = 0.9f;
+  else if(dt > 0.7f){
+    dt = 0.7f;
   }
 }
 

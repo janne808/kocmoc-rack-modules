@@ -46,7 +46,7 @@ struct DIOD : Module {
      NUM_LIGHTS
   };
 
-  int _oversampling = 2;
+  int _oversampling = 4;
   int _decimatorOrder = 16;
   
   DiodeIntegrationMethod _integrationMethod = DIODE_PREDICTOR_CORRECTOR_FULL_TANH;
