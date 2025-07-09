@@ -46,6 +46,15 @@
 // thermal phase noise amplitude
 #define DIODE_THERMAL_NOISE_AMPLITUDE 1.0e-2
 
+// feedback DC decoupling integration rate
+#define DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE 0.005
+
+// output DC decoupling integration rate
+#define DIODE_OUTPUT_DC_DECOUPLING_INTEGRATION_RATE 0.008
+
+// maximum integration rate
+#define DIODE_MAX_INTEGRATION_RATE 0.9
+
 // constructor
 Diode::Diode(double newCutoff, double newResonance, int newOversamplingFactor,
 	     DiodeFilterMode newFilterMode, double newSampleRate,
@@ -115,7 +124,7 @@ void Diode::ResetFilterState(){
   SetFilterIntegrationRate();
   
   // initialize filter state
-  p0 = p1 = p2 = p3 = out = ut_1 = 0.0f;
+  p0 = p1 = p2 = p3 = out = ut_1 = 0.0;
 
   hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = hp6 = hp7 = 0.0;
   
@@ -174,12 +183,12 @@ void Diode::SetFilterIntegrationRate(){
   if(dt < 0.0){
     dt = 0.0;
   }
-  else if(dt > 0.9){
-    dt = 0.9;
+  else if(dt > DIODE_MAX_INTEGRATION_RATE){
+    dt = DIODE_MAX_INTEGRATION_RATE;
   }
 
-  dt_hp = 44100.0 / (sampleRate * oversamplingFactor) * 0.005;
-  dt_hp2 = 44100.0 / (sampleRate * oversamplingFactor) * 0.008;
+  dt_hp = 44100.0 / (sampleRate * oversamplingFactor) * DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE;
+  dt_hp2 = 44100.0 / (sampleRate * oversamplingFactor) * DIODE_OUTPUT_DC_DECOUPLING_INTEGRATION_RATE;
 }
 
 double Diode::GetFilterCutoff(){
