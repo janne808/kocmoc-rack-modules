@@ -47,7 +47,7 @@
 #define DIODE_THERMAL_NOISE_AMPLITUDE 1.0e-2
 
 // feedback DC decoupling integration rate
-#define DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE 0.005
+#define DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE 0.002
 
 // output DC decoupling integration rate
 #define DIODE_OUTPUT_DC_DECOUPLING_INTEGRATION_RATE 0.008
@@ -350,7 +350,7 @@ void Diode::DiodeFilter(float input){
     //switch filter mode
     switch(filterMode){
     case DIODE_LOWPASS4_MODE:
-      out = hp3;
+      out = hp1;
       break;
     case DIODE_LOWPASS2_MODE:
       out = 0.25f * hp7;
@@ -486,7 +486,7 @@ void Diode::DiodeFilter(double input){
     //switch filter mode
     switch(filterMode){
     case DIODE_LOWPASS4_MODE:
-      out = hp3;
+      out = hp1;
       break;
     case DIODE_LOWPASS2_MODE:
       out = 0.25 * hp7;
