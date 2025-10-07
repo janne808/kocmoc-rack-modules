@@ -47,10 +47,10 @@
 #define DIODE_THERMAL_NOISE_AMPLITUDE 1.0e-2
 
 // feedback DC decoupling integration rate
-#define DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE 0.002
+#define DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE 0.0035
 
 // output DC decoupling integration rate
-#define DIODE_OUTPUT_DC_DECOUPLING_INTEGRATION_RATE 0.008
+#define DIODE_OUTPUT_DC_DECOUPLING_INTEGRATION_RATE 0.002
 
 // maximum integration rate
 #define DIODE_MAX_INTEGRATION_RATE 0.9
@@ -275,6 +275,9 @@ void Diode::DiodeFilter(float input){
 	hp2 = hp2 + dt_hp * (hp1 - hp2);
 	hp3 = hp1 - hp2;
 
+	hp4 = hp4 + dt_hp2 * (p3 - hp4);
+	hp5 = p3 - hp4;
+	
 	hp6 = hp6 + dt_hp2 * (p1 - hp6);
 	hp7 = p1 - hp6;	
       }
@@ -335,6 +338,9 @@ void Diode::DiodeFilter(float input){
 	p2 = p2_new;
 	p3 = p3_new;
 
+	hp4 = hp4 + dt_hp2 * (p3 - hp4);
+	hp5 = p3 - hp4;
+	
 	hp6 = hp6 + dt_hp2 * (p1 - hp6);
 	hp7 = p1 - hp6;
       }
@@ -350,7 +356,7 @@ void Diode::DiodeFilter(float input){
     //switch filter mode
     switch(filterMode){
     case DIODE_LOWPASS4_MODE:
-      out = hp1;
+      out = hp5;
       break;
     case DIODE_LOWPASS2_MODE:
       out = 0.25f * hp7;
@@ -411,6 +417,9 @@ void Diode::DiodeFilter(double input){
 	hp2 = hp2 + dt_hp * (hp1 - hp2);
 	hp3 = hp1 - hp2;
 
+	hp4 = hp4 + dt_hp2 * (p3 - hp4);
+	hp5 = p3 - hp4;
+
 	hp6 = hp6 + dt_hp2 * (p1 - hp6);
 	hp7 = p1 - hp6;	
       }
@@ -440,6 +449,7 @@ void Diode::DiodeFilter(double input){
 
 	hp0_prime = hp0 + dt_hp * (p3 - hp0);
 	hp1_prime = p3_prime - hp0_prime;
+	
 	hp2_prime = hp2 + dt_hp * (hp1 - hp2);
 	hp3_prime = hp1_prime - hp2_prime;
 
@@ -458,6 +468,7 @@ void Diode::DiodeFilter(double input){
 
 	hp0_new = hp0 + 0.5 * dt_hp * (hp1_prime + (p3_prime - hp0_prime));
 	hp1_new = p3_new - hp0_new;
+	
 	hp2_new = hp2 + 0.5 * dt_hp * (hp3_prime + (hp1_prime - hp2_prime));
 	hp3_new = hp1_new - hp2_new; 
 
@@ -470,6 +481,9 @@ void Diode::DiodeFilter(double input){
 	p1 = p1_new;
 	p2 = p2_new;
 	p3 = p3_new;
+
+	hp4 = hp4 + dt_hp2 * (p3 - hp4);
+	hp5 = p3 - hp4;
 
 	hp6 = hp6 + dt_hp2 * (p1 - hp6);
 	hp7 = p1 - hp6;
@@ -486,7 +500,7 @@ void Diode::DiodeFilter(double input){
     //switch filter mode
     switch(filterMode){
     case DIODE_LOWPASS4_MODE:
-      out = hp1;
+      out = hp5;
       break;
     case DIODE_LOWPASS2_MODE:
       out = 0.25 * hp7;
