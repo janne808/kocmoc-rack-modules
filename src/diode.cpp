@@ -1,5 +1,5 @@
 /*
- *  (C) 2025 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2026 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -44,13 +44,10 @@
 #define DIODE_NEWTON_BREAKING_LIMIT 1
 
 // thermal phase noise amplitude
-#define DIODE_THERMAL_NOISE_AMPLITUDE 1.0e-2
+#define DIODE_THERMAL_NOISE_AMPLITUDE 5.0e-2
 
 // feedback DC decoupling integration rate
-#define DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE 0.0035
-
-// output DC decoupling integration rate
-#define DIODE_OUTPUT_DC_DECOUPLING_INTEGRATION_RATE 0.002
+#define DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE 0.005
 
 // maximum integration rate
 #define DIODE_MAX_INTEGRATION_RATE 0.9
@@ -72,7 +69,7 @@ Diode::Diode(double newCutoff, double newResonance, int newOversamplingFactor,
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0f;
 
-  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = hp6 = hp7 = 0.0;
+  hp0 = hp1 = hp2 = hp3 = 0.0;
   
   integrationMethod = newIntegrationMethod;
   
@@ -99,7 +96,7 @@ Diode::Diode(){
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0f;
 
-  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = hp6 = hp7 = 0.0;
+  hp0 = hp1 = hp2 = hp3 = 0.0;
   
   integrationMethod = DIODE_PREDICTOR_CORRECTOR_FULL_TANH;
   
@@ -126,7 +123,7 @@ void Diode::ResetFilterState(){
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0;
 
-  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = hp6 = hp7 = 0.0;
+  hp0 = hp1 = hp2 = hp3 = 0.0;
   
   // set oversampling
   iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
@@ -186,11 +183,17 @@ void Diode::SetFilterIntegrationRate(){
   else if(dt > DIODE_MAX_INTEGRATION_RATE){
     dt = DIODE_MAX_INTEGRATION_RATE;
   }
-
-  dt_hp = 44100.0 / (sampleRate * oversamplingFactor) * DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE;
-  dt_hp2 = 44100.0 / (sampleRate * oversamplingFactor) * DIODE_OUTPUT_DC_DECOUPLING_INTEGRATION_RATE;
 }
 
+#ifdef FLOATDSP
+float Diode::GetDecouplingIntegrationRate(){
+  return 44100.0f / (sampleRate * oversamplingFactor) * (DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE * (1.0f - (Resonance * 0.08f)));
+}
+#else
+double Diode::GetDecouplingIntegrationRate(){
+  return 44100.0 / (sampleRate * oversamplingFactor) * (DIODE_FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE * (1.0 - (Resonance * 0.08)));
+}
+#endif
 double Diode::GetFilterCutoff(){
   return cutoffFrequency;
 }
@@ -264,6 +267,9 @@ void Diode::DiodeFilter(float input){
       // semi-implicit euler integration
       // with full tanh stages
       {
+	// decoupling rate
+	float dt_hp = GetDecouplingIntegrationRate();
+	
 	p0 = p0 + alpha_0 * dt * (FloatTanhPade45(input - fb * hp3) - FloatTanhPade45(p0 - p1));
 	p1 = p1 + alpha_1 * 0.5f * dt * (FloatTanhPade45(p0 - p1) - FloatTanhPade45(p1 - p2));
 	p2 = p2 + alpha_2 * 0.5f * dt * (FloatTanhPade45(p1 - p2) - FloatTanhPade45(p2 - p3));
@@ -274,12 +280,6 @@ void Diode::DiodeFilter(float input){
 	
 	hp2 = hp2 + dt_hp * (hp1 - hp2);
 	hp3 = hp1 - hp2;
-
-	hp4 = hp4 + dt_hp2 * (p3 - hp4);
-	hp5 = p3 - hp4;
-	
-	hp6 = hp6 + dt_hp2 * (p1 - hp6);
-	hp7 = p1 - hp6;	
       }
       break;
       
@@ -298,6 +298,9 @@ void Diode::DiodeFilter(float input){
 	float tanh_p1_p2 = FloatTanhPade45(p1 - p2);
 	float tanh_p2_p3 = FloatTanhPade45(p2 - p3);
 	float tanh_p3 = FloatTanhPade45(p3);
+	
+	// decoupling rate
+	float dt_hp = GetDecouplingIntegrationRate();
 	
 	// predictor
 	p0_prime = p0 + alpha_0 * dt * (tanh_ut1_fb_hp3 - tanh_p0_p1);
@@ -337,12 +340,6 @@ void Diode::DiodeFilter(float input){
 	p1 = p1_new;
 	p2 = p2_new;
 	p3 = p3_new;
-
-	hp4 = hp4 + dt_hp2 * (p3 - hp4);
-	hp5 = p3 - hp4;
-	
-	hp6 = hp6 + dt_hp2 * (p1 - hp6);
-	hp7 = p1 - hp6;
       }
       break;
       
@@ -356,10 +353,10 @@ void Diode::DiodeFilter(float input){
     //switch filter mode
     switch(filterMode){
     case DIODE_LOWPASS4_MODE:
-      out = hp5;
+      out = hp1;
       break;
     case DIODE_LOWPASS2_MODE:
-      out = 0.25f * hp7;
+      out = 0.25f * p1;
       break;
     default:
       out = 0.0f;
@@ -406,6 +403,9 @@ void Diode::DiodeFilter(double input){
       // semi-implicit euler integration
       // with full tanh stages
       {
+	// decoupling rate
+	double dt_hp = GetDecouplingIntegrationRate();
+	
 	p0 = p0 + alpha_0 * dt * (TanhPade45(input - fb * hp3) - TanhPade45(p0 - p1));
 	p1 = p1 + alpha_1 * 0.5 * dt * (TanhPade45(p0 - p1) - TanhPade45(p1 - p2));
 	p2 = p2 + alpha_2 * 0.5 * dt * (TanhPade45(p1 - p2) - TanhPade45(p2 - p3));
@@ -416,12 +416,6 @@ void Diode::DiodeFilter(double input){
 	
 	hp2 = hp2 + dt_hp * (hp1 - hp2);
 	hp3 = hp1 - hp2;
-
-	hp4 = hp4 + dt_hp2 * (p3 - hp4);
-	hp5 = p3 - hp4;
-
-	hp6 = hp6 + dt_hp2 * (p1 - hp6);
-	hp7 = p1 - hp6;	
       }
       break;
       
@@ -440,6 +434,9 @@ void Diode::DiodeFilter(double input){
 	double tanh_p1_p2 = TanhPade32(p1 - p2);
 	double tanh_p2_p3 = TanhPade32(p2 - p3);
 	double tanh_p3 = TanhPade32(p3);
+
+	// decoupling rate
+	double dt_hp = GetDecouplingIntegrationRate();
 	
 	// predictor
 	p0_prime = p0 + alpha_0 * dt * (tanh_ut1_fb_hp3 - tanh_p0_p1);
@@ -481,12 +478,6 @@ void Diode::DiodeFilter(double input){
 	p1 = p1_new;
 	p2 = p2_new;
 	p3 = p3_new;
-
-	hp4 = hp4 + dt_hp2 * (p3 - hp4);
-	hp5 = p3 - hp4;
-
-	hp6 = hp6 + dt_hp2 * (p1 - hp6);
-	hp7 = p1 - hp6;
       }
       break;
       
@@ -500,10 +491,10 @@ void Diode::DiodeFilter(double input){
     //switch filter mode
     switch(filterMode){
     case DIODE_LOWPASS4_MODE:
-      out = hp5;
+      out = hp1;
       break;
     case DIODE_LOWPASS2_MODE:
-      out = 0.25 * hp7;
+      out = 0.25 * p1;
       break;
     default:
       out = 0.0;
@@ -518,7 +509,7 @@ void Diode::DiodeFilter(double input){
 #endif
 
 double Diode::GetFilterLowpass(){
-  return hp3;
+  return hp1;
 }
 
 double Diode::GetFilterBandpass(){
