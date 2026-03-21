@@ -69,7 +69,7 @@ Diode::Diode(double newCutoff, double newResonance, int newOversamplingFactor,
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0f;
 
-  hp0 = hp1 = hp2 = hp3 = 0.0;
+  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = 0.0;
   
   integrationMethod = newIntegrationMethod;
   
@@ -96,7 +96,7 @@ Diode::Diode(){
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0f;
 
-  hp0 = hp1 = hp2 = hp3 = 0.0;
+  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = 0.0;
   
   integrationMethod = DIODE_PREDICTOR_CORRECTOR_FULL_TANH;
   
@@ -123,7 +123,7 @@ void Diode::ResetFilterState(){
   // initialize filter state
   p0 = p1 = p2 = p3 = out = ut_1 = 0.0;
 
-  hp0 = hp1 = hp2 = hp3 = 0.0;
+  hp0 = hp1 = hp2 = hp3 = hp4 = hp5 = 0.0;
   
   // set oversampling
   iir->SetFilterSamplerate(sampleRate * oversamplingFactor);
@@ -280,6 +280,9 @@ void Diode::DiodeFilter(float input){
 	
 	hp2 = hp2 + dt_hp * (hp1 - hp2);
 	hp3 = hp1 - hp2;
+
+	hp4 = hp4 + dt_hp * (p1 - hp4);
+	hp5 = p1 - hp4;
       }
       break;
       
@@ -340,6 +343,9 @@ void Diode::DiodeFilter(float input){
 	p1 = p1_new;
 	p2 = p2_new;
 	p3 = p3_new;
+
+	hp4 = hp4 + dt_hp * (p1 - hp4);
+	hp5 = p1 - hp4;
       }
       break;
       
@@ -416,6 +422,9 @@ void Diode::DiodeFilter(double input){
 	
 	hp2 = hp2 + dt_hp * (hp1 - hp2);
 	hp3 = hp1 - hp2;
+
+	hp4 = hp4 + dt_hp * (p1 - hp4);
+	hp5 = p1 - hp4;
       }
       break;
       
@@ -478,6 +487,9 @@ void Diode::DiodeFilter(double input){
 	p1 = p1_new;
 	p2 = p2_new;
 	p3 = p3_new;
+
+	hp4 = hp4 + dt_hp * (p1 - hp4);
+	hp5 = p1 - hp4;
       }
       break;
       
@@ -494,7 +506,7 @@ void Diode::DiodeFilter(double input){
       out = hp1;
       break;
     case DIODE_LOWPASS2_MODE:
-      out = 0.25 * p1;
+      out = 0.25 * hp5;
       break;
     default:
       out = 0.0;

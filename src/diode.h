@@ -110,11 +110,11 @@ private:
 #ifdef FLOATDSP
   float p0, p1, p2, p3;
   float ut_1;
-  float hp0, hp1, hp2, hp3;
+  float hp0, hp1, hp2, hp3, hp4, hp5;
 #else
   double p0, p1, p2, p3;
   double ut_1;
-  double hp0, hp1, hp2, hp3;
+  double hp0, hp1, hp2, hp3, hp4, hp5;
 #endif
   
   // filter output
