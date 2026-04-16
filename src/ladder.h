@@ -1,5 +1,5 @@
 /*
- *  (C) 2025 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2026 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -69,6 +69,13 @@ public:
   LadderIntegrationMethod GetFilterIntegrationMethod();
   int GetFilterOversamplingFactor();  
   int GetFilterDecimatorOrder();
+  
+  // normalized noise
+#ifdef FLOATDSP
+  float GetNormalizedNoiseValue();
+#else
+  double GetNormalizedNoiseValue();
+#endif
   
   // tick filter state
 #ifdef FLOATDSP

@@ -1,5 +1,5 @@
 /*
- *  (C) 2025 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2026 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -42,6 +42,9 @@
 
 // check for newton-raphson breaking limit
 #define LADDER_NEWTON_BREAKING_LIMIT 1
+
+// thermal phase noise amplitude
+#define LADDER_THERMAL_NOISE_AMPLITUDE 5.0e-3
 
 // constructor
 Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
@@ -209,21 +212,31 @@ LadderIntegrationMethod Ladder::GetFilterIntegrationMethod(){
 }
 
 #ifdef FLOATDSP
-void Ladder::LadderFilter(float input){
-  // noise term
-  float noise;
+float Ladder::GetNormalizedNoiseValue(){
+  return 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
+}
+#else
+double Ladder::GetNormalizedNoiseValue(){
+  return 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
+}
+#endif
 
+#ifdef FLOATDSP
+void Ladder::LadderFilter(float input){
   // feedback amount
   float fb = 6.0f * Resonance;
 
   // integration rate
   float dt2 = dt;
-  
-  // update noise terms
-  noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-  noise = 1.0e-6f * 2.0f * (noise - 0.5f);
 
-  input += noise;
+  // noise term
+  input += 1.0e-6f * GetNormalizedNoiseValue();
+  
+  // inject thermal phase noise to filter stages
+  float alpha_0 = 1.0f + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  float alpha_1 = 1.0f + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  float alpha_2 = 1.0f + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  float alpha_3 = 1.0f + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   
   // integrate filter state
   // with oversampling
@@ -234,10 +247,10 @@ void Ladder::LadderFilter(float input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + dt2 * (FloatTanhPade45(input - fb * p3) - FloatTanhPade45(p0));
-	p1 = p1 + dt2 * (FloatTanhPade45(p0) - FloatTanhPade45(p1));
-	p2 = p2 + dt2 * (FloatTanhPade45(p1) - FloatTanhPade45(p2));
-	p3 = p3 + dt2 * (FloatTanhPade45(p2) - FloatTanhPade45(p3));
+	p0 = p0 + alpha_0 * dt2 * (FloatTanhPade45(input - fb * p3) - FloatTanhPade45(p0));
+	p1 = p1 + alpha_1 * dt2 * (FloatTanhPade45(p0) - FloatTanhPade45(p1));
+	p2 = p2 + alpha_2 * dt2 * (FloatTanhPade45(p1) - FloatTanhPade45(p2));
+	p3 = p3 + alpha_3 * dt2 * (FloatTanhPade45(p2) - FloatTanhPade45(p3));
       }
       break;
       
@@ -259,10 +272,10 @@ void Ladder::LadderFilter(float input){
 	float p3_euler = tanh_p2 - tanh_p3;
 	
 	// predictor
-	float p0_prime = p0 + dt * p0_euler;
-	float p1_prime = p1 + dt * p1_euler;
-	float p2_prime = p2 + dt * p2_euler;
-	float p3_prime = p3 + dt * p3_euler;
+	float p0_prime = p0 + alpha_0 * dt * p0_euler;
+	float p1_prime = p1 + alpha_1 * dt * p1_euler;
+	float p2_prime = p2 + alpha_2 * dt * p2_euler;
+	float p3_prime = p3 + alpha_3 * dt * p3_euler;
 
 	// trapezoidal step nonlinearities
 	float tanh_input_fb_p3_prime = FloatTanhPade45(input - fb * p3_prime);
@@ -278,10 +291,10 @@ void Ladder::LadderFilter(float input){
 	float p3_trap = tanh_p2_prime - tanh_p3_prime;
 	
 	// corrector
-	p0 = p0 + 0.5 * dt * (p0_euler + p0_trap);
-	p1 = p1 + 0.5 * dt * (p1_euler + p1_trap);
-	p2 = p2 + 0.5 * dt * (p2_euler + p2_trap);
-	p3 = p3 + 0.5 * dt * (p3_euler + p3_trap);
+	p0 = p0 + 0.5 * alpha_0 * dt * (p0_euler + p0_trap);
+	p1 = p1 + 0.5 * alpha_1 * dt * (p1_euler + p1_trap);
+	p2 = p2 + 0.5 * alpha_2 * dt * (p2_euler + p2_trap);
+	p3 = p3 + 0.5 * alpha_3 * dt * (p3_euler + p3_trap);
       }
       break;
       
@@ -292,18 +305,18 @@ void Ladder::LadderFilter(float input){
 	float p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt2 * (FloatTanhPade45(ut_1 - fb * p3) - p0);
-	p1_prime = p1 + dt2 * (p0 - p1);
-	p2_prime = p2 + dt2 * (p1 - p2);
-	p3_prime = p3 + dt2 * (p2 - p3);
+	p0_prime = p0 + alpha_0 * dt2 * (FloatTanhPade45(ut_1 - fb * p3) - p0);
+	p1_prime = p1 + alpha_1 * dt2 * (p0 - p1);
+	p2_prime = p2 + alpha_2 * dt2 * (p1 - p2);
+	p3_prime = p3 + alpha_3 * dt2 * (p2 - p3);
 
 	// corrector
 	p3t_1 = p3;
-	p3 = p3 + 0.5f * dt2 * ((p2 - p3) + (p2_prime - p3_prime));
-	p2 = p2 + 0.5f * dt2 * ((p1 - p2) + (p1_prime - p2_prime));
-	p1 = p1 + 0.5f * dt2 * ((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5f * dt2 * ((FloatTanhPade45(ut_1 - fb * p3t_1) - p0) +
-			          (FloatTanhPade45(input - fb * p3) - p0_prime));
+	p3 = p3 + 0.5f * alpha_0 * dt2 * ((p2 - p3) + (p2_prime - p3_prime));
+	p2 = p2 + 0.5f * alpha_1 * dt2 * ((p1 - p2) + (p1_prime - p2_prime));
+	p1 = p1 + 0.5f * alpha_2 * dt2 * ((p0 - p1) + (p0_prime - p1_prime));
+	p0 = p0 + 0.5f * alpha_3 * dt2 * ((FloatTanhPade45(ut_1 - fb * p3t_1) - p0) +
+			             (FloatTanhPade45(input - fb * p3) - p0_prime));
       }
       break;
       
@@ -387,17 +400,17 @@ void Ladder::LadderFilter(float input){
 }
 #else
 void Ladder::LadderFilter(double input){
-  // noise term
-  double noise;
-
   // feedback amount
   double fb = 6.0 * Resonance;
 
-  // update noise terms
-  noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-  noise = 1.0e-6 * 2.0 * (noise - 0.5);
-
-  input += noise;
+  // noise term
+  input += 1.0e-6 * GetNormalizedNoiseValue();
+  
+  // inject thermal phase noise to filter stages
+  double alpha_0 = 1.0 + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  double alpha_1 = 1.0 + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  double alpha_2 = 1.0 + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  double alpha_3 = 1.0 + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   
   // integrate filter state
   // with oversampling
@@ -408,10 +421,10 @@ void Ladder::LadderFilter(double input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + dt * (TanhPade32(input - fb * p3) - TanhPade32(p0));
-	p1 = p1 + dt * (TanhPade32(p0) - TanhPade32(p1));
-	p2 = p2 + dt * (TanhPade32(p1) - TanhPade32(p2));
-	p3 = p3 + dt * (TanhPade32(p2) - TanhPade32(p3));
+	p0 = p0 + alpha_0 * dt * (TanhPade32(input - fb * p3) - TanhPade32(p0));
+	p1 = p1 + alpha_1 * dt * (TanhPade32(p0) - TanhPade32(p1));
+	p2 = p2 + alpha_2 * dt * (TanhPade32(p1) - TanhPade32(p2));
+	p3 = p3 + alpha_3 * dt * (TanhPade32(p2) - TanhPade32(p3));
       }
       break;
       
@@ -433,10 +446,10 @@ void Ladder::LadderFilter(double input){
 	double p3_euler = tanh_p2 - tanh_p3;
 	
 	// predictor
-	double p0_prime = p0 + dt * p0_euler;
-	double p1_prime = p1 + dt * p1_euler;
-	double p2_prime = p2 + dt * p2_euler;
-	double p3_prime = p3 + dt * p3_euler;
+	double p0_prime = p0 + alpha_0 * dt * p0_euler;
+	double p1_prime = p1 + alpha_1 * dt * p1_euler;
+	double p2_prime = p2 + alpha_2 * dt * p2_euler;
+	double p3_prime = p3 + alpha_3 * dt * p3_euler;
 
 	// trapezoidal step nonlinearities
 	double tanh_input_fb_p3_prime = TanhPade32(input - fb * p3_prime);
@@ -452,10 +465,10 @@ void Ladder::LadderFilter(double input){
 	double p3_trap = tanh_p2_prime - tanh_p3_prime;
 	
 	// corrector
-	p0 = p0 + 0.5 * dt * (p0_euler + p0_trap);
-	p1 = p1 + 0.5 * dt * (p1_euler + p1_trap);
-	p2 = p2 + 0.5 * dt * (p2_euler + p2_trap);
-	p3 = p3 + 0.5 * dt * (p3_euler + p3_trap);
+	p0 = p0 + 0.5 * alpha_0 * dt * (p0_euler + p0_trap);
+	p1 = p1 + 0.5 * alpha_1 * dt * (p1_euler + p1_trap);
+	p2 = p2 + 0.5 * alpha_2 * dt * (p2_euler + p2_trap);
+	p3 = p3 + 0.5 * alpha_3 * dt * (p3_euler + p3_trap);
       }
       break;
       
@@ -466,17 +479,17 @@ void Ladder::LadderFilter(double input){
 	double p0_prime, p1_prime, p2_prime, p3_prime, p3t_1;
 
 	// predictor
-	p0_prime = p0 + dt * (TanhPade32(ut_1 - fb * p3) - p0);
-	p1_prime = p1 + dt * (p0 - p1);
-	p2_prime = p2 + dt * (p1 - p2);
-	p3_prime = p3 + dt * (p2 - p3);
+	p0_prime = p0 + alpha_0 * dt * (TanhPade32(ut_1 - fb * p3) - p0);
+	p1_prime = p1 + alpha_1 * dt * (p0 - p1);
+	p2_prime = p2 + alpha_2 * dt * (p1 - p2);
+	p3_prime = p3 + alpha_3 * dt * (p2 - p3);
 
 	// corrector
 	p3t_1 = p3;
-	p3 = p3 + 0.5 * dt * ((p2 - p3) + (p2_prime - p3_prime));
-	p2 = p2 + 0.5 * dt * ((p1 - p2) + (p1_prime - p2_prime));
-	p1 = p1 + 0.5 * dt * ((p0 - p1) + (p0_prime - p1_prime));
-	p0 = p0 + 0.5 * dt * ((TanhPade32(ut_1 - fb * p3t_1) - p0) +
+	p3 = p3 + 0.5 * alpha_0 * dt * ((p2 - p3) + (p2_prime - p3_prime));
+	p2 = p2 + 0.5 * alpha_1 * dt * ((p1 - p2) + (p1_prime - p2_prime));
+	p1 = p1 + 0.5 * alpha_2 * dt * ((p0 - p1) + (p0_prime - p1_prime));
+	p0 = p0 + 0.5 * alpha_3 * dt * ((TanhPade32(ut_1 - fb * p3t_1) - p0) +
 			       (TanhPade32(input - fb * p3_prime) - p0_prime));
       }
       break;
