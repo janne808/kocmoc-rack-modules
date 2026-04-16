@@ -233,30 +233,28 @@ DiodeIntegrationMethod Diode::GetFilterIntegrationMethod(){
 }
 
 #ifdef FLOATDSP
-void Diode::DiodeFilter(float input){
-  // noise term
-  float noise;
+float Diode::GetNormalizedNoiseValue(){
+  return 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
+}
+#else
+double Diode::GetNormalizedNoiseValue(){
+  return 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
+}
+#endif
 
+#ifdef FLOATDSP
+void Diode::DiodeFilter(float input){
   // feedback amount
   float fb = 24.f * Resonance;
 
-  // update noise terms
-  noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-  noise = 1.0e-6f * 2.f * (noise - 0.5f);
-
-  input += noise;
-  
-  // phase noise
-  float theta_0 = 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
-  float theta_1 = 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
-  float theta_2 = 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
-  float theta_3 = 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
+  // noise term
+  input += 1.0e-6f * GetNormalizedNoiseValue();
   
   // inject thermal phase noise to filter stages
-  float alpha_0 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * theta_0;
-  float alpha_1 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * theta_1;
-  float alpha_2 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * theta_2;
-  float alpha_3 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * theta_3;
+  float alpha_0 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  float alpha_1 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  float alpha_2 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  float alpha_3 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   
   // integrate filter state
   // with oversampling
@@ -376,29 +374,17 @@ void Diode::DiodeFilter(float input){
 }
 #else
 void Diode::DiodeFilter(double input){
-  // noise term
-  double noise;
-
   // feedback amount
   double fb = 24.0 * Resonance;
 
-  // update noise terms
-  noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-  noise = 1.0e-6 * 2.0 * (noise - 0.5);
+  // noise term
+  input += 1.0e-6 * GetNormalizedNoiseValue();
 
-  input += noise;
-
-  // phase noise
-  double theta_0 = 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
-  double theta_1 = 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
-  double theta_2 = 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
-  double theta_3 = 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
-  
   // inject thermal phase noise to filter stages
-  double alpha_0 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * theta_0;
-  double alpha_1 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * theta_1;
-  double alpha_2 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * theta_2;
-  double alpha_3 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * theta_3;
+  double alpha_0 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  double alpha_1 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  double alpha_2 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+  double alpha_3 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   
   // integrate filter state
   // with oversampling
