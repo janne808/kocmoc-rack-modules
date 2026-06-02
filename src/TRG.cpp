@@ -71,7 +71,7 @@ struct TRG : Module {
     
     // configure step switches
     for(int ii = 0; ii < MAX_STEPS / 2; ii++){
-      configParam(STEP_SWITCH_PARAMS + ii, 0.f, 1.f, 0.f, "Step");
+      configParam(STEP_SWITCH_PARAMS + ii, 0.f, 1.f, 0.f, string::f("Step %i", ii));
     }
 
     // configure page switch
