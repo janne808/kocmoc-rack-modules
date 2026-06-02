@@ -89,6 +89,9 @@ struct TRG : Module {
     for(int ii = 0; ii < MAX_STEPS / 2; ii++){
       step_switch_state[ii] = 0;
     }
+
+    // reset display page switch state
+    page_switch_state = 0;
     
     // reset sequence length
     seq_length = MAX_STEPS;
