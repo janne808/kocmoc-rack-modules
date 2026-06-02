@@ -103,7 +103,11 @@ struct TRG : Module {
   int seq_length;
   int page = 0;
 
+  // display step switch latch states
   int step_switch_state[MAX_STEPS / 2];
+
+  // display page switch latch state
+  int page_switch_state;
   
   // menu variables
   int _followactivestep = 1;
@@ -131,8 +135,24 @@ struct TRG : Module {
     }
 
     // handle display page switch
-    if(!_followactivestep)
-      page = (int)params[PAGE_SWITCH_PARAM].getValue();
+    if(!_followactivestep){
+      if((int)params[PAGE_SWITCH_PARAM].getValue() == 1 && page_switch_state == 0){
+	// enable latch
+	page_switch_state = 1;
+
+	// switch page
+	if(page == 1){
+	  page = 0;
+	}
+	else{
+	  page = 1;
+	}
+      }
+      else if((int)params[PAGE_SWITCH_PARAM].getValue() == 0 && page_switch_state == 1){
+	// disable latch
+	page_switch_state = 0;
+      }
+    }
     
     // switch clock state
     if(clock_state == 0 && inputs[CLK_INPUT].getVoltage() > 0.5f){
@@ -380,7 +400,7 @@ struct TRGWidget : ModuleWidget {
   // page switch
   struct TRGPageSwitch : Switch {
     TRGPageSwitch() {
-      momentary = false;
+      momentary = true;
       box.size = Vec(GRID_STEP_WIDTH + GRID_STEP_X_MARGIN + GRID_STEP_WIDTH, GRID_PAGE_TOGGLE_HEIGHT);
     }
   };
