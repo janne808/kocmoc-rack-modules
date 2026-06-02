@@ -1,5 +1,5 @@
 /*
- *  (C) 2025 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2026 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -319,20 +319,20 @@ struct SKFWidget : ModuleWidget {
     SKF* a = dynamic_cast<SKF*>(module);
     assert(a);
     
-    menu->addChild(new MenuEntry());
+    menu->addChild(new MenuSeparator());
     menu->addChild(createMenuLabel("Oversampling"));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: off", 1));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x2", 2));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x4", 4));
     menu->addChild(new OversamplingMenuItem(a, "Oversampling: x8", 8));
 
-    menu->addChild(new MenuEntry());
+    menu->addChild(new MenuSeparator());
     menu->addChild(createMenuLabel("Decimator order"));
     menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 8", 8));
     menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 16", 16));
     menu->addChild(new DecimatorOrderMenuItem(a, "Decimator order: 32", 32));
     
-    menu->addChild(new MenuEntry());
+    menu->addChild(new MenuSeparator());
     menu->addChild(createMenuLabel("Integration Method"));
     menu->addChild(new IntegrationMenuItem(a, "Trapezoidal", SK_TRAPEZOIDAL));
   }
