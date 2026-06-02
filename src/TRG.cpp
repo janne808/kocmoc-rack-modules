@@ -1,5 +1,5 @@
 /*
- *  (C) 2025 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2026 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
@@ -21,6 +21,7 @@
 
 #include "plugin.hpp"
 
+// sequencer steps
 #define MAX_STEPS 32
 
 // define grid geometry
@@ -34,9 +35,17 @@
 #define GRID_PAGE_TOGGLE_HEIGHT 6
 #define GRID_PAGE_TOGGLE_Y_MARGIN 2
 
+// define display position and geometry
+#define DISPLAY_X_OFFSET 10
+#define DISPLAY_Y_OFFSET 78
+#define DISPLAY_WIDTH 70
+#define DISPLAY_HEIGHT 10 + (MAX_STEPS / 4) * (20 + 4) + 10
+
 struct TRG : Module {
   enum ParamIds {
     LEN_PARAM,
+    ENUMS(STEP_SWITCH_PARAMS, 16),
+    PAGE_SWITCH_PARAM,
     NUM_PARAMS
   };
   enum InputIds {
@@ -60,6 +69,14 @@ struct TRG : Module {
     configOutput(GATE_OUTPUT, "Gate");
     configBypass(CLK_INPUT, GATE_OUTPUT);
     
+    // configure step switches
+    for(int ii = 0; ii < MAX_STEPS / 2; ii++){
+      configParam(STEP_SWITCH_PARAMS + ii, 0.f, 1.f, 0.f, "Step");
+    }
+
+    // configure page switch
+    configParam(PAGE_SWITCH_PARAM, 0.f, 1.f, 0.f, "Page");
+    
     // reset current step
     step = 0;
     
@@ -68,6 +85,11 @@ struct TRG : Module {
       steps[ii] = 0;
     }
 
+    // reset display step switch states
+    for(int ii = 0; ii < MAX_STEPS / 2; ii++){
+      step_switch_state[ii] = 0;
+    }
+    
     // reset sequence length
     seq_length = MAX_STEPS;
   }
@@ -80,11 +102,38 @@ struct TRG : Module {
   float gate_state = 0.f;
   int seq_length;
   int page = 0;
+
+  int step_switch_state[MAX_STEPS / 2];
   
   // menu variables
   int _followactivestep = 1;
   
   void process(const ProcessArgs& args) override {
+    // handle display step switches
+    // scan and latch on changed states
+    for(int ii = 0; ii < MAX_STEPS / 2; ii++){
+      if((int)params[STEP_SWITCH_PARAMS + ii].getValue() == 1 && step_switch_state[ii] == 0){
+	// enable latch
+	step_switch_state[ii] = 1;
+
+	// switch step state
+	if(steps[ii + page * MAX_STEPS / 2] == 1){
+	  steps[ii + page * MAX_STEPS / 2] = 0;
+	}
+	else{
+	  steps[ii + page * MAX_STEPS / 2] = 1;
+	}
+      }
+      else if((int)params[STEP_SWITCH_PARAMS + ii].getValue() == 0 && step_switch_state[ii] == 1){
+	// disable latch
+	step_switch_state[ii] = 0;
+      }
+    }
+
+    // handle display page switch
+    if(!_followactivestep)
+      page = (int)params[PAGE_SWITCH_PARAM].getValue();
+    
     // switch clock state
     if(clock_state == 0 && inputs[CLK_INPUT].getVoltage() > 0.5f){
       clock_state = 1;
@@ -201,32 +250,20 @@ struct TRG : Module {
     json_t *followactivestepJ = json_object_get(rootJ, "followactivestep");
     if(followactivestepJ){
       _followactivestep = (int)(json_integer_value(followactivestepJ));
-    }    
-  }
-
-  bool isClickOnStep(float x, float y){
-    if(( (x > GRID_X_OFFSET && x < GRID_X_OFFSET + GRID_STEP_WIDTH) ||
-	 (x > GRID_X_OFFSET + GRID_STEP_WIDTH + GRID_STEP_X_MARGIN &&
-	  x < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN ) ) &&
-	 y > GRID_Y_OFFSET && y < GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN)){
-      return true;
     }
-    
-    return false;
   }
 
-  bool isClickOnPageSelect(float x, float y){
-    if(( (x > GRID_X_OFFSET && x < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN) ) &&
-         y > GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN) &&
-         y < GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN) + 2 + 12){
-      return true;
-    }
-    
-    return false;
-  }
-
+  // follow step and update page
   void updatePage(){
     page = step / (MAX_STEPS / 2);
+
+    // sync display switches
+    updateDisplaySwitches();
+  }
+
+  void updateDisplaySwitches(){
+    // sync page switch
+    params[PAGE_SWITCH_PARAM].setValue((float)page);
   }
 };
 
@@ -239,74 +276,12 @@ struct TRGDisplay : Widget {
   int currentClickState = 0;
   TRG *module = NULL;
   TRGDisplay(){}
-
-  void onButton(const event::Button &e) override {
-    if (e.action == GLFW_PRESS && e.button == GLFW_MOUSE_BUTTON_LEFT) {
-      e.consume(this);
-
-      // store initial click coords
-      initX = e.pos.x;
-      initY = e.pos.y;
-      
-      // is click on a step button
-      if(module->isClickOnStep(e.pos.x, e.pos.y)){
-	// compute step number
-	int nn = (int)((e.pos.y - GRID_Y_OFFSET) / (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN));
-	if(e.pos.x > GRID_X_OFFSET + GRID_STEP_WIDTH + GRID_STEP_X_MARGIN &&
-	   e.pos.x < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN ){
-	  nn += 8;
-	}
-	// add in page
-	nn += module->page * (MAX_STEPS / 2);
-  	module->steps[nn] = !module->steps[nn];
-	currentStep = nn;
-	currentClickState = module->steps[currentStep]; 
-      }
-      // is click on page select button
-      else if(module->isClickOnPageSelect(e.pos.x, e.pos.y)){
-	if(!module->_followactivestep){
-	  module->page = !module->page;
-	}
-      }
-    }
-  }
-
-  void onDragStart(const event::DragStart &e) override {
-    dragX = APP->scene->rack->getMousePos().x;
-    dragY = APP->scene->rack->getMousePos().y;    
-  }
-
-  void onDragMove(const event::DragMove &e) override {
-    float newDragX = APP->scene->rack->getMousePos().x;
-    float newDragY = APP->scene->rack->getMousePos().y;
-    float currentX = initX+(newDragX-dragX);
-    float currentY = initY+(newDragY-dragY);
-    
-    // is drag on a step button
-    if(module->isClickOnStep(currentX, currentY)){
-      // compute step number
-      int nn = (int)((currentY - GRID_Y_OFFSET) / (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN));
-      if(currentX > GRID_X_OFFSET + GRID_STEP_WIDTH + GRID_STEP_X_MARGIN &&
-	 currentX < GRID_X_OFFSET + 2*GRID_STEP_WIDTH + GRID_STEP_X_MARGIN ){
-	nn += 8;
-      }
-      
-      // add in page
-      nn += module->page * (MAX_STEPS / 2);
-
-      // switch state just once
-      if(nn != currentStep) {
-	module->steps[nn] = currentClickState;
-	currentStep = nn;
-      }
-    }
-  }
-
+  
   void drawSequenceGrid(const DrawArgs &args, int moduleStep, int modulePage, int moduleSeqLength, int *moduleSteps) {
     // draw sequence grid
     for(int ii = 0; ii < MAX_STEPS / 2; ii++){
-      int xx = ii / (MAX_STEPS / 4);
-      int yy = ii % (MAX_STEPS / 4);
+      int xx = ii / (MAX_STEPS / 2 / 2);
+      int yy = ii % (MAX_STEPS / 2 / 2);
       int page = modulePage;
       NVGcolor step_color;
       int current_step = ii + page * (MAX_STEPS / 2);
@@ -391,30 +366,68 @@ struct TRGDisplay : Widget {
 };
 
 struct TRGWidget : ModuleWidget {
+  // custom widgets
+  //
+  
+  // step switch
+  struct TRGStepSwitch : Switch {
+    TRGStepSwitch() {
+      momentary = true;
+      box.size = Vec(GRID_STEP_WIDTH, GRID_STEP_HEIGHT);
+    }
+  };
+
+  // page switch
+  struct TRGPageSwitch : Switch {
+    TRGPageSwitch() {
+      momentary = false;
+      box.size = Vec(GRID_STEP_WIDTH + GRID_STEP_X_MARGIN + GRID_STEP_WIDTH, GRID_PAGE_TOGGLE_HEIGHT);
+    }
+  };
+  
   TRGWidget(TRG* module) {
     setModule(module);
     setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/TRG.svg")));
 
     TRGDisplay *display = new TRGDisplay();
     display->module = module;
-    display->box.pos = Vec(10, 78);
-    display->box.size = Vec(70, 10 + (MAX_STEPS / 4) * (20 + 4) + 10);
+    display->box.pos = Vec(DISPLAY_X_OFFSET, DISPLAY_Y_OFFSET);
+    display->box.size = Vec(DISPLAY_WIDTH, DISPLAY_HEIGHT);
     addChild(display);
     if(module != NULL){
       module->displayWidth = display->box.size.x;
       module->displayHeight = display->box.size.y;
     }
-		
+
+    // add screws
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
+    // add display step switches
+    for(int ii = 0; ii < MAX_STEPS / 2; ii++){
+      int xx = ii / (MAX_STEPS / 2 / 2);
+      int yy = ii % (MAX_STEPS / 2 / 2);
+
+      addParam(createParam<TRGStepSwitch>(Vec(DISPLAY_X_OFFSET + GRID_X_OFFSET + xx * (GRID_STEP_WIDTH + GRID_STEP_X_MARGIN),
+					      DISPLAY_Y_OFFSET + GRID_Y_OFFSET + yy * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN)),
+					  module, TRG::STEP_SWITCH_PARAMS + ii));
+    }
+    
+    // add display page switch
+    addParam(createParam<TRGPageSwitch>(Vec(DISPLAY_X_OFFSET + GRID_X_OFFSET,
+					    DISPLAY_Y_OFFSET + GRID_Y_OFFSET + (MAX_STEPS / 4) * (GRID_STEP_HEIGHT + GRID_STEP_Y_MARGIN) + GRID_PAGE_TOGGLE_Y_MARGIN),
+					module, TRG::PAGE_SWITCH_PARAM));
+    
+    // add pattern length knob
     addParam(createParam<RoundBlackSnapKnob>(mm2px(Vec(16.8, 105.6)), module, TRG::LEN_PARAM));
 
+    // add input ports
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(8.96, 20.12)), module, TRG::CLK_INPUT));
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(21.48, 20.12)), module, TRG::RST_INPUT));
 
+    // add output ports
     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(8.96, 110.68)), module, TRG::GATE_OUTPUT));
   }
 
