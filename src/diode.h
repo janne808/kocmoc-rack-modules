@@ -101,8 +101,12 @@ private:
   void SetFilterIntegrationRate();
 
   // get decoupling rate
-  double GetDecouplingIntegrationRate();
-
+#ifdef FLOATDSP
+  float GetDecouplingIntegrationRate();
+#else
+  double GetDecouplingIntegrationRate();  
+#endif
+  
   // filter parameters
   double cutoffFrequency;
   double Resonance;
