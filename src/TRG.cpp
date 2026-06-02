@@ -482,7 +482,7 @@ struct TRGWidget : ModuleWidget {
     TRG* a = dynamic_cast<TRG*>(module);
     assert(a);
     
-    menu->addChild(new MenuEntry());
+    menu->addChild(new MenuSeparator());
     menu->addChild(new TRGMenuItem(a, "Follow active step", 1));
   }  
 };
