@@ -116,46 +116,8 @@ struct TRG : Module {
   int _followactivestep = 1;
   
   void process(const ProcessArgs& args) override {
-    // handle display step switches
-    // scan and latch on changed states
-    for(int ii = 0; ii < MAX_STEPS / 2; ii++){
-      if((int)params[STEP_SWITCH_PARAMS + ii].getValue() == 1 && step_switch_state[ii] == 0){
-	// enable latch
-	step_switch_state[ii] = 1;
-
-	// switch step state
-	if(steps[ii + page * MAX_STEPS / 2] == 1){
-	  steps[ii + page * MAX_STEPS / 2] = 0;
-	}
-	else{
-	  steps[ii + page * MAX_STEPS / 2] = 1;
-	}
-      }
-      else if((int)params[STEP_SWITCH_PARAMS + ii].getValue() == 0 && step_switch_state[ii] == 1){
-	// disable latch
-	step_switch_state[ii] = 0;
-      }
-    }
-
-    // handle display page switch
-    if(!_followactivestep){
-      if((int)params[PAGE_SWITCH_PARAM].getValue() == 1 && page_switch_state == 0){
-	// enable latch
-	page_switch_state = 1;
-
-	// switch page
-	if(page == 1){
-	  page = 0;
-	}
-	else{
-	  page = 1;
-	}
-      }
-      else if((int)params[PAGE_SWITCH_PARAM].getValue() == 0 && page_switch_state == 1){
-	// disable latch
-	page_switch_state = 0;
-      }
-    }
+    // handle display switches
+    scanSwitches();
     
     // switch clock state
     if(clock_state == 0 && inputs[CLK_INPUT].getVoltage() > 0.5f){
@@ -219,6 +181,63 @@ struct TRG : Module {
       steps[ii] = (rack::random::uniform() > 0.5) ? 1 : 0;
     }
   }
+
+  // follow step and update page
+  void updatePage(){
+    page = step / (MAX_STEPS / 2);
+  }
+
+  void flipSequenceStep(int nn){
+    // flip sequence step state
+    if(steps[nn + page * MAX_STEPS / 2] == 1){
+      steps[nn + page * MAX_STEPS / 2] = 0;
+    }
+    else{
+      steps[nn + page * MAX_STEPS / 2] = 1;
+    }    
+  }
+
+  void flipSequencePage(){
+    // switch sequence page
+    if(page == 1){
+      page = 0;
+    }
+    else{
+      page = 1;
+    }
+  }
+  
+  void scanSwitches(){
+    // scan and latch display switches on changed states
+    for(int ii = 0; ii < MAX_STEPS / 2; ii++){
+      if((int)params[STEP_SWITCH_PARAMS + ii].getValue() == 1 && step_switch_state[ii] == 0){
+	// enable latch
+	step_switch_state[ii] = 1;
+
+	// switch step state
+	flipSequenceStep(ii);
+      }
+      else if((int)params[STEP_SWITCH_PARAMS + ii].getValue() == 0 && step_switch_state[ii] == 1){
+	// disable latch
+	step_switch_state[ii] = 0;
+      }
+    }
+
+    // scan and latch only if follow step is disabled
+    if(!_followactivestep){
+      if((int)params[PAGE_SWITCH_PARAM].getValue() == 1 && page_switch_state == 0){
+	// enable latch
+	page_switch_state = 1;
+
+	// switch page
+	flipSequencePage();
+      }
+      else if((int)params[PAGE_SWITCH_PARAM].getValue() == 0 && page_switch_state == 1){
+	// disable latch
+	page_switch_state = 0;
+      }
+    }
+  }
   
   void onReset() override {
     // reset clock and gate state
@@ -274,19 +293,6 @@ struct TRG : Module {
     if(followactivestepJ){
       _followactivestep = (int)(json_integer_value(followactivestepJ));
     }
-  }
-
-  // follow step and update page
-  void updatePage(){
-    page = step / (MAX_STEPS / 2);
-
-    // sync display switches
-    updateDisplaySwitches();
-  }
-
-  void updateDisplaySwitches(){
-    // sync page switch
-    params[PAGE_SWITCH_PARAM].setValue((float)page);
   }
 };
 
