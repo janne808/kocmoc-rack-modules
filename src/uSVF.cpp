@@ -25,13 +25,13 @@
 
 // define feedback clamping
 #define FEEDBACK_MAX 0.9f
-#define FEEDBACK_MIN 0.01f
+#define FEEDBACK_MIN 0.001f
 
 // define integration rate clamping
 #define INTEGRATION_RATE_MAX 1.125f
 
 // define tanh soft clipping dynamic range expansion
-#define SOFT_CLIP_EXPANSION_FACTOR 4.f
+#define SOFT_CLIP_EXPANSION_FACTOR 8.f
 
 // define oversampling factor
 #define OVERSAMPLING_FACTOR 2
@@ -118,6 +118,7 @@ struct uSVF : Module {
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001 + 2.25 * (cutoff * cutoff * cutoff * cutoff);
+    reso = 1.475 * std::log(1.0 + reso);
     gain *= gain * gain * gain;
     lincv_atten *= lincv_atten*lincv_atten;
     expcv_atten *= expcv_atten*expcv_atten;
@@ -129,7 +130,7 @@ struct uSVF : Module {
     gainComp = 5.0 * (1.0 - 2.0 * std::log(1.0 + 0.925*gainComp));
 
     // feedback amount
-    fb = 1.f - reso;
+    fb = 1.f - (float)(reso);
     
     // clamp feedback
     if(fb > FEEDBACK_MAX){
