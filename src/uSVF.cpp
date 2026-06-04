@@ -23,6 +23,19 @@
 
 #include "fastmath.h"
 
+// define feedback clamping
+#define FEEDBACK_MAX 0.9f
+#define FEEDBACK_MIN 0.01f
+
+// define integration rate clamping
+#define INTEGRATION_RATE_MAX 1.125f
+
+// define tanh soft clipping dynamic range expansion
+#define SOFT_CLIP_EXPANSION_FACTOR 4.f
+
+// define oversampling factor
+#define OVERSAMPLING_FACTOR 2
+
 // filter modes
 enum uSVFFilterMode {
    USVF_LOWPASS_MODE,
@@ -104,7 +117,7 @@ struct uSVF : Module {
     float fb, dt, input, out;
     
     // shape panel input for a pseudoexponential response
-    cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
+    cutoff = 0.001 + 2.25 * (cutoff * cutoff * cutoff * cutoff);
     gain *= gain * gain * gain;
     lincv_atten *= lincv_atten*lincv_atten;
     expcv_atten *= expcv_atten*expcv_atten;
@@ -116,11 +129,15 @@ struct uSVF : Module {
     gainComp = 5.0 * (1.0 - 2.0 * std::log(1.0 + 0.925*gainComp));
 
     // feedback amount
-    fb = 1.f - (1.15f * reso);
+    fb = 1.f - reso;
     
     // clamp feedback
-    if(fb > 0.9f)
-      fb = 0.9f;
+    if(fb > FEEDBACK_MAX){
+      fb = FEEDBACK_MAX;
+    }
+    else if(fb < FEEDBACK_MIN){
+      fb = FEEDBACK_MIN;
+    }
 
     for(int ii = 0; ii < channels; ii++){      
       float channelCutoff = cutoff;
@@ -145,19 +162,19 @@ struct uSVF : Module {
       // with semi-implicit euler integration
       input = 0.85f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
       
-      dt = 44100.f / (sampleRate * 2.f) * channelCutoff;
+      dt = 44100.f / (sampleRate * (float)(OVERSAMPLING_FACTOR)) * channelCutoff;
 
       // clamp integration rate
-      if(dt > 1.25f)
-	dt = 1.25f;
+      if(dt > INTEGRATION_RATE_MAX)
+	dt = INTEGRATION_RATE_MAX;
       else if(dt < 0.f)
 	dt = 0.f;
       
       // integrate with pseudo oversampling
-      for(int jj=0; jj < 2; jj++) {
+      for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
 	hp[ii] = input - lp[ii] - fb * bp[ii];
 	bp[ii] += dt * hp[ii];
-	bp[ii] = FloatTanhPade23(bp[ii]);
+	bp[ii] = tanhSoftClip(bp[ii]);
 	lp[ii] += dt * bp[ii];
       }
       
@@ -183,6 +200,10 @@ struct uSVF : Module {
     outputs[OUTPUT_OUTPUT].setChannels(channels);    
   }
 
+  inline float tanhSoftClip(float input){
+    return SOFT_CLIP_EXPANSION_FACTOR * FloatTanhPade23(input / SOFT_CLIP_EXPANSION_FACTOR);
+  }
+  
   void onSampleRateChange() override {
     // new system samplerate
     sampleRate = APP->engine->getSampleRate();
