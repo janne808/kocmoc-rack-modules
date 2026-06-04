@@ -1,5 +1,5 @@
 /*
- *  (C) 2025 Janne Heikkarainen <janne808@radiofreerobotron.net>
+ *  (C) 2026 Janne Heikkarainen <janne808@radiofreerobotron.net>
  *
  *  All rights reserved.
  *
