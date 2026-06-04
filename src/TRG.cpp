@@ -62,6 +62,7 @@ struct TRG : Module {
   };
 
   TRG() {
+    // configure inputs, outputs and params
     config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
     configParam(LEN_PARAM, 1.f, 32.f, 32.f, "Seq length");
     configInput(CLK_INPUT, "Clock");
@@ -69,12 +70,12 @@ struct TRG : Module {
     configOutput(GATE_OUTPUT, "Gate");
     configBypass(CLK_INPUT, GATE_OUTPUT);
     
-    // configure step switches
+    // configure step switch params
     for(int ii = 0; ii < MAX_STEPS / 2; ii++){
       configParam(STEP_SWITCH_PARAMS + ii, 0.f, 1.f, 0.f, string::f("Step %i", ii));
     }
 
-    // configure page switch
+    // configure page switch param
     configParam(PAGE_SWITCH_PARAM, 0.f, 1.f, 0.f, "Page");
     
     // reset current step
@@ -85,7 +86,7 @@ struct TRG : Module {
       steps[ii] = 0;
     }
 
-    // reset display step switch states
+    // reset display step switch latch states
     for(int ii = 0; ii < MAX_STEPS / 2; ii++){
       step_switch_state[ii] = 0;
     }
@@ -187,23 +188,28 @@ struct TRG : Module {
     page = step / (MAX_STEPS / 2);
   }
 
+  // switch sequencer step
   void flipSequenceStep(int nn){
+    // compute step number
+    int step = nn + page * MAX_STEPS / 2;
+
     // flip sequence step state
-    if(steps[nn + page * MAX_STEPS / 2] == 1){
-      steps[nn + page * MAX_STEPS / 2] = 0;
+    if(steps[step] == 0){
+      steps[step] = 1;
     }
     else{
-      steps[nn + page * MAX_STEPS / 2] = 1;
+      steps[step] = 0;
     }    
   }
 
+  // switch sequencer page
   void flipSequencePage(){
     // switch sequence page
-    if(page == 1){
-      page = 0;
+    if(page == 0){
+      page = 1;
     }
     else{
-      page = 1;
+      page = 0;
     }
   }
   
