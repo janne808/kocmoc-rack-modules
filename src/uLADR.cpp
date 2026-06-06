@@ -24,7 +24,7 @@
 #include "fastmath.h"
 
 // define integration error compensation factor
-#define ERROR_COMPENSATION_FACTOR 4.f
+#define ERROR_COMPENSATION_FACTOR 2.f
 
 // define integration rate clamping
 #define INTEGRATION_RATE_MAX 0.55f
@@ -152,7 +152,7 @@ struct uLADR : Module {
 	dt = 0.f;
 
       // integration error compensation factor
-      error = 1.f + ERROR_COMPENSATION_FACTOR * (dt * dt);
+      error = 1.f + ERROR_COMPENSATION_FACTOR * (dt);
       
       // integrate with pseudo oversampling
       for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
