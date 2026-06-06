@@ -23,6 +23,15 @@
 
 #include "fastmath.h"
 
+// define integration error compensation factor
+#define ERROR_COMPENSATION_FACTOR 4.f
+
+// define integration rate clamping
+#define INTEGRATION_RATE_MAX 0.55f
+
+// define oversampling
+#define OVERSAMPLING_FACTOR 2
+
 // filter modes
 enum uLADRFilterMode {
    ULADR_LOWPASS_MODE,
@@ -56,7 +65,7 @@ struct uLADR : Module {
 
   // filter state
   float p0[16], p1[16], p2[16], p3[16];
-
+  
   // system samplerate
   float sampleRate;
   
@@ -100,25 +109,26 @@ struct uLADR : Module {
     float gain = params[GAIN_PARAM].getValue();
 
     // filter state integration parameters
-    float fb, dt, input, out;
+    float fb, dt, error, input, out;
     
     // shape panel input for a pseudoexponential response
-    cutoff = 0.001+2.25*(cutoff * cutoff * cutoff * cutoff);
+    cutoff = 0.001 + 2.25 * (cutoff * cutoff * cutoff * cutoff);
     gain *= gain * gain * gain;
-    lincv_atten *= lincv_atten*lincv_atten;
-    expcv_atten *= expcv_atten*expcv_atten;
-    
-    fb = 7.0f * reso;
+    lincv_atten *= lincv_atten * lincv_atten;
+    expcv_atten *= expcv_atten * expcv_atten;
+
+    // compute feedback amount
+    fb = 5.0f * reso;
     
     for(int ii = 0; ii < channels; ii++){      
       float channelCutoff = cutoff;
 
       // sum in linear cv
       if(inputs[LINCV_INPUT].getChannels() == 1){
-	channelCutoff += 2.0f * lincv_atten*inputs[LINCV_INPUT].getVoltage()/10.f;
+	channelCutoff += 2.0f * lincv_atten*inputs[LINCV_INPUT].getVoltage() / 10.f;
       }
       else{
-	channelCutoff += 2.0f * lincv_atten*inputs[LINCV_INPUT].getVoltage(ii)/10.f;
+	channelCutoff += 2.0f * lincv_atten*inputs[LINCV_INPUT].getVoltage(ii) / 10.f;
       }
       
       // apply exponential cv
@@ -133,17 +143,20 @@ struct uLADR : Module {
       // with semi-implicit euler integration
       input = 0.8f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
       
-      dt = 44100.f / (sampleRate * 5.f) * channelCutoff;
+      dt = 44100.f / (sampleRate * (float)(OVERSAMPLING_FACTOR)) * channelCutoff;
 
       // clamp integration rate
-      if(dt > 0.35f)
-	dt = 0.35f;
+      if(dt > INTEGRATION_RATE_MAX)
+	dt = INTEGRATION_RATE_MAX;
       else if(dt < 0.f)
 	dt = 0.f;
+
+      // integration error compensation factor
+      error = 1.f + ERROR_COMPENSATION_FACTOR * (dt * dt);
       
       // integrate with pseudo oversampling
-      for(int jj=0; jj < 5; jj++) {
-	p0[ii] += dt * (FloatTanhPade23(input - fb * p3[ii]) - p0[ii]);
+      for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
+	p0[ii] += dt * (FloatTanhPade23(input - error * fb * p3[ii]) - p0[ii]);
 	p1[ii] += dt * (p0[ii] - p1[ii]);
 	p2[ii] += dt * (p1[ii] - p2[ii]);
 	p3[ii] += dt * (p2[ii] - p3[ii]);
