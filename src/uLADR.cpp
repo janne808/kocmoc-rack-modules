@@ -152,7 +152,7 @@ struct uLADR : Module {
 	dt = 0.f;
 
       // integration error compensation factor
-      error = 1.f + ERROR_COMPENSATION_FACTOR * (dt);
+      error = 1.f + ERROR_COMPENSATION_FACTOR * dt;
       
       // integrate with pseudo oversampling
       for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
