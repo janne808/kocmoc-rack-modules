@@ -38,7 +38,7 @@
 #define IIR_DOWNSAMPLING_BANDWIDTH 0.75
 
 // maximum newton-raphson iteration steps
-#define LADDER_MAX_NEWTON_STEPS 8
+#define LADDER_MAX_NEWTON_STEPS 4
 
 // check for newton-raphson breaking limit
 #define LADDER_NEWTON_BREAKING_LIMIT 1

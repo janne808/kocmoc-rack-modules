@@ -38,7 +38,7 @@
 #define IIR_DOWNSAMPLING_BANDWIDTH 0.9
 
 // maximum newton-raphson iteration steps
-#define SKF_MAX_NEWTON_STEPS 8
+#define SKF_MAX_NEWTON_STEPS 4
 
 // check for newton-raphson breaking limit
 #define SKF_NEWTON_BREAKING_LIMIT 1
@@ -289,10 +289,10 @@ void SKFilter::filter(float input){
        	p1_prime = p1 + dt * (p0 + fb - p1 - 1.0f / 4.0f * FloatSinhPade54(p1 * 4.0f));	
 	fb_prime = input_bp + res * p1_prime;
 	
-       	p1 += 0.5 * dt * ((p0 + fb - p1 - 1.0f / 4.0f * FloatSinhPade54(p1 * 4.0f)) +
-		      (p0_prime + fb_prime - p1_prime - 1.0f / 4.0f * FloatSinhPade54(p1 * 4.0f)));
-	p0 += 0.5 * dt * ((input_lp_t1 - p0 - fb) +
-		      (input_lp - p0_prime - fb_prime));
+       	p1 += 0.5f * dt * ((p0 + fb - p1 - 1.0f / 4.0f * FloatSinhPade54(p1 * 4.0f)) +
+		           (p0_prime + fb_prime - p1_prime - 1.0f / 4.0f * FloatSinhPade54(p1 * 4.0f)));
+	p0 += 0.5f * dt * ((input_lp_t1 - p0 - fb) +
+		           (input_lp - p0_prime - fb_prime));
 
 	out = p1;
       }
@@ -301,7 +301,7 @@ void SKFilter::filter(float input){
       // trapezoidal integration
       {
 	float x_k, x_k2;
-	float fb_t = input_bp_t1 + res*p1;
+	float fb_t = input_bp_t1 + res * p1;
 	float alpha = dt / 2.0f;
 	float A = p0 + fb_t - p1 - 1.0f / 4.0f * FloatSinhPade54(4.0f * p1) +
 	           p0 / (1.0f + alpha) + alpha / (1.0f + alpha) * (input_lp_t1 - p0 - fb_t + input_lp);
@@ -317,7 +317,7 @@ void SKFilter::filter(float input){
 	  
 #ifdef SKF_NEWTON_BREAKING_LIMIT
 	  // breaking limit
-	  if(fabs(x_k2 - x_k) < 1.0e-9) {
+	  if(fabs(x_k2 - x_k) < 1.0e-9f) {
 	    x_k = x_k2;
 	    break;
 	  }

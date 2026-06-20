@@ -38,7 +38,7 @@
 #define IIR_DOWNSAMPLING_BANDWIDTH 0.9
 
 // maximum newton-raphson iteration steps
-#define SVF_MAX_NEWTON_STEPS 8
+#define SVF_MAX_NEWTON_STEPS 4
 
 // check for newton-raphson breaking limit
 #define SVF_NEWTON_BREAKING_LIMIT 1
@@ -276,7 +276,7 @@ void SVFilter::filter(float input){
 	float beta = 1.0f - (SVF_BETA_FACTOR / oversamplingFactor);
 	float alpha2 = dt2 * dt2 / 4.0f + fb * alpha;
 	float D_t = (1.0f - dt2 * dt2 /4.0f) * bp +
-	              alpha * (u_t1 + input - 2.0f * lp - fb * bp - FloatSinhPade54(bp));
+	             alpha * (u_t1 + input - 2.0f * lp - fb * bp - FloatSinhPade54(bp));
 	float x_k, x_k2;
 
 	// starting point is last output
