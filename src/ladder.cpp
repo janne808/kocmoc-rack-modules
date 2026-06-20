@@ -291,10 +291,10 @@ void Ladder::LadderFilter(float input){
 	float p3_trap = tanh_p2_prime - tanh_p3_prime;
 	
 	// corrector
-	p0 = p0 + 0.5 * alpha_0 * dt * (p0_euler + p0_trap);
-	p1 = p1 + 0.5 * alpha_1 * dt * (p1_euler + p1_trap);
-	p2 = p2 + 0.5 * alpha_2 * dt * (p2_euler + p2_trap);
-	p3 = p3 + 0.5 * alpha_3 * dt * (p3_euler + p3_trap);
+	p0 = p0 + 0.5f * alpha_0 * dt * (p0_euler + p0_trap);
+	p1 = p1 + 0.5f * alpha_1 * dt * (p1_euler + p1_trap);
+	p2 = p2 + 0.5f * alpha_2 * dt * (p2_euler + p2_trap);
+	p3 = p3 + 0.5f * alpha_3 * dt * (p3_euler + p3_trap);
       }
       break;
       
@@ -316,7 +316,7 @@ void Ladder::LadderFilter(float input){
 	p2 = p2 + 0.5f * alpha_1 * dt2 * ((p1 - p2) + (p1_prime - p2_prime));
 	p1 = p1 + 0.5f * alpha_2 * dt2 * ((p0 - p1) + (p0_prime - p1_prime));
 	p0 = p0 + 0.5f * alpha_3 * dt2 * ((FloatTanhPade45(ut_1 - fb * p3t_1) - p0) +
-			             (FloatTanhPade45(input - fb * p3) - p0_prime));
+			                  (FloatTanhPade45(input - fb * p3) - p0_prime));
       }
       break;
       
@@ -332,8 +332,8 @@ void Ladder::LadderFilter(float input){
 	c = (1.0f - 0.5f * dt2) / (1.0f + 0.5f * dt2);
 	g = -1.0f * fb * b * b * b * b;
 	x_k = ut;
-	D_t = c*p3 + (b + c * b) * p2 + (b * b + b * b * c) * p1 +
-	               (b * b * b+b * b * b * c)*p0 + b * b * b * b * ut;
+	D_t = c * p3 + (b + c * b) * p2 + (b * b + b * b * c) * p1 +
+	               (b * b * b + b * b * b * c) * p0 + b * b * b * b * ut;
 	C_t = FloatTanhPade45(input - fb * D_t);
 
 	// newton-raphson 
@@ -341,7 +341,7 @@ void Ladder::LadderFilter(float input){
 	  float tanh_g_xk, tanh_g_xk2;
 	  
 	  tanh_g_xk = FloatTanhPade45(g * x_k);
-	  tanh_g_xk2 = g * (1.0f - FloatTanhPade45(g * x_k) * FloatTanhPade45(g * x_k));
+	  tanh_g_xk2 = g * (1.0f - tanh_g_xk * tanh_g_xk);
 	  
 	  x_k2 = x_k - (x_k + x_k * tanh_g_xk * C_t - tanh_g_xk - C_t) /
 	                 (1.0f + C_t * (tanh_g_xk + x_k * tanh_g_xk2) - tanh_g_xk2);
@@ -515,7 +515,7 @@ void Ladder::LadderFilter(double input){
 	  double tanh_g_xk, tanh_g_xk2;
 	  
 	  tanh_g_xk = TanhPade32(g * x_k);
-	  tanh_g_xk2 = g * (1.0 - TanhPade32(g * x_k) * TanhPade32(g * x_k));
+	  tanh_g_xk2 = g * (1.0 - tanh_g_xk * tanh_g_xk);
 	  
 	  x_k2 = x_k - (x_k + x_k * tanh_g_xk * C_t - tanh_g_xk - C_t) /
 	                 (1.0 + C_t * (tanh_g_xk + x_k * tanh_g_xk2) - tanh_g_xk2);
