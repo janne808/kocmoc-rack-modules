@@ -20,6 +20,7 @@
  */
 
 #include <cstdlib>
+#include <cstdint>
 #include <cmath>
 #include "sallenkey.h"
 
