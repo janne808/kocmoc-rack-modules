@@ -22,6 +22,7 @@
 #ifndef __kocmocfastrandhh__
 #define __kocmocfastrandhh__
 
+#include <cstdint>
 #include <cstring>
 
 static uint32_t s = 0x12345678; // seed, must be non-zero
@@ -32,7 +33,7 @@ static inline float frand() {
     s ^= s << 5;
     uint32_t u = (s >> 9) | 0x3F800000u;
     float f;
-    memcpy(&f, &u, sizeof f);   // type-pun safely; compiles to zero instructions
+    std::memcpy(&f, &u, sizeof f);   // type-pun safely; compiles to zero instructions
     return f - 1.0f;
 }
 

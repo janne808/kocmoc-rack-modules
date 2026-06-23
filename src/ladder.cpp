@@ -218,7 +218,7 @@ float Ladder::GetNormalizedNoiseValue(){
 }
 #else
 double Ladder::GetNormalizedNoiseValue(){
-  return 2.0f * (frand() - 0.5f);
+  return 2.0 * (frand() - 0.5);
 }
 #endif
 

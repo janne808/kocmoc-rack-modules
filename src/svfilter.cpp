@@ -240,8 +240,7 @@ void SVFilter::filter(float input){
   float dt2 = dt;
   
   // update noise terms
-  noise = frand();
-  noise = 1.0e-6f * 2.0f * (noise - 0.5f);
+  noise = 1.0e-6f * GetNormalizedNoiseValue();
 
   input += noise;
 
