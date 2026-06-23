@@ -36,4 +36,4 @@ static inline float frand() {
     return f - 1.0f;
 }
 
-#endif __kocmocfastrandhh__
+#endif // __kocmocfastrandhh__
