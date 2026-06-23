@@ -70,6 +70,13 @@ public:
   int GetFilterOversamplingFactor();  
   int GetFilterDecimatorOrder();
   
+  // normalized noise
+#ifdef FLOATDSP
+  float GetNormalizedNoiseValue();
+#else
+  double GetNormalizedNoiseValue();
+#endif
+  
   // tick filter state
 #ifdef FLOATDSP
   void filter(float input);

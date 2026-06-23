@@ -30,6 +30,7 @@
 #endif
 
 #include "fastmath.h"
+#include "fastrand.h"
 
 // steepness of downsample filter response
 #define IIR_DOWNSAMPLE_ORDER 16
@@ -228,6 +229,16 @@ SKIntegrationMethod SKFilter::GetFilterIntegrationMethod(){
 }
 
 #ifdef FLOATDSP
+float SKFilter::GetNormalizedNoiseValue(){
+  return 2.0f * (frand() - 0.5f);
+}
+#else
+double SKFilter::GetNormalizedNoiseValue(){
+  return 2.0f * (frand() - 0.5f);
+}
+#endif
+
+#ifdef FLOATDSP
 void SKFilter::filter(float input){
   // noise term
   float noise;
@@ -237,8 +248,7 @@ void SKFilter::filter(float input){
   float fb = 0.0f;
 
   // update noise terms
-  noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-  noise = 1.0e-6f * 2.0f * (noise - 0.5f);
+  noise = 1.0e-6f * GetNormalizedNoiseValue();
 
   input += noise;
 
@@ -356,8 +366,7 @@ void SKFilter::filter(double input){
   double fb=0.0;
 
   // update noise terms
-  noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-  noise = 1.0e-6 * 2.0 * (noise - 0.5);
+  noise = 1.0e-6 * GetNormalizedNoiseValue();
 
   input += noise;
 

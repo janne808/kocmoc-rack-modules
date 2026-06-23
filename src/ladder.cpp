@@ -30,6 +30,7 @@
 #endif
 
 #include "fastmath.h"
+#include "fastrand.h"
 
 // steepness of downsample filter response
 #define IIR_DOWNSAMPLE_ORDER 16
@@ -213,11 +214,11 @@ LadderIntegrationMethod Ladder::GetFilterIntegrationMethod(){
 
 #ifdef FLOATDSP
 float Ladder::GetNormalizedNoiseValue(){
-  return 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
+  return 2.0f * (frand() - 0.5f);
 }
 #else
 double Ladder::GetNormalizedNoiseValue(){
-  return 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
+  return 2.0f * (frand() - 0.5f);
 }
 #endif
 

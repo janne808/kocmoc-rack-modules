@@ -30,6 +30,7 @@
 #endif
 
 #include "fastmath.h"
+#include "fastrand.h"
 
 // steepness of downsample filter response
 #define IIR_DOWNSAMPLE_ORDER 16
@@ -218,6 +219,16 @@ SVFIntegrationMethod SVFilter::GetFilterIntegrationMethod(){
 }
 
 #ifdef FLOATDSP
+float SVFilter::GetNormalizedNoiseValue(){
+  return 2.0f * (frand() - 0.5f);
+}
+#else
+double SVFilter::GetNormalizedNoiseValue(){
+  return 2.0f * (frand() - 0.5f);
+}
+#endif
+
+#ifdef FLOATDSP
 void SVFilter::filter(float input){
   // noise term
   float noise;
@@ -229,7 +240,7 @@ void SVFilter::filter(float input){
   float dt2 = dt;
   
   // update noise terms
-  noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+  noise = frand();
   noise = 1.0e-6f * 2.0f * (noise - 0.5f);
 
   input += noise;
@@ -377,8 +388,7 @@ void SVFilter::filter(double input){
   double dt2 = dt;
   
   // update noise terms
-  noise = static_cast <double> (rand()) / static_cast <double> (RAND_MAX);
-  noise = 1.0e-6 * 2.0 * (noise - 0.5);
+  noise = 1.0e-6 * GetNormalizedNoiseValue();
 
   input += noise;
 
