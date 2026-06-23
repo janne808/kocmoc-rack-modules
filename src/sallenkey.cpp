@@ -230,11 +230,11 @@ SKIntegrationMethod SKFilter::GetFilterIntegrationMethod(){
 
 #ifdef FLOATDSP
 float SKFilter::GetNormalizedNoiseValue(){
-  return 2.0f * (frand() - 0.5f);
+  return 2.0f * (frand(s) - 0.5f);
 }
 #else
 double SKFilter::GetNormalizedNoiseValue(){
-  return 2.0f * (frand() - 0.5f);
+  return 2.0f * (frand(s) - 0.5f);
 }
 #endif
 

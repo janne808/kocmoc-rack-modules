@@ -77,6 +77,9 @@ public:
   double GetNormalizedNoiseValue();
 #endif
   
+  // PRNG state
+  uint32_t s;
+  
   // tick filter state
 #ifdef FLOATDSP
   void filter(float input);

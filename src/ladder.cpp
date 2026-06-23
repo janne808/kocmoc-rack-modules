@@ -72,6 +72,9 @@ Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
 #else
   iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0, decimatorOrder);
 #endif
+
+  // instantiate PRNG seed
+  s = rand();
 }
 
 // default constructor
@@ -97,6 +100,9 @@ Ladder::Ladder(){
 #else
   iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0, decimatorOrder);
 #endif
+
+  // instantiate PRNG seed
+  s = rand();
 }
 
 // default destructor
@@ -214,11 +220,11 @@ LadderIntegrationMethod Ladder::GetFilterIntegrationMethod(){
 
 #ifdef FLOATDSP
 float Ladder::GetNormalizedNoiseValue(){
-  return 2.0f * (frand() - 0.5f);
+  return 2.0f * (frand(s) - 0.5f);
 }
 #else
 double Ladder::GetNormalizedNoiseValue(){
-  return 2.0 * (frand() - 0.5);
+  return 2.0 * (frand(s) - 0.5);
 }
 #endif
 

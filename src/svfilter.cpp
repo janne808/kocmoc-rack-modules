@@ -76,6 +76,9 @@ SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFac
 		       IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0,
 		       decimatorOrder);
 #endif
+
+  // instantiate PRNG seed
+  s = rand();
 }
 
 // default constructor
@@ -105,6 +108,9 @@ SVFilter::SVFilter(){
 		       IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0,
 		       decimatorOrder);
 #endif
+
+  // instantiate PRNG seed
+  s = rand();
 }
 
 // default destructor
@@ -220,11 +226,11 @@ SVFIntegrationMethod SVFilter::GetFilterIntegrationMethod(){
 
 #ifdef FLOATDSP
 float SVFilter::GetNormalizedNoiseValue(){
-  return 2.0f * (frand() - 0.5f);
+  return 2.0f * (frand(s) - 0.5f);
 }
 #else
 double SVFilter::GetNormalizedNoiseValue(){
-  return 2.0f * (frand() - 0.5f);
+  return 2.0f * (frand(s) - 0.5f);
 }
 #endif
 

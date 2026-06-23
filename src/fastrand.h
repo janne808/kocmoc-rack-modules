@@ -25,9 +25,7 @@
 #include <cstdint>
 #include <cstring>
 
-static uint32_t s = 0x12345678; // seed, must be non-zero
-
-static inline float frand() {
+static inline float frand(uint32_t& s) {
     s ^= s << 13;
     s ^= s >> 17;
     s ^= s << 5;
