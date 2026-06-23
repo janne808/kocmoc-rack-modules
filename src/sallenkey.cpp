@@ -79,7 +79,7 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
 #endif
 
   // instantiate PRNG seed
-  s = rand() + 1;
+  s = rand() | 1u;
 }
 
 // default constructor
@@ -115,7 +115,7 @@ SKFilter::SKFilter(){
 #endif
 
   // instantiate PRNG seed
-  s = rand() + 1;
+  s = rand() | 1u;
 }
 
 // default destructor
@@ -240,7 +240,7 @@ float SKFilter::GetNormalizedNoiseValue(){
 }
 #else
 double SKFilter::GetNormalizedNoiseValue(){
-  return 2.0f * (frand(s) - 0.5f);
+  return 2.0 * (frand(s) - 0.5);
 }
 #endif
 
