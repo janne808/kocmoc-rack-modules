@@ -79,7 +79,7 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
 #endif
 
   // instantiate PRNG seed
-  s = rand();
+  s = rand() + 1;
 }
 
 // default constructor
@@ -115,7 +115,7 @@ SKFilter::SKFilter(){
 #endif
 
   // instantiate PRNG seed
-  s = rand();
+  s = rand() + 1;
 }
 
 // default destructor

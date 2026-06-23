@@ -78,7 +78,7 @@ SVFilter::SVFilter(double newCutoff, double newResonance, int newOversamplingFac
 #endif
 
   // instantiate PRNG seed
-  s = rand();
+  s = rand() + 1;
 }
 
 // default constructor
@@ -110,7 +110,7 @@ SVFilter::SVFilter(){
 #endif
 
   // instantiate PRNG seed
-  s = rand();
+  s = rand() + 1;
 }
 
 // default destructor

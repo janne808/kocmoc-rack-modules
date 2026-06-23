@@ -74,7 +74,7 @@ Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
 #endif
 
   // instantiate PRNG seed
-  s = rand();
+  s = rand() + 1;
 }
 
 // default constructor
@@ -102,7 +102,7 @@ Ladder::Ladder(){
 #endif
 
   // instantiate PRNG seed
-  s = rand();
+  s = rand() + 1;
 }
 
 // default destructor
