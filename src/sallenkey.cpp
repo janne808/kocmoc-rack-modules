@@ -77,6 +77,9 @@ SKFilter::SKFilter(double newCutoff, double newResonance, int newOversamplingFac
 		       IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0,
 		       decimatorOrder);
 #endif
+
+  // instantiate PRNG seed
+  s = rand();
 }
 
 // default constructor
@@ -110,6 +113,9 @@ SKFilter::SKFilter(){
 		       IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0,
 		       decimatorOrder);
 #endif
+
+  // instantiate PRNG seed
+  s = rand();
 }
 
 // default destructor
