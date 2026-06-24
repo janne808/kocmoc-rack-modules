@@ -20,6 +20,7 @@
  */
 
 #include <cstdlib>
+#include <cstdint>
 #include <cmath>
 #include "diode.h"
 
@@ -30,6 +31,7 @@
 #endif
 
 #include "fastmath.h"
+#include "fastrand.h"
 
 // steepness of downsample filter response
 #define IIR_DOWNSAMPLE_ORDER 16
@@ -79,6 +81,9 @@ Diode::Diode(double newCutoff, double newResonance, int newOversamplingFactor,
 #else
   iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0, decimatorOrder);
 #endif
+
+  // instantiate PRNG seed
+  s = rand() | 1u;
 }
 
 // default constructor
@@ -106,6 +111,9 @@ Diode::Diode(){
 #else
   iir = new IIRLowpass(sampleRate * oversamplingFactor, IIR_DOWNSAMPLING_BANDWIDTH * sampleRate / 2.0, decimatorOrder);
 #endif
+
+  // instantiate PRNG seed
+  s = rand() | 1u;
 }
 
 // default destructor
@@ -234,11 +242,11 @@ DiodeIntegrationMethod Diode::GetFilterIntegrationMethod(){
 
 #ifdef FLOATDSP
 float Diode::GetNormalizedNoiseValue(){
-  return 2.0f * (static_cast <float> (rand()) / static_cast <float> (RAND_MAX) - 0.5f);
+  return 2.0f * (frand(s) - 0.5f);
 }
 #else
 double Diode::GetNormalizedNoiseValue(){
-  return 2.0 * (static_cast <double> (rand()) / static_cast <double> (RAND_MAX) - 0.5);
+  return 2.0 * (frand(s) - 0.5);
 }
 #endif
 
