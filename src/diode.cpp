@@ -54,6 +54,13 @@
 // maximum integration rate
 #define DIODE_MAX_INTEGRATION_RATE 0.9
 
+// saturation current offsets
+#define DIODE_CURRENT_OFFSET_DELTA_INPUT 0.15
+#define DIODE_CURRENT_OFFSET_DELTA_0 -0.1
+#define DIODE_CURRENT_OFFSET_DELTA_1 0.2
+#define DIODE_CURRENT_OFFSET_DELTA_2 -0.05
+#define DIODE_CURRENT_OFFSET_DELTA_3 0.1
+
 // constructor
 Diode::Diode(double newCutoff, double newResonance, int newOversamplingFactor,
 	     DiodeFilterMode newFilterMode, double newSampleRate,
@@ -264,6 +271,13 @@ void Diode::DiodeFilter(float input){
   float alpha_2 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   float alpha_3 = 1.0f + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   
+  // saturation current offset
+  float delta_input = DIODE_CURRENT_OFFSET_DELTA_INPUT;
+  float delta_0 = DIODE_CURRENT_OFFSET_DELTA_0;
+  float delta_1 = DIODE_CURRENT_OFFSET_DELTA_1;
+  float delta_2 = DIODE_CURRENT_OFFSET_DELTA_2;
+  float delta_3 = DIODE_CURRENT_OFFSET_DELTA_3;
+  
   // integrate filter state
   // with oversampling
   for(int nn = 0; nn < oversamplingFactor; nn++){
@@ -276,10 +290,10 @@ void Diode::DiodeFilter(float input){
 	// decoupling rate
 	float dt_hp = GetDecouplingIntegrationRate();
 	
-	p0 = p0 + alpha_0 * dt * (FloatTanhPade45(input - fb * hp3) - FloatTanhPade45(p0 - p1));
-	p1 = p1 + alpha_1 * 0.5f * dt * (FloatTanhPade45(p0 - p1) - FloatTanhPade45(p1 - p2));
-	p2 = p2 + alpha_2 * 0.5f * dt * (FloatTanhPade45(p1 - p2) - FloatTanhPade45(p2 - p3));
-	p3 = p3 + alpha_3 * 0.5f * dt * (FloatTanhPade45(p2 - p3) - FloatTanhPade45(p3));
+	p0 = p0 + alpha_0 * dt * (FloatTanhPade45(input - fb * hp3 + delta_input) - FloatTanhPade45(p0 - p1 + delta_0));
+	p1 = p1 + alpha_1 * 0.5f * dt * (FloatTanhPade45(p0 - p1 + delta_0) - FloatTanhPade45(p1 - p2 + delta_1));
+	p2 = p2 + alpha_2 * 0.5f * dt * (FloatTanhPade45(p1 - p2 + delta_1) - FloatTanhPade45(p2 - p3 + delta_2));
+	p3 = p3 + alpha_3 * 0.5f * dt * (FloatTanhPade45(p2 - p3 + delta_2) - FloatTanhPade32(p3 + delta_3));
 
 	hp0 = hp0 + dt_hp * (p3 - hp0);
 	hp1 = p3 - hp0;
@@ -302,11 +316,11 @@ void Diode::DiodeFilter(float input){
 	float hp0_new, hp1_new, hp2_new, hp3_new;
 	
 	// euler step nonlinearities
-	float tanh_ut1_fb_hp3 = FloatTanhPade45(ut_1 - fb * hp3);
-	float tanh_p0_p1 = FloatTanhPade45(p0 - p1);
-	float tanh_p1_p2 = FloatTanhPade45(p1 - p2);
-	float tanh_p2_p3 = FloatTanhPade45(p2 - p3);
-	float tanh_p3 = FloatTanhPade45(p3);
+	float tanh_ut1_fb_hp3 = FloatTanhPade45(ut_1 - fb * hp3 + delta_input);
+	float tanh_p0_p1 = FloatTanhPade45(p0 - p1 + delta_0);
+	float tanh_p1_p2 = FloatTanhPade45(p1 - p2 + delta_1);
+	float tanh_p2_p3 = FloatTanhPade45(p2 - p3 + delta_2);
+	float tanh_p3 = FloatTanhPade45(p3 + delta_3);
 	
 	// decoupling rate
 	float dt_hp = GetDecouplingIntegrationRate();
@@ -323,11 +337,11 @@ void Diode::DiodeFilter(float input){
 	hp3_prime = hp1_prime - hp2_prime;
 
 	// trapezoidal step nonlinearities
-	float tanh_input_fb_hp3_prime = FloatTanhPade45(input - fb * hp3_prime);
-	float tanh_p0_prime_p1_prime = FloatTanhPade45(p0_prime - p1_prime);
-	float tanh_p1_prime_p2_prime = FloatTanhPade45(p1_prime - p2_prime);
-	float tanh_p2_prime_p3_prime = FloatTanhPade45(p2_prime - p3_prime);
-	float tanh_p3_prime = FloatTanhPade45(p3_prime);
+	float tanh_input_fb_hp3_prime = FloatTanhPade45(input - fb * hp3_prime + delta_input);
+	float tanh_p0_prime_p1_prime = FloatTanhPade45(p0_prime - p1_prime + delta_0);
+	float tanh_p1_prime_p2_prime = FloatTanhPade45(p1_prime - p2_prime + delta_1);
+	float tanh_p2_prime_p3_prime = FloatTanhPade45(p2_prime - p3_prime + delta_2);
+	float tanh_p3_prime = FloatTanhPade45(p3_prime + delta_3);
 	
 	// corrector
 	p0_new = p0 + alpha_0 * 0.5f * dt * ((tanh_ut1_fb_hp3 - tanh_p0_p1) + (tanh_input_fb_hp3_prime - tanh_p0_prime_p1_prime));
@@ -393,6 +407,13 @@ void Diode::DiodeFilter(double input){
   double alpha_1 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   double alpha_2 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   double alpha_3 = 1.0 + DIODE_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+
+  // saturation current offset
+  double delta_input = DIODE_CURRENT_OFFSET_DELTA_INPUT;
+  double delta_0 = DIODE_CURRENT_OFFSET_DELTA_0;
+  double delta_1 = DIODE_CURRENT_OFFSET_DELTA_1;
+  double delta_2 = DIODE_CURRENT_OFFSET_DELTA_2;
+  double delta_3 = DIODE_CURRENT_OFFSET_DELTA_3;
   
   // integrate filter state
   // with oversampling
@@ -406,10 +427,10 @@ void Diode::DiodeFilter(double input){
 	// decoupling rate
 	double dt_hp = GetDecouplingIntegrationRate();
 	
-	p0 = p0 + alpha_0 * dt * (TanhPade45(input - fb * hp3) - TanhPade45(p0 - p1));
-	p1 = p1 + alpha_1 * 0.5 * dt * (TanhPade45(p0 - p1) - TanhPade45(p1 - p2));
-	p2 = p2 + alpha_2 * 0.5 * dt * (TanhPade45(p1 - p2) - TanhPade45(p2 - p3));
-	p3 = p3 + alpha_3 * 0.5 * dt * (TanhPade45(p2 - p3) - TanhPade45(p3));
+	p0 = p0 + alpha_0 * dt * (TanhPade32(input - fb * hp3 + delta_input) - TanhPade32(p0 - p1 + delta_0));
+	p1 = p1 + alpha_1 * 0.5 * dt * (TanhPade32(p0 - p1 + delta_0) - TanhPade32(p1 - p2 + delta_1));
+	p2 = p2 + alpha_2 * 0.5 * dt * (TanhPade32(p1 - p2 + delta_1) - TanhPade32(p2 - p3 + delta_2));
+	p3 = p3 + alpha_3 * 0.5 * dt * (TanhPade32(p2 - p3 + delta_3) - TanhPade32(p3 + delta_3));
 
 	hp0 = hp0 + dt_hp * (p3 - hp0);
 	hp1 = p3 - hp0;
@@ -432,11 +453,11 @@ void Diode::DiodeFilter(double input){
 	double hp0_new, hp1_new, hp2_new, hp3_new;
 	
 	// euler step nonlinearities
-	double tanh_ut1_fb_hp3 = TanhPade32(ut_1 - fb * hp3);
-	double tanh_p0_p1 = TanhPade32(p0 - p1);
-	double tanh_p1_p2 = TanhPade32(p1 - p2);
-	double tanh_p2_p3 = TanhPade32(p2 - p3);
-	double tanh_p3 = TanhPade32(p3);
+	double tanh_ut1_fb_hp3 = TanhPade32(ut_1 - fb * hp3 + delta_input);
+	double tanh_p0_p1 = TanhPade32(p0 - p1 + delta_0);
+	double tanh_p1_p2 = TanhPade32(p1 - p2 + delta_1);
+	double tanh_p2_p3 = TanhPade32(p2 - p3 + delta_2);
+	double tanh_p3 = TanhPade32(p3 + delta_3);
 
 	// decoupling rate
 	double dt_hp = GetDecouplingIntegrationRate();
@@ -454,11 +475,11 @@ void Diode::DiodeFilter(double input){
 	hp3_prime = hp1_prime - hp2_prime;
 
 	// trapezoidal step nonlinearities
-	double tanh_input_fb_hp3_prime = TanhPade32(input - fb * hp3_prime);
-	double tanh_p0_prime_p1_prime = TanhPade32(p0_prime - p1_prime);
-	double tanh_p1_prime_p2_prime = TanhPade32(p1_prime - p2_prime);
-	double tanh_p2_prime_p3_prime = TanhPade32(p2_prime - p3_prime);
-	double tanh_p3_prime = TanhPade32(p3_prime);
+	double tanh_input_fb_hp3_prime = TanhPade32(input - fb * hp3_prime + delta_input);
+	double tanh_p0_prime_p1_prime = TanhPade32(p0_prime - p1_prime + delta_0);
+	double tanh_p1_prime_p2_prime = TanhPade32(p1_prime - p2_prime + delta_1);
+	double tanh_p2_prime_p3_prime = TanhPade32(p2_prime - p3_prime + delta_2);
+	double tanh_p3_prime = TanhPade32(p3_prime + delta_3);
 	
 	// corrector
 	p0_new = p0 + alpha_0 * 0.5 * dt * ((tanh_ut1_fb_hp3 - tanh_p0_p1) + (tanh_input_fb_hp3_prime - tanh_p0_prime_p1_prime));

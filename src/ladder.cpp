@@ -48,6 +48,13 @@
 // thermal phase noise amplitude
 #define LADDER_THERMAL_NOISE_AMPLITUDE 5.0e-3
 
+// transistor mismatch offsets
+#define LADDER_MISMATCH_OFFSET_DELTA_INPUT 0.15
+#define LADDER_MISMATCH_OFFSET_DELTA_0 -0.1
+#define LADDER_MISMATCH_OFFSET_DELTA_1 0.2
+#define LADDER_MISMATCH_OFFSET_DELTA_2 -0.05
+#define LADDER_MISMATCH_OFFSET_DELTA_3 0.1
+
 // constructor
 Ladder::Ladder(double newCutoff, double newResonance, int newOversamplingFactor,
 	       LadderFilterMode newFilterMode, double newSampleRate,
@@ -246,6 +253,13 @@ void Ladder::LadderFilter(float input){
   float alpha_2 = 1.0f + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   float alpha_3 = 1.0f + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   
+  // transistor mismatch offsets
+  float delta_input = LADDER_MISMATCH_OFFSET_DELTA_INPUT;
+  float delta_0 = LADDER_MISMATCH_OFFSET_DELTA_0;
+  float delta_1 = LADDER_MISMATCH_OFFSET_DELTA_1;
+  float delta_2 = LADDER_MISMATCH_OFFSET_DELTA_2;
+  float delta_3 = LADDER_MISMATCH_OFFSET_DELTA_3;
+  
   // integrate filter state
   // with oversampling
   for(int nn = 0; nn < oversamplingFactor; nn++){
@@ -255,10 +269,10 @@ void Ladder::LadderFilter(float input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + alpha_0 * dt2 * (FloatTanhPade45(input - fb * p3) - FloatTanhPade45(p0));
-	p1 = p1 + alpha_1 * dt2 * (FloatTanhPade45(p0) - FloatTanhPade45(p1));
-	p2 = p2 + alpha_2 * dt2 * (FloatTanhPade45(p1) - FloatTanhPade45(p2));
-	p3 = p3 + alpha_3 * dt2 * (FloatTanhPade45(p2) - FloatTanhPade45(p3));
+	p0 = p0 + alpha_0 * dt * (FloatTanhPade45(input - fb * p3 + delta_input) - FloatTanhPade45(p0 + delta_0));
+	p1 = p1 + alpha_1 * dt * (FloatTanhPade45(p0 + delta_0) - FloatTanhPade45(p1 + delta_1));
+	p2 = p2 + alpha_2 * dt * (FloatTanhPade45(p1 + delta_1) - FloatTanhPade45(p2 + delta_2));
+	p3 = p3 + alpha_3 * dt * (FloatTanhPade45(p2 + delta_2) - FloatTanhPade45(p3 + delta_3));
       }
       break;
       
@@ -419,6 +433,13 @@ void Ladder::LadderFilter(double input){
   double alpha_1 = 1.0 + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   double alpha_2 = 1.0 + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
   double alpha_3 = 1.0 + LADDER_THERMAL_NOISE_AMPLITUDE * GetNormalizedNoiseValue();
+
+  // transistor mismatch offsets
+  double delta_input = LADDER_MISMATCH_OFFSET_DELTA_INPUT;
+  double delta_0 = LADDER_MISMATCH_OFFSET_DELTA_0;
+  double delta_1 = LADDER_MISMATCH_OFFSET_DELTA_1;
+  double delta_2 = LADDER_MISMATCH_OFFSET_DELTA_2;
+  double delta_3 = LADDER_MISMATCH_OFFSET_DELTA_3;
   
   // integrate filter state
   // with oversampling
@@ -429,10 +450,10 @@ void Ladder::LadderFilter(double input){
       // semi-implicit euler integration
       // with full tanh stages
       {
-	p0 = p0 + alpha_0 * dt * (TanhPade32(input - fb * p3) - TanhPade32(p0));
-	p1 = p1 + alpha_1 * dt * (TanhPade32(p0) - TanhPade32(p1));
-	p2 = p2 + alpha_2 * dt * (TanhPade32(p1) - TanhPade32(p2));
-	p3 = p3 + alpha_3 * dt * (TanhPade32(p2) - TanhPade32(p3));
+	p0 = p0 + alpha_0 * dt * (TanhPade32(input - fb * p3 + delta_input) - TanhPade32(p0 + delta_0));
+	p1 = p1 + alpha_1 * dt * (TanhPade32(p0 + delta_0) - TanhPade32(p1 + delta_1));
+	p2 = p2 + alpha_2 * dt * (TanhPade32(p1 + delta_1) - TanhPade32(p2 + delta_2));
+	p3 = p3 + alpha_3 * dt * (TanhPade32(p2 + delta_2) - TanhPade32(p3 + delta_3));
       }
       break;
       
@@ -441,11 +462,11 @@ void Ladder::LadderFilter(double input){
       // with full tanh stages
       {
 	// euler step nonlinearities
-	double tanh_ut1_fb_p3 = TanhPade32(ut_1 - fb * p3);
-	double tanh_p0 = TanhPade32(p0);
-	double tanh_p1 = TanhPade32(p1);
-	double tanh_p2 = TanhPade32(p2);
-	double tanh_p3 = TanhPade32(p3);
+	double tanh_ut1_fb_p3 = TanhPade32(ut_1 - fb * p3 + delta_input);
+	double tanh_p0 = TanhPade32(p0 + delta_0);
+	double tanh_p1 = TanhPade32(p1 + delta_1);
+	double tanh_p2 = TanhPade32(p2 + delta_2);
+	double tanh_p3 = TanhPade32(p3 + delta_3);
 
 	// euler step differences
 	double p0_euler = tanh_ut1_fb_p3 - tanh_p0;
@@ -460,11 +481,11 @@ void Ladder::LadderFilter(double input){
 	double p3_prime = p3 + alpha_3 * dt * p3_euler;
 
 	// trapezoidal step nonlinearities
-	double tanh_input_fb_p3_prime = TanhPade32(input - fb * p3_prime);
-	double tanh_p0_prime = TanhPade32(p0_prime);
-	double tanh_p1_prime = TanhPade32(p1_prime);
-	double tanh_p2_prime = TanhPade32(p2_prime);
-	double tanh_p3_prime = TanhPade32(p3_prime);
+	double tanh_input_fb_p3_prime = TanhPade32(input - fb * p3_prime + delta_input);
+	double tanh_p0_prime = TanhPade32(p0_prime + delta_0);
+	double tanh_p1_prime = TanhPade32(p1_prime + delta_1);
+	double tanh_p2_prime = TanhPade32(p2_prime + delta_2);
+	double tanh_p3_prime = TanhPade32(p3_prime + delta_3);
 
 	// trapezoidal step differences
 	double p0_trap = tanh_input_fb_p3_prime - tanh_p0_prime;
