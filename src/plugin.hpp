@@ -35,6 +35,7 @@ extern Model* modelTRG;
 extern Model* modelLADR;
 extern Model* modeluLADR;
 extern Model* modelDIOD;
+extern Model* modeluDIOD;
 extern Model* modelOP;
 extern Model* modelPHASR;
 extern Model* modelMUL;

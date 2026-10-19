@@ -32,6 +32,10 @@ All rights reserved.
 
   Classic diode ladder filter with user selectable oversampling factor and IIR/FIR antialiasing filter.
 
+* μDIOD
+
+  Fast optimized version of the DIOD module..
+
 * DDLY
 
   Classic digital delay module with crossfade time modulation.

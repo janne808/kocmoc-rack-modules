@@ -34,6 +34,7 @@ void init(Plugin* p) {
  	p->addModel(modelLADR);
  	p->addModel(modeluLADR);
  	p->addModel(modelDIOD);
+ 	p->addModel(modeluDIOD);
 	p->addModel(modelOP);
 	p->addModel(modelPHASR);
 	p->addModel(modelMUL);

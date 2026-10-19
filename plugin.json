@@ -67,6 +67,15 @@
       ]
     },
     {
+      "slug": "uDIOD",
+      "name": "uDIOD",
+      "description": "4-pole Diode Ladder Filter",
+      "tags": [
+        "Filter",
+	"Polyphonic"
+      ]
+    },
+    {
       "slug": "OP",
       "name": "OP",
       "description": "Phase-modulation operator",
