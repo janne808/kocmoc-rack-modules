@@ -34,7 +34,7 @@ All rights reserved.
 
 * μDIOD
 
-  Fast optimized version of the DIOD module..
+  Fast optimized version of the DIOD module.
 
 * DDLY
 
