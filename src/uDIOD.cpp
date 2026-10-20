@@ -113,7 +113,7 @@ struct uDIOD : Module {
     float gain = params[GAIN_PARAM].getValue();
 
     // filter state integration parameters
-    float fb, dt, dt_hp, error, input, out;
+    float fb, dt, dt_hp, dt_hp2, error, input, out;
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001 + 2.25 * (cutoff * cutoff * cutoff * cutoff);
@@ -145,10 +145,11 @@ struct uDIOD : Module {
       
       // tick filter state
       // with semi-implicit euler integration
-      input = 0.8f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
+      input = 1.2f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
       
       dt = 44100.f / (sampleRate * (float)(OVERSAMPLING_FACTOR)) * channelCutoff;
       dt_hp = 44100.0f / (sampleRate * (float)(OVERSAMPLING_FACTOR)) * FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE;
+      dt_hp2 = 44100.0f / (sampleRate * 1.f) * FEEDBACK_DC_DECOUPLING_INTEGRATION_RATE;
 	
       // clamp integration rate
       if(dt > INTEGRATION_RATE_MAX)
@@ -172,11 +173,12 @@ struct uDIOD : Module {
 	hp2[ii] = hp2[ii] + dt_hp * (hp1[ii] - hp2[ii]);
 	hp3[ii] = hp1[ii] - hp2[ii];
 
-	hp4[ii] = hp4[ii] + dt_hp * (p1[ii] - hp4[ii]);
-	hp5[ii] = p1[ii] - hp4[ii];
       }
     
-      // set output
+      hp4[ii] = hp4[ii] + dt_hp2 * (p1[ii] - hp4[ii]);
+      hp5[ii] = p1[ii] - hp4[ii];
+
+	// set output
       switch((uDIODFilterMode)params[MODE_PARAM].getValue()) {
       case UDIOD_LOWPASS4_MODE:
 	out = hp1[ii];
