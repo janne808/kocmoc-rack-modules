@@ -174,7 +174,8 @@ struct uDIOD : Module {
 	hp3[ii] = hp1[ii] - hp2[ii];
 
       }
-    
+
+      // dc decoupling outside of the filter feedback loop doesn't need oversampling
       hp4[ii] = hp4[ii] + dt_hp2 * (p1[ii] - hp4[ii]);
       hp5[ii] = p1[ii] - hp4[ii];
 
