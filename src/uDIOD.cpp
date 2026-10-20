@@ -27,7 +27,7 @@
 #define ERROR_COMPENSATION_FACTOR 2.f
 
 // define integration rate clamping
-#define INTEGRATION_RATE_MAX 0.65f
+#define INTEGRATION_RATE_MAX 0.785f
 
 // define oversampling
 #define OVERSAMPLING_FACTOR 2
@@ -113,7 +113,7 @@ struct uDIOD : Module {
     float gain = params[GAIN_PARAM].getValue();
 
     // filter state integration parameters
-    float fb, dt, dt_hp, dt_hp2, error, input, out;
+    float fb, dt, dt_hp, dt_hp2, error_comp, input, out;
     
     // shape panel input for a pseudoexponential response
     cutoff = 0.001 + 2.25 * (cutoff * cutoff * cutoff * cutoff);
@@ -122,7 +122,7 @@ struct uDIOD : Module {
     expcv_atten *= expcv_atten * expcv_atten;
 
     // compute feedback amount
-    fb = 24.0f * reso;
+    fb = 20.0f * reso;
     
     for(int ii = 0; ii < channels; ii++){      
       float channelCutoff = cutoff;
@@ -158,11 +158,16 @@ struct uDIOD : Module {
 	dt = 0.f;
 
       // integration error compensation factor
-      error = 1.f + ERROR_COMPENSATION_FACTOR * dt;
-      
+      error_comp = 1.f + ERROR_COMPENSATION_FACTOR * dt;
+
+      // clamp error compensated feedback
+      fb *= error_comp;
+      if(fb > 59.f)
+	fb = 59.f;
+
       // integrate with pseudo oversampling
       for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
-	p0[ii] += dt * (FloatTanhPade23(input - error * fb * hp3[ii]) - (p0[ii] - p1[ii]));
+	p0[ii] += dt * (FloatTanhPade23(input - fb * hp3[ii]) - (p0[ii] - p1[ii]));
 	p1[ii] += 0.5f * dt * ((p0[ii] - p1[ii]) - (p1[ii] - p2[ii]));
 	p2[ii] += 0.5f * dt * ((p1[ii] - p2[ii]) - (p2[ii] - p3[ii]));
 	p3[ii] += 0.5f * dt * ((p2[ii] - p3[ii]) - p3[ii]);
