@@ -32,6 +32,9 @@
 // define oversampling
 #define OVERSAMPLING_FACTOR 2
 
+// define saturation method (0 = dynamic antisaturation, 1 = static saturation)
+#define SATURATION_METHOD 0
+
 // filter modes
 enum uSKFFilterMode {
    USK_LOWPASS_MODE,
@@ -173,14 +176,23 @@ struct uSKF : Module {
       default:
 	input_lp = input_bp = 0.f;
       }
-      
-      // integrate with pseudo oversampling
+
+#if SATURATION_METHOD == 0
+      // integrate with pseudo oversampling and dynamic antisaturation
       for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
 	float feedback = error_comp * (input_bp + fb * p1[ii]);
 	p0[ii] += dt * (input_lp - p0[ii] - feedback);
        	p1[ii] += dt * (p0[ii] + feedback - p1[ii] - 1.0f / 2.0f * FloatSinhPade54(p1[ii] * 2.0f));
       }
-
+#elif SATURATION_METHOD == 1
+      // integrate with pseudo oversampling and static saturation
+      for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
+	float feedback = error_comp * (input_bp + fb * FloatTanhPade23(p1[ii]));
+	p0[ii] += dt * (input_lp - p0[ii] - feedback);
+       	p1[ii] += dt * (p0[ii] + feedback - p1[ii]);
+      }
+#endif
+      
       // set output
       out = p1[ii];
       
