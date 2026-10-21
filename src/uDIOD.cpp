@@ -90,10 +90,7 @@ struct uDIOD : Module {
     sampleRate = APP->engine->getSampleRate();    
     
     // reset filter state
-    for(int ii=0; ii < 16; ii++) {
-      p0[ii] = p1[ii] = p2[ii] = p3[ii] = 0.f;
-      hp0[ii] = hp1[ii] = hp2[ii] = hp3[ii] = hp4[ii] = hp5[ii] = 0.f;
-    }
+    resetFilterState();
   }
 
   void process(const ProcessArgs& args) override {
@@ -177,14 +174,13 @@ struct uDIOD : Module {
 	
 	hp2[ii] = hp2[ii] + dt_hp * (hp1[ii] - hp2[ii]);
 	hp3[ii] = hp1[ii] - hp2[ii];
-
       }
 
       // dc decoupling outside of the filter feedback loop doesn't need oversampling
       hp4[ii] = hp4[ii] + dt_hp2 * (p1[ii] - hp4[ii]);
       hp5[ii] = p1[ii] - hp4[ii];
 
-	// set output
+      // set output
       switch((uDIODFilterMode)params[MODE_PARAM].getValue()) {
       case UDIOD_LOWPASS4_MODE:
 	out = hp1[ii];
@@ -203,14 +199,20 @@ struct uDIOD : Module {
     outputs[OUTPUT_OUTPUT].setChannels(channels);    
   }
 
-  void onSampleRateChange() override {
-    // new system samplerate
-    sampleRate = APP->engine->getSampleRate();
-    
+  void resetFilterState() {
     // reset filter state
     for(int ii = 0; ii < 16; ii++){    
       p0[ii] = p1[ii] = p2[ii] = p3[ii] = 0.f;
+      hp0[ii] = hp1[ii] = hp2[ii] = hp3[ii] = hp4[ii] = hp5[ii] = 0.f;
     }
+  }
+  
+  void onSampleRateChange() override {
+    // new system samplerate
+    sampleRate = APP->engine->getSampleRate();
+
+    // reset filter state
+    resetFilterState();
   }
 
   void onReset() override {
@@ -218,9 +220,7 @@ struct uDIOD : Module {
     sampleRate = APP->engine->getSampleRate();
     
     // reset filter state
-    for(int ii=0; ii < 16; ii++) {
-      p0[ii] = p1[ii] = p2[ii] = p3[ii] = 0.f;
-    }
+    resetFilterState();
   }
 
   void onAdd() override {
@@ -228,9 +228,7 @@ struct uDIOD : Module {
     sampleRate = APP->engine->getSampleRate();
     
     // reset filter state
-    for(int ii=0; ii < 16; ii++) {
-      p0[ii] = p1[ii] = p2[ii] = p3[ii] = 0.f;
-    }
+    resetFilterState();
   }  
 };
 

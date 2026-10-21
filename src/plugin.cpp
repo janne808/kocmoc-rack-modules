@@ -39,6 +39,7 @@ void init(Plugin* p) {
 	p->addModel(modelPHASR);
 	p->addModel(modelMUL);
 	p->addModel(modelSKF);
+	p->addModel(modeluSKF);
 	p->addModel(modelDDLY);
 	
 	// Any other plugin initialization may go here.

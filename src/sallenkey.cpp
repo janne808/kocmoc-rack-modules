@@ -292,7 +292,7 @@ void SKFilter::filter(float input){
       {
 	fb = input_bp + res * p1;
 	p0 += dt * (input_lp - p0 - fb);
-       	p1 += dt * (p0 + fb - p1 - 1.0f / 4.0f * FloatSinhPade54(p0 * 4.0f));
+       	p1 += dt * (p0 + fb - p1 - 1.0f / 4.0f * FloatSinhPade54(p1 * 4.0f));
       	out = p1;
       }
       break;
@@ -410,7 +410,7 @@ void SKFilter::filter(double input){
       {
 	fb = input_bp + res * p1;
 	p0 += dt * (input_lp - p0 - fb);
-       	p1 += dt * (p0 + fb - p1 - 1.0 / 4.0 * SinhPade34(p0 * 4.0));
+       	p1 += dt * (p0 + fb - p1 - 1.0 / 4.0 * SinhPade34(p1 * 4.0));
       	out = p1;
       }
       break;

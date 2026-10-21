@@ -28,6 +28,10 @@ All rights reserved.
 
   Classic Sallen-Key filter with dynamic diode anti-saturation and implicit (zero-delay) state integration. Features user selectable oversampling factor and IIR/FIR antialiasing filter.
 
+* μSKF
+
+  Fast optimized version of the SKF module.
+
 * DIOD
 
   Classic diode ladder filter with user selectable oversampling factor and IIR/FIR antialiasing filter.

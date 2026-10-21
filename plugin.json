@@ -110,6 +110,15 @@
       ]
     },
     {
+      "slug": "uSKF",
+      "name": "uSKF",
+      "description": "Sallen-Key filter",
+      "tags": [
+        "Filter",
+	"Polyphonic"
+      ]
+    },
+    {
       "slug": "DDLY",
       "name": "DDLY",
       "description": "Digital Delay",
