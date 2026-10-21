@@ -24,10 +24,10 @@
 #include "fastmath.h"
 
 // define integration error compensation factor
-#define ERROR_COMPENSATION_FACTOR 0.25f
+#define ERROR_COMPENSATION_FACTOR 0.5f
 
 // define integration rate clamping
-#define INTEGRATION_RATE_MAX 0.55f
+#define INTEGRATION_RATE_MAX 0.65f
 
 // define oversampling
 #define OVERSAMPLING_FACTOR 2
@@ -124,7 +124,7 @@ struct uSKF : Module {
     gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gainComp));
     
     // compute feedback amount
-    fb = 3.45f * reso;
+    fb = 3.25f * reso;
     
     for(int ii = 0; ii < channels; ii++){      
       float channelCutoff = cutoff;
@@ -147,7 +147,7 @@ struct uSKF : Module {
       
       // tick filter state
       // with semi-implicit euler integration
-      input = 1.0f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
+      input = 1.0f * inputs[INPUT_INPUT].getVoltage(ii) * 0.7f * gain;
       
       dt = 44100.f / (sampleRate * (float)(OVERSAMPLING_FACTOR)) * channelCutoff;
 	
