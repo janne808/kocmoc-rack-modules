@@ -161,8 +161,18 @@ struct uSKF : Module {
       error_comp = 1.f + ERROR_COMPENSATION_FACTOR * dt;
 
       // set input mode
-      input_lp = input;
-      input_bp = 0.f;
+      switch((uSKFFilterMode)params[MODE_PARAM].getValue()){
+      case USK_LOWPASS_MODE:
+	input_lp = input;
+	input_bp = 0.f;
+	break;
+      case USK_BANDPASS_MODE:
+	input_lp = 0.f;
+	input_bp = input;
+	break;
+      default:
+	input_lp = input_bp = 0.f;
+      }
       
       // integrate with pseudo oversampling
       for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
