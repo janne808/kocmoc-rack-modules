@@ -24,16 +24,13 @@
 #include "fastmath.h"
 
 // define integration error compensation factor
-#define ERROR_COMPENSATION_FACTOR 0.35f
+#define ERROR_COMPENSATION_FACTOR 1.0f
 
 // define integration rate clamping
-#define INTEGRATION_RATE_MAX 0.55f
+#define INTEGRATION_RATE_MAX 0.75f
 
 // define oversampling
 #define OVERSAMPLING_FACTOR 2
-
-// define saturation method (0 = dynamic antisaturation, 1 = static saturation)
-#define SATURATION_METHOD 0
 
 // filter modes
 enum uSKFFilterMode {
@@ -127,7 +124,7 @@ struct uSKF : Module {
     gainComp = 9.0 * (1.0 - 1.9 * std::log(1.0 + gainComp));
     
     // compute feedback amount
-    fb = 3.25f * reso;
+    fb = 2.5f * reso;
     
     for(int ii = 0; ii < channels; ii++){      
       float channelCutoff = cutoff;
@@ -150,7 +147,7 @@ struct uSKF : Module {
       
       // tick filter state
       // with semi-implicit euler integration
-      input = FloatTanhPade23(1.0f * inputs[INPUT_INPUT].getVoltage(ii) * gain);
+      input = 0.3f * inputs[INPUT_INPUT].getVoltage(ii) * gain;
       
       dt = 44100.f / (sampleRate * (float)(OVERSAMPLING_FACTOR)) * channelCutoff;
 	
@@ -179,29 +176,18 @@ struct uSKF : Module {
 	input_lp = input_bp = 0.f;
       }
       
-#if SATURATION_METHOD == 0
-      // integrate with pseudo oversampling and dynamic antisaturation
-      for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
-	float feedback = error_comp * (input_bp + fb * p1[ii]);
-	
-	p0[ii] += dt * (input_lp - p0[ii] - feedback);
-       	p1[ii] += dt * (p0[ii] + feedback - p1[ii] - 1.0f / 4.0f * FloatSinhPade54(p1[ii] * 4.0f));
-      }
-      
-#elif SATURATION_METHOD == 1
       // integrate with pseudo oversampling and static saturation
       for(int jj=0; jj < OVERSAMPLING_FACTOR; jj++) {
-	float feedback = error_comp * (input_bp + fb * FloatTanhPade23(p1[ii]));
+	float feedback = error_comp * (input_bp + fb * 1.0f / 4.0f * FloatTanhPade23(p1[ii] * 4.0f));
 
 	p0[ii] += dt * (input_lp - p0[ii] - feedback);
        	p1[ii] += dt * (p0[ii] + feedback - p1[ii]);
       }
-#endif
       
       // set output
       out = p1[ii];
       
-      outputs[OUTPUT_OUTPUT].setVoltage((float)(2.0f * out * gainComp), ii);
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(3.0f * out * gainComp), ii);
     }
 
     // set output to be polyphonic
