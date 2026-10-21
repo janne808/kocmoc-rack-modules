@@ -122,7 +122,7 @@ struct uDIOD : Module {
     expcv_atten *= expcv_atten * expcv_atten;
 
     // compute feedback amount
-    fb = 20.0f * reso;
+    fb = 22.0f * reso;
     
     for(int ii = 0; ii < channels; ii++){      
       float channelCutoff = cutoff;
