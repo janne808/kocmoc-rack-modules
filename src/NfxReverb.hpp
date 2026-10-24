@@ -498,4 +498,10 @@ private:
   }
 };
 
+// C++11: in-class static constexpr members are only declarations;
+// these provide the storage that ODR-uses (runtime indexing, pointer passing) need.
+constexpr int NfxReverb::LEN[NfxReverb::NUM_LINES];
+constexpr NfxReverb::Tap NfxReverb::TAPS[NfxReverb::NUM_TAPS];
+constexpr NfxReverb::Tap NfxReverb::TAPS_R[NfxReverb::NUM_TAPS];
+
 }  // namespace nfx
