@@ -41,4 +41,5 @@ extern Model* modelPHASR;
 extern Model* modelMUL;
 extern Model* modelSKF;
 extern Model* modeluSKF;
+extern Model* modeluPLAT;
 extern Model* modelDDLY;
