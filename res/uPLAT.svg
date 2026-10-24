@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.54"
-     inkscape:cx="51.574803"
-     inkscape:cy="369.68504"
+     inkscape:zoom="7.1842049"
+     inkscape:cx="51.501872"
+     inkscape:cy="69.736318"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -135,7 +135,7 @@
          inkscape:connector-curvature="0" />
     </g>
     <path
-       d="m 11.549666,178.86217 -0.338666,0.29633 0.0635,-0.44097 0.169333,-0.14816 0.123472,0.14816 z"
+       d="m 11.349666,178.86217 -0.338666,0.29633 0.0635,-0.44097 0.169333,-0.14816 0.123472,0.14816 z"
        id="path1"
        style="font-size:3.52777px;font-family:LCD;-inkscape-font-specification:LCD;display:inline;stroke-width:0.264583"
        aria-label="," />
@@ -145,7 +145,7 @@
        style="font-size:5.64444px;font-family:LCD;-inkscape-font-specification:LCD;display:inline;stroke-width:0.264583"
        aria-label="PLAT" />
     <path
-       d="m 11.814701,177.1296 -0.179918,0.15523 H 11.4972 l 0.172861,-1.2453 0.169334,-0.14817 0.126999,0.14817 z m -0.179918,1.26294 -0.165805,0.14817 -0.126999,-0.14817 0.148166,-1.07244 h 0.141111 l 0.134055,0.15522 z m 1.079498,0.17286 -0.169333,0.14817 h -0.927803 l -0.127,-0.14817 0.169333,-0.14815 h 0.927803 z m 0.197555,-0.17286 -0.169333,0.14817 -0.123472,-0.14817 0.127,-0.91722 0.176389,-0.15522 h 0.14111 z m 0.33161,-2.35302 -0.176388,1.2453 h -0.137583 l -0.134055,-0.15522 0.151694,-1.09008 0.169333,-0.14817 z"
+       d="m 11.614701,177.1296 -0.179918,0.15523 H 11.2972 l 0.172861,-1.2453 0.169334,-0.14817 0.126999,0.14817 z m -0.179918,1.26294 -0.165805,0.14817 -0.126999,-0.14817 0.148166,-1.07244 h 0.141111 l 0.134055,0.15522 z m 1.079498,0.17286 -0.169333,0.14817 h -0.927803 l -0.127,-0.14817 0.169333,-0.14815 h 0.927803 z m 0.197555,-0.17286 -0.169333,0.14817 -0.123472,-0.14817 0.127,-0.91722 0.176389,-0.15522 h 0.14111 z m 0.33161,-2.35302 -0.176388,1.2453 h -0.137583 l -0.134055,-0.15522 0.151694,-1.09008 0.169333,-0.14817 z"
        id="path2"
        style="font-size:3.52777px;font-family:LCD;-inkscape-font-specification:LCD;display:inline;stroke-width:0.264583"
        aria-label="u" />
@@ -172,21 +172,21 @@
          x="-5.104167"
          y="141" /></text>
     <rect
-       style="display:inline;fill:#cccccc;fill-rule:evenodd;stroke-width:0.296499"
+       style="display:inline;fill:#cccccc;fill-rule:evenodd;stroke-width:0.303522"
        id="rect119"
-       width="15.212087"
+       width="15.941254"
        height="44.473888"
-       x="18.514668"
+       x="17.785501"
        y="240.18204"
-       rx="2.6785102" />
+       rx="2.8069003" />
     <rect
-       style="display:inline;fill:#000000;fill-rule:evenodd;stroke-width:0.335717"
+       style="display:inline;fill:#000000;fill-rule:evenodd;stroke-width:0.347117"
        id="rect113"
-       width="12.06543"
+       width="12.898763"
        height="27.028036"
-       x="20.203268"
+       x="19.369934"
        y="256.19562"
-       rx="2.3695827" />
+       rx="2.5332446" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82223px;font-family:'Ubuntu Mono';-inkscape-font-specification:'Ubuntu Mono';fill:#000000;stroke-width:0.264583"
