@@ -39,6 +39,7 @@ struct uPLAT : Module {
   };
   enum InputIds {
     INPUT_INPUT,
+    CV_SIZE_INPUT,
     NUM_INPUTS
   };
   enum OutputIds {
@@ -66,6 +67,7 @@ struct uPLAT : Module {
     configParam(BANDWIDTH_PARAM, 0.f, 1.f, 0.5f, "Tank bandwidth");
     configParam(GAIN_PARAM, 0.f, 2.f, 1.f, "Gain");
     configParam(DRYWET_PARAM, 0.f, 1.f, 0.5f, "Dry/Wet mix");
+    configInput(CV_SIZE_INPUT, "Size CV");
     configInput(INPUT_INPUT, "Input");
     configOutput(LEFT_OUTPUT, "Left output");
     configOutput(RIGHT_OUTPUT, "Right output");
@@ -94,9 +96,21 @@ struct uPLAT : Module {
     float gain = params[GAIN_PARAM].getValue();
     float drywet = params[DRYWET_PARAM].getValue();
     
+    // inputs
+    float cv_size = inputs[CV_SIZE_INPUT].getVoltageSum();
+
     // outputs
     float out_left, out_right;
 
+    // process cv
+    size += cv_size;
+    if(size > 1.f) {
+      size = 1.f;
+    }
+    else if(size < 0.f) {
+      size = 0.f;
+    }
+    
     // set reverb parameters
     reverb.setDecay(decay);
     reverb.setSize(size);
@@ -164,9 +178,11 @@ struct uPLATWidget : ModuleWidget {
     addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 - 8.2, 60.64)), module, uPLAT::MOD_PARAM));
     addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 + 8.2, 60.64)), module, uPLAT::BANDWIDTH_PARAM));
 
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 - 8.2, 104.7 - 26.0)), module, uPLAT::GAIN_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 + 8.2, 104.7 - 26.0)), module, uPLAT::DRYWET_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 - 8.2, 104.7 - 11.0)), module, uPLAT::GAIN_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 + 8.2, 104.7 - 27.5)), module, uPLAT::DRYWET_PARAM));
        
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(17.78 - 8.2, 104.7 - 27.5)), module, uPLAT::CV_SIZE_INPUT));
+    
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(17.78 - 8.2, 104.7)), module, uPLAT::INPUT_INPUT));
     
     addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(17.78 + 8.2, 104.7 - 11.0)), module, uPLAT::LEFT_OUTPUT));
