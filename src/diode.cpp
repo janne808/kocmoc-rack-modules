@@ -293,7 +293,7 @@ void Diode::DiodeFilter(float input){
 	p0 = p0 + alpha_0 * dt * (FloatTanhPade45(input - fb * hp3 + delta_input) - FloatTanhPade45(p0 - p1 + delta_0));
 	p1 = p1 + alpha_1 * 0.5f * dt * (FloatTanhPade45(p0 - p1 + delta_0) - FloatTanhPade45(p1 - p2 + delta_1));
 	p2 = p2 + alpha_2 * 0.5f * dt * (FloatTanhPade45(p1 - p2 + delta_1) - FloatTanhPade45(p2 - p3 + delta_2));
-	p3 = p3 + alpha_3 * 0.5f * dt * (FloatTanhPade45(p2 - p3 + delta_2) - FloatTanhPade32(p3 + delta_3));
+	p3 = p3 + alpha_3 * 0.5f * dt * (FloatTanhPade45(p2 - p3 + delta_2) - FloatTanhPade45(p3 + delta_3));
 
 	hp0 = hp0 + dt_hp * (p3 - hp0);
 	hp1 = p3 - hp0;
