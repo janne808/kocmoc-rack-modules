@@ -68,9 +68,9 @@ struct uPLAT : Module {
     configParam(GAIN_PARAM, 0.f, 2.f, 1.f, "Gain");
     configParam(DRYWET_PARAM, 0.f, 1.f, 0.5f, "Dry/Wet mix");
     configInput(CV_SIZE_INPUT, "Size CV");
-    configInput(INPUT_INPUT, "Input");
-    configOutput(LEFT_OUTPUT, "Left output");
-    configOutput(RIGHT_OUTPUT, "Right output");
+    configInput(INPUT_INPUT, "Audio");
+    configOutput(LEFT_OUTPUT, "Reverb Left");
+    configOutput(RIGHT_OUTPUT, "Reverb Right");
     configBypass(INPUT_INPUT, LEFT_OUTPUT);
     configBypass(INPUT_INPUT, RIGHT_OUTPUT);
 
