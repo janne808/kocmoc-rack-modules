@@ -64,7 +64,7 @@ struct uPLAT : Module {
     configParam(MOD_PARAM, 0.f, 1.f, 0.5f, "Tank modulation amount");
     configParam(DAMP_PARAM, 0.f, 1.f, 0.8f, "Tank damping amount");
     configParam(PREDELAY_PARAM, 0.f, 1.f, 0.f, "Predelay time");
-    configParam(BANDWIDTH_PARAM, 0.f, 1.f, 0.5f, "Tank bandwidth");
+    configSwitch(BANDWIDTH_PARAM, 0.f, 2.f, 1.f, "Tank sampling rate divider", {"/4", "/2", "/1"});
     configParam(GAIN_PARAM, 0.f, 2.f, 1.f, "Gain");
     configParam(DRYWET_PARAM, 0.f, 1.f, 0.5f, "Dry/Wet mix");
     configInput(CV_SIZE_INPUT, "Size CV");
@@ -102,6 +102,11 @@ struct uPLAT : Module {
     // outputs
     float out_left, out_right;
 
+    // shape gain parameter
+    if(gain > 1.f){
+      gain = gain * gain;
+    }
+    
     // process cv
     size += cv_size;
     if(size > 1.f) {
@@ -118,7 +123,7 @@ struct uPLAT : Module {
     reverb.setDamp(damp);
     
     reverb.setPredelay(predelay);
-    reverb.setBandwidth(bandwidth);
+    reverb.setBandwidth(bandwidth/2.f);
     
     reverb.setGain(1.f);
     reverb.setMix(drywet);
@@ -176,7 +181,7 @@ struct uPLATWidget : ModuleWidget {
     addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(17.78 + 8.2, 21.64 + 20.0)), module, uPLAT::PREDELAY_PARAM));
     
     addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 - 8.2, 60.64)), module, uPLAT::MOD_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 + 8.2, 60.64)), module, uPLAT::BANDWIDTH_PARAM));
+    addParam(createParamCentered<CKSSThreeHorizontal>(mm2px(Vec(17.78 + 8.2, 60.64)), module, uPLAT::BANDWIDTH_PARAM));
 
     addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 - 8.2, 104.7 - 11.0)), module, uPLAT::GAIN_PARAM));
     addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(17.78 + 8.2, 104.7 - 27.5)), module, uPLAT::DRYWET_PARAM));
