@@ -112,6 +112,9 @@ struct uDIOD : Module {
     // filter state integration parameters
     float fb, dt, dt_hp, dt_hp2, error_comp, input, out;
     
+    // gain normalization
+    float gainNormalization = 1.f + 4.5f * std::log(1.f + 0.75f * reso);
+
     // shape panel input for a pseudoexponential response
     cutoff = 0.001 + 2.25 * (cutoff * cutoff * cutoff * cutoff);
     gain *= gain * gain * gain;
@@ -192,7 +195,7 @@ struct uDIOD : Module {
 	out = 0.f;
       }
       
-      outputs[OUTPUT_OUTPUT].setVoltage((float)(24.0f * out), ii);
+      outputs[OUTPUT_OUTPUT].setVoltage((float)(24.0f * out * gainNormalization), ii);
     }
 
     // set output to be polyphonic
